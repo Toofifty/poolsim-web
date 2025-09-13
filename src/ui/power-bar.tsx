@@ -1,0 +1,28 @@
+import { useEffect, useState, type MouseEvent } from 'react';
+import { Game } from '../game/game';
+import { Cue } from '../game/objects/cue';
+import './power-bar.scss';
+
+export const PowerBar = () => {
+  const [force, setForce] = useState(() => Game.instance.table.cue.force);
+
+  useEffect(() => {
+    Game.instance.table.cue.force = force;
+  }, [force]);
+
+  const onClick = (event: MouseEvent) => {
+    const area = (event.target as HTMLElement).getBoundingClientRect();
+    setForce((Cue.MAX_FORCE * (event.clientX - area.left)) / area.width);
+  };
+
+  return (
+    <div className="power-bar">
+      <div className="power-bar__click-area" onClick={onClick}>
+        <div
+          className="power-bar__current-power"
+          style={{ width: `${(force / Cue.MAX_FORCE) * 100}%` }}
+        />
+      </div>
+    </div>
+  );
+};

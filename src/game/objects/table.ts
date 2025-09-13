@@ -164,10 +164,9 @@ export class Table {
     // todo: move to simulation
     this.balls.forEach((ball) => ball.update());
     const activeBalls = this.balls.filter((ball) => !ball.isPocketed);
-    const movingBalls = activeBalls.filter((ball) => !ball.isStationary);
 
     const collisions: Collision[] = [];
-    movingBalls.forEach((ball, i) => {
+    activeBalls.forEach((ball, i) => {
       collisions.push(
         ...this.cushions
           .map((cushion) => ball.collide(cushion))

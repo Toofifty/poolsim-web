@@ -2,7 +2,7 @@ export const properties = {
   // physics - cm/s
   frictionSlide: 10,
   frictionSpin: 0.01,
-  frictionRoll: 10,
+  frictionRoll: 1,
   restitutionBallBall: 0.95,
   restitutionBallCushion: 0.8,
   gravity: 1,

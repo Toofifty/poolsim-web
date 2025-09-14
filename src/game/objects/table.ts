@@ -144,7 +144,7 @@ export class Table {
     );
   }
 
-  public update() {
+  public update(updatePocketedBalls?: boolean) {
     if (this.settled) {
       this.cursorPosition = Game.getFirstMouseIntersection(this.plane);
       if (this.cursorPosition) {
@@ -157,6 +157,9 @@ export class Table {
     // not needed in simulation
     this.pockets.forEach((pocket) => {
       pocket.physics.balls.forEach((ball, i) => {
+        if (updatePocketedBalls) {
+          ball.update();
+        }
         this.cushions.map((cushion) => ball.collideCushion(cushion.physics)),
           ball.collidePocket(pocket.physics);
         pocket.physics.balls.slice(i).map((other) => ball.collideBall(other));

@@ -18,9 +18,9 @@ export class Cue {
   private object!: Object3D;
 
   // force in cm/s
-  public force = 100;
+  public force = 50;
 
-  public static MAX_FORCE = 200;
+  public static MAX_FORCE = 100;
 
   private pullBackTimeLeft = 0;
   private pushForwardTimeLeft = 0;

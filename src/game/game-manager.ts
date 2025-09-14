@@ -30,7 +30,7 @@ export class GameManager {
     this.simulation = new Simulation(this.table);
 
     this.setupCueBall();
-    this.setupDebugGame();
+    this.setup9Ball();
     this.startGame();
   }
 
@@ -123,7 +123,7 @@ export class GameManager {
       });
     }
 
-    if (this.state === GameState.PlayerShoot) {
+    if (this.state === GameState.PlayerShoot && !this.table.cue.isShooting) {
       this.simulation.updateAimAssist(this.table.cue.getShot());
     } else {
       this.simulation.clearAimAssist();
@@ -131,6 +131,6 @@ export class GameManager {
     this.table.state.balls.forEach((ball) => ball.updateProjection());
 
     this.updateState();
-    this.table.update();
+    this.table.update(!this.isInPlay);
   }
 }

@@ -1,0 +1,28 @@
+.button {
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: 0.25s;
+  font-family: inherit;
+  font-size: 1em;
+}
+
+.button.surface {
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(32px);
+  }
+}
+
+.button:not(.surface) {
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  &.active {
+    background: #646cff;
+  }
+}

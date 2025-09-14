@@ -31,6 +31,9 @@ export const properties = {
   maxIterations: 10_000,
   trackingPointDist: 10,
 
+  // visuals
+  projectionOpacity: 0.25,
+
   // debugging
   debugLights: false,
   debugBalls: false,

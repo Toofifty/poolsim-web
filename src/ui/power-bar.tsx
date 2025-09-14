@@ -2,6 +2,7 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import { Game } from '../game/game';
 import { Cue } from '../game/objects/cue';
 import './power-bar.scss';
+import { Surface } from './surface';
 
 export const PowerBar = () => {
   const [force, setForce] = useState(() => Game.instance.table.cue.force);
@@ -16,13 +17,13 @@ export const PowerBar = () => {
   };
 
   return (
-    <div className="power-bar">
+    <Surface className="power-bar">
       <div className="power-bar__click-area" onClick={onClick}>
         <div
           className="power-bar__current-power"
           style={{ width: `${(force / Cue.MAX_FORCE) * 100}%` }}
         />
       </div>
-    </div>
+    </Surface>
   );
 };

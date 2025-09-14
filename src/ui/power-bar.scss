@@ -1,30 +1,20 @@
-$br: 16px;
-$pad: 4px;
+@use './var' as *;
 
 .power-bar {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
   height: 32px;
-  border-radius: $br;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: $pad;
-  pointer-events: initial;
-  backdrop-filter: blur(16px);
 }
 
 .power-bar__click-area {
   width: 100%;
   height: 100%;
-  border-radius: $br - $pad;
+  border-radius: $br-surface - $pad-surface;
   background: rgba(0, 0, 0, 0.2);
 }
 
 .power-bar__current-power {
   width: 100%;
   height: 100%;
-  border-radius: $br - $pad;
+  border-radius: $br-surface - $pad-surface;
   background: rgba(255, 255, 255, 0.5);
   pointer-events: none;
 }

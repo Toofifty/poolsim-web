@@ -1,4 +1,4 @@
-import { Quaternion, Vector3 } from 'three';
+import { Quaternion } from 'three';
 import { properties } from './properties';
 import type { Shot } from './shot';
 import { PhysicsCushion } from './cushion';
@@ -34,9 +34,9 @@ export class PhysicsBall {
     this.orientation = randomQuaternion();
   }
 
-  public clone() {
+  public clone(newOwner?: Ball) {
     const newBall = new PhysicsBall(
-      this.owner,
+      newOwner ?? this.owner,
       this.position[0],
       this.position[1]
     );

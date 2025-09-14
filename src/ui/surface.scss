@@ -1,0 +1,12 @@
+@use './var' as *;
+
+.surface {
+  border-radius: $br-surface;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: $pad-surface;
+  margin: $pad-surface;
+  pointer-events: initial;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+}

@@ -1,6 +1,10 @@
 import {
   ArrowHelper,
+  BufferAttribute,
+  BufferGeometry,
   Color,
+  Line,
+  LineBasicMaterial,
   Mesh,
   MeshBasicMaterial,
   MeshPhongMaterial,
@@ -36,6 +40,10 @@ export class Ball {
   private mesh!: Mesh;
 
   private projectionMeshes: Mesh[] = [];
+  private trackingLine?: Line;
+  private geometry!: SphereGeometry;
+  private projectionMaterial!: MeshPhongMaterial;
+  private trackingLineMaterial!: LineBasicMaterial;
 
   private debugStateRing!: Mesh;
   private debugArrowCV!: ArrowHelper;
@@ -49,7 +57,7 @@ export class Ball {
     number: number = -1,
     original?: Ball
   ) {
-    this.physics = original?.physics.clone() ?? new PhysicsBall(this, x, y);
+    this.physics = original?.physics.clone(this) ?? new PhysicsBall(this, x, y);
     this.color = color;
     this.number = number;
     this.original = original;
@@ -65,19 +73,32 @@ export class Ball {
   }
 
   private createMesh() {
-    const geometry = new SphereGeometry(this.physics.radius);
+    this.geometry = new SphereGeometry(this.physics.radius);
+    const texture = createBallTexture({
+      color: `#${this.color.getHexString()}`,
+      number: this.number,
+    });
     const material = new MeshPhongMaterial({
-      map: createBallTexture({
-        color: `#${this.color.getHexString()}`,
-        number: this.number,
-      }),
+      map: texture,
       specular: new Color('#888'),
       shininess: 200,
     });
-    this.mesh = new Mesh(geometry, material);
+    this.mesh = new Mesh(this.geometry, material);
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;
     this.parent.add(this.mesh);
+    this.projectionMaterial = new MeshPhongMaterial({
+      map: texture,
+      specular: new Color('#888'),
+      shininess: 200,
+      transparent: true,
+      opacity: properties.projectionOpacity,
+    });
+    this.trackingLineMaterial = new LineBasicMaterial({
+      color: this.color,
+      transparent: true,
+      opacity: properties.projectionOpacity,
+    });
   }
 
   private createDebugMesh() {
@@ -216,26 +237,50 @@ export class Ball {
 
   private updateMesh() {
     this.mesh.rotation.setFromQuaternion(this.physics.orientation);
-
     this.parent.position.copy(this.position);
   }
 
   public updateProjection() {
-    this.projectionMeshes.forEach((mesh) => this.parent.remove(mesh));
-    this.projectionMeshes = [];
+    const thisPosition = this.position;
 
+    // ball collision projections
+    this.projectionMeshes.forEach((mesh) => Game.remove(mesh));
+    this.projectionMeshes = [];
     for (let i = 0; i < this.collisionPoints.length; i++) {
       const position = this.collisionPoints[i];
       const orientation = this.collisionOrientations[i];
-      const mesh = this.mesh.clone();
-      mesh.position.copy(position.clone().sub(this.position));
+      if (position.distanceToSquared(thisPosition) < 0.1) {
+        continue;
+      }
+
+      const mesh = new Mesh(this.geometry, this.projectionMaterial);
+      mesh.position.copy(position);
       mesh.rotation.setFromQuaternion(orientation);
-      (mesh.material as MeshPhongMaterial).transparent = true;
-      (mesh.material as MeshPhongMaterial).opacity = 0.5;
       this.projectionMeshes.push(mesh);
     }
+    this.projectionMeshes.forEach((mesh) => Game.add(mesh));
 
-    this.projectionMeshes.forEach((mesh) => this.parent.add(mesh));
+    // ball tracking line
+    if (this.trackingLine) {
+      Game.remove(this.trackingLine);
+      this.trackingLine.geometry.dispose();
+      this.trackingLine = undefined;
+    }
+
+    const positions = new Float32Array(3 + this.trackingPoints.length * 3);
+    positions[0] = thisPosition.x;
+    positions[1] = thisPosition.y;
+    positions[2] = thisPosition.z;
+    for (let i = 0; i < this.trackingPoints.length; i++) {
+      positions[(i + 1) * 3] = this.trackingPoints[i].x;
+      positions[(i + 1) * 3 + 1] = this.trackingPoints[i].y;
+      positions[(i + 1) * 3 + 2] = this.trackingPoints[i].z;
+    }
+
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(positions, 3));
+    this.trackingLine = new Line(geometry, this.trackingLineMaterial);
+    Game.add(this.trackingLine);
   }
 
   private updateDebug() {

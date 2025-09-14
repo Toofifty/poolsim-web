@@ -1,4 +1,3 @@
-import type { Vector3 } from 'three';
 import type { PhysicsBall } from './ball';
 import type { PhysicsCushion } from './cushion';
 import type { PhysicsPocket } from './pocket';

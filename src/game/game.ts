@@ -6,9 +6,10 @@ import {
   Camera,
   DirectionalLight,
   DirectionalLightHelper,
+  Line,
+  Mesh,
   MOUSE,
   Object3D,
-  OrthographicCamera,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PositionalAudio,
@@ -208,7 +209,7 @@ export class Game {
     lightBL.position.z = lheight;
     this.scene.add(lightBL);
 
-    const lightBR = new DirectionalLight(0xffffff, 1.4);
+    const lightBR = new DirectionalLight(0xffffff, 0.8);
     lightBR.shadow.bias = -0.00005;
     lightBR.shadow.mapSize.set(4096, 4096);
     lightBR.castShadow = true;
@@ -238,6 +239,14 @@ export class Game {
       return intersections[0].point;
     }
     return undefined;
+  }
+
+  public static add(mesh: Mesh | Line) {
+    this.instance.scene.add(mesh);
+  }
+
+  public static remove(mesh: Mesh | Line) {
+    this.instance.scene.remove(mesh);
   }
 
   public playAudio(

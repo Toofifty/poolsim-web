@@ -9,7 +9,7 @@ const colors = [
   new Color('#0000FF'),
   new Color('#FF0000'),
   new Color('#880088'),
-  new Color('#FF8800'),
+  new Color('#FF4400'),
   new Color('#008800'),
   new Color('#880000'),
   new Color('#000000'),
@@ -17,7 +17,7 @@ const colors = [
   new Color('#0000FF'),
   new Color('#FF0000'),
   new Color('#880088'),
-  new Color('#FF8800'),
+  new Color('#FF4400'),
   new Color('#008800'),
   new Color('#880000'),
 ];

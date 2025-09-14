@@ -224,12 +224,10 @@ export class Simulation {
     const end = Game.profiler.startProfile('aim');
     this.clearAimAssist();
 
-    console.time('simulate');
     const result = this.run(shot, true);
 
     // add final resting points
     result.state?.balls.forEach((ball) => ball.addCollisionPoint());
-    console.timeEnd('simulate');
 
     this.lastSimulationKey = this.getKey(shot);
     end();

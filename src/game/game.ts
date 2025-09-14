@@ -62,18 +62,18 @@ export class Game {
     this.scene = new Scene();
 
     const aspect = window.innerWidth / window.innerHeight;
-    // this.camera = new PerspectiveCamera(25, aspect, 0.1, 4000);
+    this.camera = new PerspectiveCamera(25, aspect, 0.1, 4000);
 
-    const frustumHeight = 200;
-    const frustumWidth = frustumHeight * aspect;
-    this.camera = new OrthographicCamera(
-      -frustumWidth / 2,
-      frustumWidth / 2,
-      frustumHeight / 2,
-      -frustumHeight / 2,
-      0.1,
-      2000
-    );
+    // const frustumHeight = 200;
+    // const frustumWidth = frustumHeight * aspect;
+    // this.camera = new OrthographicCamera(
+    //   -frustumWidth / 2,
+    //   frustumWidth / 2,
+    //   frustumHeight / 2,
+    //   -frustumHeight / 2,
+    //   0.1,
+    //   2000
+    // );
 
     this.camera.position.z = 400;
     this.camera.up.set(0, 0, 1);

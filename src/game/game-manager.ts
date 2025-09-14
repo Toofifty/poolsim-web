@@ -2,6 +2,8 @@ import { Color } from 'three';
 import { Table } from './objects/table';
 import { Ball } from './objects/ball';
 import { Rack } from './rack';
+import { Simulation } from './simulation/simulation';
+import { Game } from './game';
 
 export enum GameState {
   PlayerShoot,
@@ -18,11 +20,13 @@ export enum GameMode {
 
 export class GameManager {
   public table: Table;
+  public simulation: Simulation;
   public state!: GameState;
   public mode!: GameMode;
 
   constructor() {
     this.table = new Table();
+    this.simulation = new Simulation(this.table);
 
     this.setupCueBall();
     this.setup8Ball();
@@ -34,7 +38,7 @@ export class GameManager {
   }
 
   public placeCueBall() {
-    this.table.cueBall.place(-40, 0);
+    this.table.state.cueBall.place(-40, 0);
   }
 
   public setup8Ball() {
@@ -57,9 +61,16 @@ export class GameManager {
 
   public mousedown(event: MouseEvent) {
     if (event.button === 0 && this.state === GameState.PlayerShoot) {
-      this.table.cue.shoot();
-      this.state = GameState.PlayerInPlay;
+      this.table.cue.shoot(() => {
+        this.state = GameState.PlayerInPlay;
+      });
     }
+  }
+
+  get isInPlay() {
+    return (
+      this.state === GameState.AIInPlay || this.state === GameState.PlayerInPlay
+    );
   }
 
   private updateState() {
@@ -67,7 +78,7 @@ export class GameManager {
       return;
     }
 
-    if (this.table.cueBall.isPocketed) {
+    if (this.table.state.cueBall.isPocketed) {
       this.placeCueBall();
     }
 
@@ -83,6 +94,25 @@ export class GameManager {
   }
 
   public update() {
+    if (this.isInPlay) {
+      const result = this.simulation.step();
+      result.collisions.forEach((collision) => {
+        if (collision.type === 'ball-ball') {
+          Game.playAudio(
+            'clack',
+            collision.position,
+            Math.min(collision.impulse.length() / 10, 10)
+          );
+        }
+      });
+    }
+
+    if (this.state === GameState.PlayerShoot) {
+      this.simulation.updateAimAssist(this.table.cue.getShot());
+    } else {
+      this.simulation.clearAimAssist();
+    }
+
     this.updateState();
     this.table.update();
   }

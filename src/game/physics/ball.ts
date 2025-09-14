@@ -9,6 +9,7 @@ import type {
   BallPocketCollision,
 } from './collision';
 import type { PhysicsPocket } from './pocket';
+import type { Ball } from '../objects/ball';
 
 export class PhysicsBall {
   public position: Vector3;
@@ -18,11 +19,11 @@ export class PhysicsBall {
   public radius: number;
   public orientation: Quaternion;
 
-  public isStationary = false;
+  public isStationary = true;
 
   public pocket?: PhysicsPocket;
 
-  constructor(x: number, y: number) {
+  constructor(public owner: Ball, x: number, y: number) {
     this.position = new Vector3(x, y, 0);
     this.velocity = new Vector3(0, 0, 0);
     this.angularVelocity = new Vector3(0, 0, 0);
@@ -32,10 +33,18 @@ export class PhysicsBall {
   }
 
   public clone() {
-    const newBall = new PhysicsBall(this.position.x, this.position.y);
-    newBall.position = this.position.clone();
-    newBall.velocity = this.velocity.clone();
-    newBall.angularVelocity = this.angularVelocity.clone();
+    const newBall = new PhysicsBall(
+      this.owner,
+      this.position.x,
+      this.position.y
+    );
+    newBall.position.copy(this.position);
+    newBall.velocity.copy(this.velocity);
+    newBall.angularVelocity.copy(this.angularVelocity);
+    newBall.orientation.copy(this.orientation);
+    newBall.isStationary = this.isStationary;
+    newBall.pocket = this.pocket;
+    return newBall;
   }
 
   public hit(shot: Shot) {
@@ -252,13 +261,16 @@ export class PhysicsBall {
     return undefined;
   }
 
-  public collidePocket(pocket: PhysicsPocket): BallPocketCollision | undefined {
+  public collidePocket(
+    pocket: PhysicsPocket,
+    simulated = false
+  ): BallPocketCollision | undefined {
     const dist = this.position
       .clone()
       .setZ(0)
       .distanceTo(pocket.position.clone().setZ(0));
 
-    if (this.isPocketed && this.pocket === pocket) {
+    if (!simulated && this.isPocketed && this.pocket === pocket) {
       // testing collision within the pocket
       if (dist > pocket.radius - this.radius) {
         // edge of pocket
@@ -297,7 +309,9 @@ export class PhysicsBall {
 
     if (dist < pocket.radius) {
       this.pocket = pocket;
-      pocket.addBall(this);
+      if (!simulated) {
+        pocket.addBall(this);
+      }
       return {
         type: 'ball-pocket',
         initiator: this,

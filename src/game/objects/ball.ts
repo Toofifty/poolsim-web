@@ -5,6 +5,7 @@ import {
   MeshBasicMaterial,
   MeshPhongMaterial,
   Object3D,
+  Quaternion,
   SphereGeometry,
   TorusGeometry,
   Vector3,
@@ -24,6 +25,12 @@ export class Ball {
   public number: number;
   private color: Color;
 
+  // simulation
+  private collisionPoints: Vector3[] = [];
+  private collisionOrientations: Quaternion[] = [];
+  private trackingPoints: Vector3[] = [];
+  private original?: Ball;
+
   public parent!: Object3D;
   private mesh!: Mesh;
 
@@ -32,14 +39,23 @@ export class Ball {
   private debugArrowV!: ArrowHelper;
   private debugArrowW!: ArrowHelper;
 
-  constructor(x: number, y: number, color: Color, number: number = -1) {
-    this.physics = new PhysicsBall(x, y);
+  constructor(
+    x: number,
+    y: number,
+    color: Color,
+    number: number = -1,
+    physics?: PhysicsBall
+  ) {
+    this.physics = physics ?? new PhysicsBall(this, x, y);
     this.color = color;
     this.number = number;
     this.parent = new Object3D();
     this.parent.position.add(this.physics.position);
     this.createMesh();
     this.createDebugMesh();
+
+    this.updateMesh();
+    this.updateDebug();
   }
 
   private createMesh() {
@@ -94,6 +110,16 @@ export class Ball {
     this.parent.add(this.debugArrowW);
   }
 
+  public clone() {
+    return new Ball(
+      this.position.x,
+      this.position.y,
+      this.color,
+      this.number,
+      this.physics.clone()
+    );
+  }
+
   get position() {
     return this.physics.position;
   }
@@ -112,15 +138,27 @@ export class Ball {
 
   public collide(object: Ball | Cushion | Pocket): Collision | undefined {
     if (object instanceof Ball) {
-      return this.physics.collideBall(object.physics);
+      return this.collideBall(object);
     }
     if (object instanceof Cushion) {
-      return this.physics.collideCushion(object.physics);
+      return this.collideCushion(object);
     }
     if (object instanceof Pocket) {
-      return this.physics.collidePocket(object.physics);
+      return this.collidePocket(object);
     }
     return undefined;
+  }
+
+  public collideBall(ball: Ball) {
+    return this.physics.collideBall(ball.physics);
+  }
+
+  public collideCushion(cushion: Cushion) {
+    return this.physics.collideCushion(cushion.physics);
+  }
+
+  public collidePocket(pocket: Pocket, simulated = false) {
+    return this.physics.collidePocket(pocket.physics, simulated);
   }
 
   public place(x: number, y: number) {
@@ -129,15 +167,50 @@ export class Ball {
     this.physics.position.set(x, y, 0);
     this.physics.velocity.multiplyScalar(0);
     this.physics.angularVelocity.multiplyScalar(0);
+
+    this.updateMesh();
+    this.updateDebug();
+  }
+
+  public clearCollisionPoints() {
+    if (this.original) {
+      this.original.clearCollisionPoints();
+      return;
+    }
+    this.collisionPoints = [];
+    this.collisionOrientations = [];
+    this.trackingPoints = [];
+  }
+
+  public addCollisionPoint(position?: Vector3, orientation?: Quaternion) {
+    position = (position ?? this.position).clone();
+    orientation = (orientation ?? this.physics.orientation).clone();
+    if (this.original) {
+      this.original.addCollisionPoint(position, orientation);
+      return;
+    }
+    this.collisionPoints.push(position);
+    this.collisionOrientations.push(orientation);
+    this.trackingPoints.push(position);
+  }
+
+  public addTrackingPoint(position?: Vector3) {
+    if (!this.isPocketed) {
+      this.trackingPoints.push(position ?? this.position);
+    }
   }
 
   public update() {
     this.physics.update();
+    this.updateMesh();
+    this.updateDebug();
+  }
+
+  private updateMesh() {
     this.mesh.rotation.setFromQuaternion(this.physics.orientation);
 
     this.parent.position.sub(this.parent.position);
     this.parent.position.add(this.physics.position);
-    this.updateDebug();
   }
 
   private updateDebug() {

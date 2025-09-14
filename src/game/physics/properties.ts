@@ -27,6 +27,10 @@ export const properties = {
   pocketEdgeOverlap: 2,
   bumperWidth: 4,
 
+  // simulation
+  maxIterations: 10_000,
+  trackingPointDist: 10,
+
   // debugging
   debugLights: false,
   debugBalls: false,

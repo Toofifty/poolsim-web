@@ -25,6 +25,8 @@ export class Cue {
   private pullBackTimeLeft = 0;
   private pushForwardTimeLeft = 0;
 
+  private onShotMade?: () => void;
+
   private restingPosition = new Vector3(
     0,
     -(properties.cueLength / 2 + properties.ballRadius + 2),
@@ -88,12 +90,17 @@ export class Cue {
     return this.anchor.rotation.z + Math.PI / 2;
   }
 
-  public shoot() {
+  public shoot(onShotMade?: () => void) {
     if (!this.targetBall || !this.targetBall.isStationary) {
       return;
     }
 
     this.pullBackTimeLeft = properties.cuePullBackTime;
+    this.onShotMade = onShotMade;
+  }
+
+  public getShot() {
+    return new Shot(this.angle, this.force);
   }
 
   public get isShooting() {
@@ -126,7 +133,9 @@ export class Cue {
         this.pushForwardTimeLeft -= dt;
         if (this.pushForwardTimeLeft <= 0) {
           this.pushForwardTimeLeft = 0;
-          this.targetBall?.hit(new Shot(this.angle, this.force));
+          this.targetBall?.hit(this.getShot());
+          this.onShotMade?.();
+          this.onShotMade = undefined;
         }
       }
 

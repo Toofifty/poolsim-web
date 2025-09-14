@@ -1,10 +1,10 @@
 import { Vector3 } from 'three';
 
 export class Shot {
-  private angle: number;
-  private force: number;
-  private sideSpin: number;
-  private topSpin: number;
+  public angle: number;
+  public force: number;
+  public sideSpin: number;
+  public topSpin: number;
 
   constructor(
     angle: number,

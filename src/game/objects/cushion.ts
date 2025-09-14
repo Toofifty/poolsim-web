@@ -17,8 +17,6 @@ export class Cushion {
 
   constructor(physics: PhysicsCushion) {
     this.physics = physics;
-
-    // todo: 3d cushion model
     this.createMesh();
   }
 

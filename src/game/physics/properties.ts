@@ -34,6 +34,6 @@ export const properties = {
   // debugging
   debugLights: false,
   debugBalls: false,
-  debugCollisionBoxes: true,
-  enableProfiler: true,
+  debugCollisionBoxes: false,
+  enableProfiler: false,
 };

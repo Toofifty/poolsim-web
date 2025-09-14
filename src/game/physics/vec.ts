@@ -2,8 +2,6 @@ import { Vector3 } from 'three';
 
 export type Vec = [number, number, number];
 
-export const zeroVec: Vec = [0, 0, 0];
-
 export const vec = {
   new: (x?: number, y?: number, z?: number): Vec => [x ?? 0, y ?? 0, z ?? 0],
   from: (v: Vector3): Vec => [v.x, v.y, v.z],
@@ -18,7 +16,7 @@ export const vec = {
 
   norm: (v: Vec): Vec => {
     const l = vec.len(v);
-    if (l === 0) return zeroVec;
+    if (l === 0) return vec.zero;
     return [v[0] / l, v[1] / l, v[2] / l];
   },
 
@@ -33,6 +31,14 @@ export const vec = {
         (v1[2] - v2[2]) * (v1[2] - v2[2])
     ),
   dot: (v1: Vec, v2: Vec) => v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2],
+  cross: (v1: Vec, v2: Vec): Vec => [
+    v1[1] * v2[2] - v1[2] * v2[1],
+    v1[2] * v2[0] - v1[0] * v2[2],
+    v1[0] * v2[1] - v1[1] * v2[0],
+  ],
+  setX: (v: Vec, x: number): Vec => [x, v[1], v[2]],
+  setY: (v: Vec, y: number): Vec => [v[0], y, v[2]],
+  setZ: (v: Vec, z: number): Vec => [v[0], v[1], z],
 
   // mutative - only for class properties
   madd: (v1: Vec, v2: Vec) => {
@@ -47,4 +53,36 @@ export const vec = {
     v1[2] -= v2[2];
     return v1;
   },
+  mmult: (v: Vec, s: number) => {
+    v[0] *= s;
+    v[1] *= s;
+    v[2] *= s;
+    return v;
+  },
+  mcopy: (v1: Vec, v2: Vec) => {
+    v1[0] = v2[0];
+    v1[1] = v2[1];
+    v1[2] = v2[2];
+    return v1;
+  },
+  mset: (v: Vec, x: number, y: number, z: number) => {
+    v[0] = x;
+    v[1] = y;
+    v[2] = z;
+    return v;
+  },
+  msetX: (v: Vec, x: number) => {
+    v[0] = x;
+    return v;
+  },
+  msetY: (v: Vec, y: number) => {
+    v[1] = y;
+    return v;
+  },
+  msetZ: (v: Vec, z: number) => {
+    v[2] = z;
+    return v;
+  },
+
+  zero: [0, 0, 0] as Vec,
 };

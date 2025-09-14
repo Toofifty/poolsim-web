@@ -18,6 +18,7 @@ import type { Collision } from '../physics/collision';
 import { Pocket } from './pocket';
 import { properties } from '../physics/properties';
 import { Game } from '../game';
+import { vec } from '../physics/vec';
 
 export class Ball {
   private physics: PhysicsBall;
@@ -54,7 +55,7 @@ export class Ball {
     this.original = original;
     if (!original) {
       this.parent = new Object3D();
-      this.parent.position.add(this.physics.position);
+      this.parent.position.add(this.position);
       this.createMesh();
       this.createDebugMesh();
 
@@ -126,7 +127,7 @@ export class Ball {
   }
 
   get position() {
-    return this.physics.position;
+    return vec.toVector3(this.physics.position);
   }
 
   get isStationary() {
@@ -169,9 +170,9 @@ export class Ball {
   public place(x: number, y: number) {
     this.physics.removeFromPocket();
 
-    this.physics.position.set(x, y, 0);
-    this.physics.velocity.multiplyScalar(0);
-    this.physics.angularVelocity.multiplyScalar(0);
+    vec.mset(this.physics.position, x, y, 0);
+    vec.mmult(this.physics.velocity, 0);
+    vec.mmult(this.physics.angularVelocity, 0);
 
     this.updateMesh();
     this.updateDebug();
@@ -216,7 +217,7 @@ export class Ball {
   private updateMesh() {
     this.mesh.rotation.setFromQuaternion(this.physics.orientation);
 
-    this.parent.position.copy(this.physics.position);
+    this.parent.position.copy(this.position);
   }
 
   public updateProjection() {
@@ -256,15 +257,15 @@ export class Ball {
     );
     this.debugStateRing.lookAt(Game.instance.camera.position);
 
-    const cv = this.physics.contactVelocity.clone();
+    const cv = vec.toVector3(this.physics.contactVelocity);
     this.debugArrowCV.setDirection(cv.clone().normalize());
     this.debugArrowCV.setLength(cv.length());
 
-    const v = this.physics.velocity.clone();
+    const v = vec.toVector3(this.physics.velocity);
     this.debugArrowV.setDirection(v.clone().normalize());
     this.debugArrowV.setLength(v.length());
 
-    const w = this.physics.angularVelocity.clone();
+    const w = vec.toVector3(this.physics.angularVelocity);
     this.debugArrowW.setDirection(w.clone().normalize());
     this.debugArrowW.setLength(w.length());
   }

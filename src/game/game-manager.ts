@@ -4,6 +4,7 @@ import { Ball } from './objects/ball';
 import { Rack } from './rack';
 import { Simulation } from './simulation/simulation';
 import { Game } from './game';
+import { vec } from './physics/vec';
 
 export enum GameState {
   PlayerShoot,
@@ -76,10 +77,7 @@ export class GameManager {
 
   public keyup(event: KeyboardEvent) {
     if (event.key === 's') {
-      const end = Game.profiler.startProfile('aim');
       this.simulation.updateAimAssist(this.table.cue.getShot());
-      end();
-      Game.profiler.dump();
     } else {
       console.log(event.key);
     }
@@ -118,19 +116,19 @@ export class GameManager {
         if (collision.type === 'ball-ball') {
           Game.playAudio(
             'clack',
-            collision.position,
-            Math.min(collision.impulse.length() / 10, 10)
+            vec.toVector3(collision.position),
+            Math.min(vec.len(collision.impulse) / 10, 10)
           );
         }
       });
     }
 
-    // if (this.state === GameState.PlayerShoot) {
-    //   this.simulation.updateAimAssist(this.table.cue.getShot());
-    // } else {
-    //   this.simulation.clearAimAssist();
-    // }
-    // this.table.state.balls.forEach((ball) => ball.updateProjection());
+    if (this.state === GameState.PlayerShoot) {
+      this.simulation.updateAimAssist(this.table.cue.getShot());
+    } else {
+      this.simulation.clearAimAssist();
+    }
+    this.table.state.balls.forEach((ball) => ball.updateProjection());
 
     this.updateState();
     this.table.update();

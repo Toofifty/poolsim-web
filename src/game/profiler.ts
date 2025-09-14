@@ -10,6 +10,10 @@ export class Profiler {
   private activeProfileStack: string[] = [];
 
   public dump() {
+    if (!properties.enableProfiler) {
+      return;
+    }
+
     const profiles = Object.fromEntries(
       Object.entries(this.profiles).map(([key, timings]) => {
         const path = key.split('.');

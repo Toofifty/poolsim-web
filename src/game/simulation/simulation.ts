@@ -216,14 +216,13 @@ export class Simulation {
   }
 
   public updateAimAssist(shot: Shot) {
-    // if (
-    //   Math.abs(this.lastSimulationKey - this.getKey(shot)) < properties.epsilon
-    // ) {
-    //   return;
-    // }
-    const end = Game.profiler.startProfile('clear');
+    if (
+      Math.abs(this.lastSimulationKey - this.getKey(shot)) < properties.epsilon
+    ) {
+      return;
+    }
+    const end = Game.profiler.startProfile('aim');
     this.clearAimAssist();
-    end();
 
     console.time('simulate');
     const result = this.run(shot, true);
@@ -233,5 +232,7 @@ export class Simulation {
     console.timeEnd('simulate');
 
     this.lastSimulationKey = this.getKey(shot);
+    end();
+    Game.profiler.dump();
   }
 }

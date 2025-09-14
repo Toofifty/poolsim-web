@@ -29,6 +29,7 @@ import {
 import clackUrl from '../assets/clack.wav';
 import { GameManager } from './game-manager';
 import { properties } from './physics/properties';
+import { Profiler } from './profiler';
 
 type AudioBuffers = Partial<Record<'clack', AudioBuffer>>;
 
@@ -51,6 +52,7 @@ export class Game {
   private audioBuffers: AudioBuffers = {};
 
   public static instance: Game;
+  public static profiler = new Profiler();
 
   constructor() {
     Game.instance = this;
@@ -149,6 +151,10 @@ export class Game {
 
     el.addEventListener('mousedown', (e) => {
       this.manager.mousedown(e);
+    });
+
+    document.addEventListener('keyup', (e) => {
+      this.manager.keyup(e);
     });
   }
 

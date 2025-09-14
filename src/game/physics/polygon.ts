@@ -1,27 +1,52 @@
-import type { Vector3 } from 'three';
 import { constrain } from '../math';
+import { properties } from './properties';
+import { vec, type Vec } from './vec';
 
 export class Polygon {
-  public vertices: Vector3[];
+  public vertices: Vec[];
+  public collisionBox: [Vec, Vec];
 
-  constructor(vertices: Vector3[]) {
+  constructor(vertices: Vec[]) {
     this.vertices = vertices;
+
+    let minX = 0;
+    let minY = 0;
+    let maxX = 0;
+    let maxY = 0;
+    for (let i = 0; i < vertices.length; i++) {
+      const v = vertices[i];
+      if (minX === 0 || v[0] < minX) minX = v[0];
+      if (maxX === 0 || v[0] > maxX) maxX = v[0];
+      if (minY === 0 || v[1] < minY) minY = v[1];
+      if (maxY === 0 || v[1] > maxY) maxY = v[1];
+    }
+    const { ballRadius: br } = properties;
+    this.collisionBox = [
+      vec.new(minX - br, minY - br),
+      vec.new(maxX - minX + br * 2, maxY - minY + br * 2),
+    ];
   }
 
-  public getFlatVertices() {
-    return this.vertices.flatMap((vertex) => [vertex.x, vertex.y, vertex.z]);
+  public inBounds(point: Vec) {
+    const [position, size] = this.collisionBox;
+    return (
+      point[0] >= position[0] &&
+      point[0] <= position[0] + size[0] &&
+      point[1] >= position[1] &&
+      point[1] <= position[1] + size[1]
+    );
   }
 
-  public findClosestPoint(point: Vector3) {
+  public findClosestPoint(point: Vec) {
     let closest = this.vertices[0];
-    let minDistSq = point.clone().sub(closest).lengthSq();
+    let minDistSq = vec.lenSq(vec.sub(point, closest));
 
     for (let i = 0; i < this.vertices.length; i++) {
       const start = this.vertices[i];
       const end = this.vertices[(i + 1) % this.vertices.length];
 
       const closestOnEdge = this.findClosestPointOnLine(point, start, end);
-      const distSq = point.clone().sub(closestOnEdge).lengthSq();
+      const distSq = vec.lenSq(vec.sub(point, closestOnEdge));
 
       if (distSq < minDistSq) {
         minDistSq = distSq;
@@ -32,15 +57,15 @@ export class Polygon {
     return closest;
   }
 
-  private findClosestPointOnLine(point: Vector3, start: Vector3, end: Vector3) {
-    const line = end.clone().sub(start);
-    const toPoint = point.clone().sub(start);
+  private findClosestPointOnLine(point: Vec, start: Vec, end: Vec) {
+    const line = vec.sub(end, start);
+    const toPoint = vec.sub(point, start);
 
-    if (line.length() === 0) {
-      return start.clone();
+    if (vec.isZero(line)) {
+      return start;
     }
 
-    const t = constrain(toPoint.dot(line) / line.lengthSq(), 0, 1);
-    return start.clone().add(line.clone().multiplyScalar(t));
+    const t = constrain(vec.dot(toPoint, line) / vec.lenSq(line), 0, 1);
+    return vec.add(start, vec.mult(line, t));
   }
 }

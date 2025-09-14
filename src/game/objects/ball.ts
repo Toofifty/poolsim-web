@@ -34,6 +34,8 @@ export class Ball {
   public parent!: Object3D;
   private mesh!: Mesh;
 
+  private projectionMeshes: Mesh[] = [];
+
   private debugStateRing!: Mesh;
   private debugArrowCV!: ArrowHelper;
   private debugArrowV!: ArrowHelper;
@@ -44,18 +46,21 @@ export class Ball {
     y: number,
     color: Color,
     number: number = -1,
-    physics?: PhysicsBall
+    original?: Ball
   ) {
-    this.physics = physics ?? new PhysicsBall(this, x, y);
+    this.physics = original?.physics.clone() ?? new PhysicsBall(this, x, y);
     this.color = color;
     this.number = number;
-    this.parent = new Object3D();
-    this.parent.position.add(this.physics.position);
-    this.createMesh();
-    this.createDebugMesh();
+    this.original = original;
+    if (!original) {
+      this.parent = new Object3D();
+      this.parent.position.add(this.physics.position);
+      this.createMesh();
+      this.createDebugMesh();
 
-    this.updateMesh();
-    this.updateDebug();
+      this.updateMesh();
+      this.updateDebug();
+    }
   }
 
   private createMesh() {
@@ -116,7 +121,7 @@ export class Ball {
       this.position.y,
       this.color,
       this.number,
-      this.physics.clone()
+      this
     );
   }
 
@@ -202,15 +207,34 @@ export class Ball {
 
   public update() {
     this.physics.update();
-    this.updateMesh();
-    this.updateDebug();
+    if (!this.original) {
+      this.updateMesh();
+      this.updateDebug();
+    }
   }
 
   private updateMesh() {
     this.mesh.rotation.setFromQuaternion(this.physics.orientation);
 
-    this.parent.position.sub(this.parent.position);
-    this.parent.position.add(this.physics.position);
+    this.parent.position.copy(this.physics.position);
+  }
+
+  public updateProjection() {
+    this.projectionMeshes.forEach((mesh) => this.parent.remove(mesh));
+    this.projectionMeshes = [];
+
+    for (let i = 0; i < this.collisionPoints.length; i++) {
+      const position = this.collisionPoints[i];
+      const orientation = this.collisionOrientations[i];
+      const mesh = this.mesh.clone();
+      mesh.position.copy(position.clone().sub(this.position));
+      mesh.rotation.setFromQuaternion(orientation);
+      (mesh.material as MeshPhongMaterial).transparent = true;
+      (mesh.material as MeshPhongMaterial).opacity = 0.5;
+      this.projectionMeshes.push(mesh);
+    }
+
+    this.projectionMeshes.forEach((mesh) => this.parent.add(mesh));
   }
 
   private updateDebug() {

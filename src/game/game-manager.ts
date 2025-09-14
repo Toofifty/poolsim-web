@@ -29,7 +29,7 @@ export class GameManager {
     this.simulation = new Simulation(this.table);
 
     this.setupCueBall();
-    this.setup8Ball();
+    this.setupDebugGame();
     this.startGame();
   }
 
@@ -55,6 +55,13 @@ export class GameManager {
     this.mode = GameMode._9Ball;
   }
 
+  public setupDebugGame() {
+    this.placeCueBall();
+    this.table.clearTargetBalls();
+    this.table.add(...Rack.generateDebugGame(40, 0));
+    this.mode = GameMode._9Ball;
+  }
+
   public startGame() {
     this.state = GameState.PlayerShoot;
   }
@@ -64,6 +71,17 @@ export class GameManager {
       this.table.cue.shoot(() => {
         this.state = GameState.PlayerInPlay;
       });
+    }
+  }
+
+  public keyup(event: KeyboardEvent) {
+    if (event.key === 's') {
+      const end = Game.profiler.startProfile('aim');
+      this.simulation.updateAimAssist(this.table.cue.getShot());
+      end();
+      Game.profiler.dump();
+    } else {
+      console.log(event.key);
     }
   }
 
@@ -107,11 +125,12 @@ export class GameManager {
       });
     }
 
-    if (this.state === GameState.PlayerShoot) {
-      this.simulation.updateAimAssist(this.table.cue.getShot());
-    } else {
-      this.simulation.clearAimAssist();
-    }
+    // if (this.state === GameState.PlayerShoot) {
+    //   this.simulation.updateAimAssist(this.table.cue.getShot());
+    // } else {
+    //   this.simulation.clearAimAssist();
+    // }
+    // this.table.state.balls.forEach((ball) => ball.updateProjection());
 
     this.updateState();
     this.table.update();

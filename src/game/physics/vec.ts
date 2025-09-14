@@ -1,0 +1,50 @@
+import { Vector3 } from 'three';
+
+export type Vec = [number, number, number];
+
+export const zeroVec: Vec = [0, 0, 0];
+
+export const vec = {
+  new: (x?: number, y?: number, z?: number): Vec => [x ?? 0, y ?? 0, z ?? 0],
+  from: (v: Vector3): Vec => [v.x, v.y, v.z],
+  toVector3: (v: Vec) => new Vector3(v[0], v[1], v[2]),
+  toVector3s: (vs: Vec[]) => vs.map((v) => vec.toVector3(v)),
+
+  add: (v1: Vec, v2: Vec): Vec => [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]],
+  sub: (v1: Vec, v2: Vec): Vec => [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]],
+
+  mult: (v: Vec, s: number): Vec => [v[0] * s, v[1] * s, v[2] * s],
+  div: (v: Vec, s: number): Vec => [v[0] / s, v[1] / s, v[2] / s],
+
+  norm: (v: Vec): Vec => {
+    const l = vec.len(v);
+    if (l === 0) return zeroVec;
+    return [v[0] / l, v[1] / l, v[2] / l];
+  },
+
+  lenSq: (v: Vec) => v[0] * v[0] + v[1] * v[1] + v[2] * v[2],
+  len: (v: Vec) => Math.sqrt(vec.lenSq(v)),
+  isZero: (v: Vec) => v[0] + v[1] + v[2] === 0,
+
+  dist: (v1: Vec, v2: Vec) =>
+    Math.sqrt(
+      (v1[0] - v2[0]) * (v1[0] - v2[0]) +
+        (v1[1] - v2[1]) * (v1[1] - v2[1]) +
+        (v1[2] - v2[2]) * (v1[2] - v2[2])
+    ),
+  dot: (v1: Vec, v2: Vec) => v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2],
+
+  // mutative - only for class properties
+  madd: (v1: Vec, v2: Vec) => {
+    v1[0] += v2[0];
+    v1[1] += v2[1];
+    v1[2] += v2[2];
+    return v1;
+  },
+  msub: (v1: Vec, v2: Vec) => {
+    v1[0] -= v2[0];
+    v1[1] -= v2[1];
+    v1[2] -= v2[2];
+    return v1;
+  },
+};

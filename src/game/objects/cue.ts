@@ -80,10 +80,10 @@ export class Cue {
     if (this.isShooting || !this.targetBall || !this.targetBall.isStationary) {
       return;
     }
-    const position = this.targetBall.position.clone();
-    const angle = Math.atan2(point.y - position.y, point.x - position.x);
-    this.anchor.rotation.z = angle - Math.PI / 2;
-    this.object.position.copy(this.restingPosition);
+    // const position = this.targetBall.position.clone();
+    // const angle = Math.atan2(point.y - position.y, point.x - position.x);
+    // this.anchor.rotation.z = angle - Math.PI / 2;
+    // this.object.position.copy(this.restingPosition);
   }
 
   public get angle() {

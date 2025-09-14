@@ -10,6 +10,8 @@ import type {
 } from './collision';
 import type { PhysicsPocket } from './pocket';
 import type { Ball } from '../objects/ball';
+import { vec } from './vec';
+import { Game } from '../game';
 
 export class PhysicsBall {
   public position: Vector3;
@@ -98,6 +100,11 @@ export class PhysicsBall {
       this.updatePocket(dt);
       return;
     }
+
+    if (this.velocity.length() < properties.epsilon) {
+      return;
+    }
+
     this.position.add(this.velocity.clone().multiplyScalar(dt));
     const contactVelocity = this.contactVelocity;
     if (this.isSliding) {
@@ -225,36 +232,49 @@ export class PhysicsBall {
   public collideCushion(
     cushion: PhysicsCushion
   ): BallCushionCollision | undefined {
-    const closestPoint = cushion.findClosestPoint(this.position);
-    const diff = this.position.clone().sub(closestPoint);
-    const dist = diff.length();
+    const position = vec.from(this.position);
+    const velocity = vec.from(this.velocity);
+    const angularVelocity = vec.from(this.angularVelocity);
+
+    if (!cushion.inBounds(position)) {
+      return undefined;
+    }
+
+    const endClosestPoint = Game.profiler.startProfile('closestPoint');
+    const closestPoint = cushion.findClosestPoint(position);
+    endClosestPoint();
+
+    const diff = vec.sub(position, closestPoint);
+    const dist = vec.len(diff);
 
     if (dist < this.radius) {
-      const normal = diff.clone().normalize();
+      const normal = vec.norm(diff);
 
       const overlap = this.radius - dist;
-      this.position.add(normal.clone().multiplyScalar(overlap));
+      this.position.add(vec.toVector3(vec.mult(normal, overlap)));
 
-      const rv = this.velocity.dot(normal);
+      const rv = vec.dot(velocity, normal);
       if (rv > 0) {
         return undefined;
       }
 
       const j = -(1 + properties.restitutionBallCushion) * rv;
-      const impulse = normal.clone().multiplyScalar(j);
-      this.velocity.add(impulse);
+      const impulse = vec.mult(normal, j);
+      this.velocity.add(vec.toVector3(impulse));
 
-      const spinAlongNormal = this.angularVelocity.dot(normal);
-      const correction = normal.clone().multiplyScalar(spinAlongNormal * 0.9);
-      this.setAngularVelocityXY(this.angularVelocity.clone().sub(correction));
+      const spinAlongNormal = vec.dot(angularVelocity, normal);
+      const correction = vec.mult(normal, spinAlongNormal * 0.9);
+      this.setAngularVelocityXY(
+        vec.toVector3(vec.sub(angularVelocity, correction))
+      );
 
       // todo: spin transfer
       return {
         type: 'ball-cushion',
         initiator: this,
         other: cushion,
-        position: closestPoint,
-        impulse,
+        position: vec.toVector3(closestPoint),
+        impulse: vec.toVector3(impulse),
       };
     }
 

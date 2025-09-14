@@ -1,3 +1,4 @@
+import { Game } from '../game';
 import type { Table } from '../objects/table';
 import type { Collision } from '../physics/collision';
 import { properties } from '../physics/properties';
@@ -68,10 +69,7 @@ export class Simulation {
 
   private getKey(shot: Shot) {
     return (
-      shot.angle +
-      shot.force * 100 +
-      shot.sideSpin * 1000 +
-      shot.topSpin * 10000
+      shot.angle + shot.force * 10 + shot.sideSpin * 100 + shot.topSpin * 1000
     );
   }
 
@@ -90,80 +88,89 @@ export class Simulation {
     const result = new StepResult();
     const trackPath = stepIndex % properties.trackingPointDist === 0;
 
+    const endBallUpdate = Game.profiler.startProfile('ballUpdate');
     state.balls.forEach((ball) => {
       ball.update();
       if (trackCollisionPoints && trackPath) {
         ball.addTrackingPoint();
       }
     });
+    endBallUpdate();
 
     const activeBalls = state.activeBalls;
 
+    const endBallBall = Game.profiler.startProfile('ballBall');
     // ball <-> ball collisions
-    activeBalls.forEach((ball, i) => {
-      const rest = activeBalls.slice(i);
-      const ballBallCollisions = rest
-        .map((other) => ball.collideBall(other))
-        .filter((v) => v !== undefined);
-
-      ballBallCollisions.forEach((collision) => {
-        if (collision.initiator.owner.number === -1) {
-          if (result.firstStruck === -1) {
-            result.firstStruck = collision.other.owner.number;
+    for (let i = 0; i < activeBalls.length; i++) {
+      const ball = activeBalls[i];
+      for (let j = i + 1; j < activeBalls.length; j++) {
+        const other = activeBalls[j];
+        const collision = ball.collideBall(other);
+        if (collision) {
+          if (collision.initiator.owner.number === -1) {
+            if (result.firstStruck === -1) {
+              result.firstStruck = collision.other.owner.number;
+            }
+            result.cueBallCollisions++;
+          } else {
+            result.ballBallCollisions++;
           }
-          result.cueBallCollisions++;
-        } else {
-          result.ballBallCollisions++;
+
+          if (trackCollisionPoints) {
+            collision.initiator.owner.addCollisionPoint();
+            collision.other.owner.addCollisionPoint();
+          }
+          result.collisions.push(collision);
         }
+      }
+    }
+    endBallBall();
 
-        if (trackCollisionPoints) {
-          collision.initiator.owner.addCollisionPoint();
-          collision.other.owner.addCollisionPoint();
-        }
-      });
-
-      result.collisions.push(...ballBallCollisions);
-    });
-
+    const endBallPocket = Game.profiler.startProfile('ballPocket');
     // ball -> pocket collisions
-    activeBalls.forEach((ball) => {
-      const ballPocketCollisions = this.table.pockets
-        .map((pocket) => ball.collidePocket(pocket, simulated))
-        .filter((v) => v !== undefined);
-      ballPocketCollisions.forEach((collision) => {
-        if (collision.initiator.owner.number === -1) {
-          result.pottedCueBall = true;
-        } else {
-          result.ballsPotted++;
+    for (let i = 0; i < activeBalls.length; i++) {
+      const ball = activeBalls[i];
+      for (let j = 0; j < this.table.pockets.length; j++) {
+        const pocket = this.table.pockets[j];
+        const collision = ball.collidePocket(pocket, simulated);
+        if (collision) {
+          if (collision.initiator.owner.number === -1) {
+            result.pottedCueBall = true;
+          } else {
+            result.ballsPotted++;
+          }
+
+          if (trackCollisionPoints) {
+            collision.initiator.owner.addCollisionPoint();
+          }
+          result.collisions.push(collision);
         }
+      }
+    }
+    endBallPocket();
 
-        if (trackCollisionPoints) {
-          collision.initiator.owner.addCollisionPoint();
-        }
-      });
-
-      result.collisions.push(...ballPocketCollisions);
-    });
-
+    const endBallCushion = Game.profiler.startProfile('ballCushion');
     // ball -> cushion collisions
-    activeBalls.forEach((ball) => {
-      const ballCushionCollisions = this.table.cushions
-        .map((cushion) => ball.collideCushion(cushion))
-        .filter((v) => v !== undefined);
-      ballCushionCollisions.forEach((collision) => {
-        if (collision.initiator.owner.number === -1) {
-          result.cueBallCushionCollisions++;
-        } else {
-          result.ballCushionCollisions++;
-        }
+    for (let i = 0; i < activeBalls.length; i++) {
+      const ball = activeBalls[i];
+      for (let j = 0; j < this.table.cushions.length; j++) {
+        const cushion = this.table.cushions[j];
+        const collision = ball.collideCushion(cushion);
+        if (collision) {
+          if (collision.initiator.owner.number === -1) {
+            result.cueBallCushionCollisions++;
+          } else {
+            result.ballCushionCollisions++;
+          }
 
-        if (trackCollisionPoints) {
-          collision.initiator.owner.addCollisionPoint();
+          if (trackCollisionPoints) {
+            collision.initiator.owner.addCollisionPoint();
+          }
+          result.collisions.push(collision);
         }
-      });
-
-      result.collisions.push(...ballCushionCollisions);
-    });
+      }
+    }
+    endBallCushion();
 
     if (!simulated) {
       this.current.add(result);
@@ -178,20 +185,26 @@ export class Simulation {
 
     copiedState.cueBall.hit(shot);
 
+    const end = Game.profiler.startProfile('run');
+
     for (let i = 0; i < properties.maxIterations; i++) {
-      result.add(
-        this.step(
-          copiedState,
-          trackCollisionPoints,
-          trackCollisionPoints ? i : -1
-        )
+      const endStep = Game.profiler.startProfile('step');
+      const stepResult = this.step(
+        copiedState,
+        trackCollisionPoints,
+        trackCollisionPoints ? i : -1
       );
+      const endAddResult = Game.profiler.startProfile('add');
+      result.add(stepResult);
+      endAddResult();
+      endStep();
 
       if (copiedState.settled) {
         break;
       }
     }
 
+    end();
     return result;
   }
 
@@ -203,13 +216,21 @@ export class Simulation {
   }
 
   public updateAimAssist(shot: Shot) {
-    if (this.lastSimulationKey === this.getKey(shot)) return;
+    // if (
+    //   Math.abs(this.lastSimulationKey - this.getKey(shot)) < properties.epsilon
+    // ) {
+    //   return;
+    // }
+    const end = Game.profiler.startProfile('clear');
     this.clearAimAssist();
+    end();
 
+    console.time('simulate');
     const result = this.run(shot, true);
 
     // add final resting points
     result.state?.balls.forEach((ball) => ball.addCollisionPoint());
+    console.timeEnd('simulate');
 
     this.lastSimulationKey = this.getKey(shot);
   }

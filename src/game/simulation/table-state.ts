@@ -23,8 +23,9 @@ export class TableState {
   }
 
   public get settled() {
-    return this.targetBalls.every(
-      (ball) => ball.isStationary || (ball.isPocketed && ball.number > 0)
+    return (
+      this.cueBall.isStationary &&
+      this.targetBalls.every((ball) => ball.isStationary || ball.isPocketed)
     );
   }
 }

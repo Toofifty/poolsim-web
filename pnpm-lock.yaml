@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      jotai:
-        specifier: ^2.14.0
-        version: 2.14.0(@types/react@19.1.12)(react@19.1.1)
       react:
         specifier: ^19.1.1
         version: 19.1.1
@@ -23,6 +20,9 @@ importers:
       three:
         specifier: ^0.180.0
         version: 0.180.0
+      valtio:
+        specifier: ^2.1.7
+        version: 2.1.7(@types/react@19.1.12)(react@19.1.1)
     devDependencies:
       '@eslint/js':
         specifier: ^9.33.0
@@ -912,24 +912,6 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  jotai@2.14.0:
-    resolution: {integrity: sha512-JQkNkTnqjk1BlSUjHfXi+pGG/573bVN104gp6CymhrWDseZGDReTNniWrLhJ+zXbM6pH+82+UNJ2vwYQUkQMWQ==}
-    engines: {node: '>=12.20.0'}
-    peerDependencies:
-      '@babel/core': '>=7.0.0'
-      '@babel/template': '>=7.0.0'
-      '@types/react': '>=17.0.0'
-      react: '>=17.0.0'
-    peerDependenciesMeta:
-      '@babel/core':
-        optional: true
-      '@babel/template':
-        optional: true
-      '@types/react':
-        optional: true
-      react:
-        optional: true
-
   js-yaml@4.1.0:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
     hasBin: true
@@ -1031,6 +1013,9 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
+
+  proxy-compare@3.0.1:
+    resolution: {integrity: sha512-V9plBAt3qjMlS1+nC8771KNf6oJ12gExvaxnNzN/9yVRLdTv/lc+oJlnSzrdYDAvBfTStPCoiaCOTmTs0adv7Q==}
 
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
@@ -1266,6 +1251,18 @@ packages:
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
+
+  valtio@2.1.7:
+    resolution: {integrity: sha512-DwJhCDpujuQuKdJ2H84VbTjEJJteaSmqsuUltsfbfdbotVfNeTE4K/qc/Wi57I9x8/2ed4JNdjEna7O6PfavRg==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      react: '>=18.0.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      react:
+        optional: true
 
   varint@6.0.0:
     resolution: {integrity: sha512-cXEIW6cfr15lFv563k4GuVuW/fiwjknytD37jIOLSdSWuOI6WnO/oKwmP2FQTU2l01LP8/M5TSAJpzUaGe3uWg==}
@@ -2050,11 +2047,6 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  jotai@2.14.0(@types/react@19.1.12)(react@19.1.1):
-    optionalDependencies:
-      '@types/react': 19.1.12
-      react: 19.1.1
-
   js-yaml@4.1.0:
     dependencies:
       argparse: 2.0.1
@@ -2144,6 +2136,8 @@ snapshots:
       source-map-js: 1.2.1
 
   prelude-ls@1.2.1: {}
+
+  proxy-compare@3.0.1: {}
 
   punycode@2.3.1: {}
 
@@ -2362,6 +2356,13 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
+
+  valtio@2.1.7(@types/react@19.1.12)(react@19.1.1):
+    dependencies:
+      proxy-compare: 3.0.1
+    optionalDependencies:
+      '@types/react': 19.1.12
+      react: 19.1.1
 
   varint@6.0.0: {}
 

@@ -7,6 +7,7 @@ import {
   DirectionalLight,
   DirectionalLightHelper,
   Line,
+  MathUtils,
   Mesh,
   MOUSE,
   Object3D,
@@ -25,14 +26,17 @@ import {
   OrbitControls,
   OutputPass,
   RenderPass,
+  Sky,
   SSAOPass,
 } from 'three/examples/jsm/Addons.js';
 import clackUrl from '../assets/clack.wav';
+import breakUrl from '../assets/break.wav';
 import { GameManager } from './game-manager';
-import { properties } from './physics/properties';
 import { Profiler } from './profiler';
+import { settings } from './settings';
+import { subscribe } from 'valtio';
 
-type AudioBuffers = Partial<Record<'clack', AudioBuffer>>;
+type AudioBuffers = Partial<Record<'clack' | 'break', AudioBuffer>>;
 
 export class Game {
   // rendering
@@ -114,6 +118,9 @@ export class Game {
 
     new AudioLoader().load(clackUrl, (buffer) => {
       this.audioBuffers.clack = buffer;
+    });
+    new AudioLoader().load(breakUrl, (buffer) => {
+      this.audioBuffers.break = buffer;
     });
 
     this.mouseRaycaster = new Raycaster();
@@ -223,12 +230,29 @@ export class Game {
     lightBR.position.z = lheight;
     this.scene.add(lightBR);
 
-    if (properties.debugLights) {
-      this.scene.add(new DirectionalLightHelper(lightTL));
-      this.scene.add(new DirectionalLightHelper(lightTR));
-      this.scene.add(new DirectionalLightHelper(lightBL));
-      this.scene.add(new DirectionalLightHelper(lightBR));
-    }
+    const helpers = [
+      new DirectionalLightHelper(lightTL),
+      new DirectionalLightHelper(lightTR),
+      new DirectionalLightHelper(lightBL),
+      new DirectionalLightHelper(lightBR),
+    ];
+
+    subscribe(settings, () => {
+      if (settings.debugLights) {
+        this.scene.add(...helpers);
+      } else {
+        this.scene.remove(...helpers);
+      }
+    });
+
+    const sky = new Sky();
+    sky.scale.setScalar(45000);
+    const phi = MathUtils.degToRad(190);
+    const theta = MathUtils.degToRad(90);
+    const sunPosition = new Vector3().setFromSphericalCoords(1, phi, theta);
+    sky.material.uniforms.sunPosition.value = sunPosition;
+    sky.material.uniforms.up.value = new Vector3(0, 0, 1);
+    this.scene.add(sky);
   }
 
   public static getFirstMouseIntersection(object: Object3D) {
@@ -247,6 +271,15 @@ export class Game {
 
   public static remove(mesh: Mesh | Line) {
     this.instance.scene.remove(mesh);
+  }
+
+  public static resetCamera() {
+    this.instance.camera.position.set(0, 0, 400);
+    this.instance.controls.update();
+  }
+
+  public static get manager() {
+    return this.instance.manager;
   }
 
   public playAudio(

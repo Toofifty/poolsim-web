@@ -10,11 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "jotai": "^2.14.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "stats.js": "^0.17.0",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "valtio": "^2.1.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

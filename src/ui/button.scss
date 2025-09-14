@@ -1,20 +1,25 @@
 .button {
-  border-radius: 8px;
-  padding: 8px 16px;
+  padding: 4px 12px;
   cursor: pointer;
-  transition: 0.25s;
+  transition: 0.1s;
   font-family: inherit;
   font-size: 1em;
 }
 
 .button.surface {
+  padding: 8px 16px;
   &:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(32px);
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  & + .button.surface {
+    margin-left: 0;
   }
 }
 
 .button:not(.surface) {
+  border-radius: 8px;
   border: none;
   background: rgba(255, 255, 255, 0.1);
 

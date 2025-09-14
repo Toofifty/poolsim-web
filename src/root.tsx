@@ -1,13 +1,14 @@
 import { Canvas } from './ui/canvas';
 import { Game } from './game/game';
 import { UIContainer } from './ui/ui-container';
-import { canvasEnabledAtom, Controls } from './ui/controls';
-import { useAtom } from 'jotai';
+import { Controls } from './ui/controls';
+import { useSnapshot } from 'valtio';
+import { settings } from './game/settings';
 
 const game = new Game();
 
 export const Root = () => {
-  const [canvasEnabled] = useAtom(canvasEnabledAtom);
+  const { canvasEnabled } = useSnapshot(settings);
 
   return (
     <div className="root-container">

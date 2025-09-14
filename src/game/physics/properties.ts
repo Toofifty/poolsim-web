@@ -33,10 +33,4 @@ export const properties = {
 
   // visuals
   projectionOpacity: 0.25,
-
-  // debugging
-  debugLights: false,
-  debugBalls: false,
-  debugCollisionBoxes: false,
-  enableProfiler: false,
 };

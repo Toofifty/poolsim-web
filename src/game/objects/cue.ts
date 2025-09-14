@@ -11,6 +11,7 @@ import {
 import { properties } from '../physics/properties';
 import type { Ball } from './ball';
 import { Shot } from '../physics/shot';
+import { Game } from '../game';
 
 export class Cue {
   private targetBall?: Ball;
@@ -95,6 +96,7 @@ export class Cue {
       return;
     }
 
+    Game.playAudio('break', this.restingPosition, this.force / 2);
     this.pullBackTimeLeft = properties.cuePullBackTime;
     this.onShotMade = onShotMade;
   }

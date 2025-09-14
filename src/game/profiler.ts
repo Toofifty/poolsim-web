@@ -1,4 +1,4 @@
-import { properties } from './physics/properties';
+import { settings } from './settings';
 
 const sum = (n: number[]) => n.reduce((s, c) => s + c, 0);
 const avg = (n: number[]) => sum(n) / n.length;
@@ -10,7 +10,7 @@ export class Profiler {
   private activeProfileStack: string[] = [];
 
   public dump() {
-    if (!properties.enableProfiler) {
+    if (!settings.enableProfiler) {
       return;
     }
 
@@ -41,7 +41,7 @@ export class Profiler {
   }
 
   public startProfile(key: string) {
-    if (!properties.enableProfiler) {
+    if (!settings.enableProfiler) {
       return () => {};
     }
 

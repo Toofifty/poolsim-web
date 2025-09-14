@@ -9,6 +9,7 @@
   height: 100%;
   border-radius: $br-surface - $pad-surface;
   background: rgba(0, 0, 0, 0.2);
+  position: relative;
 }
 
 .power-bar__current-power {
@@ -16,5 +17,14 @@
   height: 100%;
   border-radius: $br-surface - $pad-surface;
   background: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+.power-bar__power-num {
+  color: rgba(255, 255, 255, 0.5);
+  position: absolute;
+  top: $pad-surface;
+  right: $pad-surface * 2;
+  font-weight: 500;
   pointer-events: none;
 }

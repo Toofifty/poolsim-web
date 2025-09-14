@@ -10,13 +10,20 @@
   align-items: stretch;
 }
 
-.section {
-}
-
 .group {
-  border-radius: $br-surface - $pad-surface;
-  background: rgba(0, 0, 0, 0.2);
-  padding: $pad-surface;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &.lower {
+    padding: $pad-surface;
+    border-radius: $br-surface - $pad-surface;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  &.space-between {
+    justify-content: space-between;
+  }
 
   span {
     font-weight: 500;

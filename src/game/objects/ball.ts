@@ -23,6 +23,7 @@ import { Pocket } from './pocket';
 import { properties } from '../physics/properties';
 import { Game } from '../game';
 import { vec } from '../physics/vec';
+import { settings } from '../settings';
 
 export class Ball {
   private physics: PhysicsBall;
@@ -194,6 +195,7 @@ export class Ball {
     vec.mset(this.physics.position, x, y, 0);
     vec.mmult(this.physics.velocity, 0);
     vec.mmult(this.physics.angularVelocity, 0);
+    this.physics.isStationary = true;
 
     this.updateMesh();
     this.updateDebug();
@@ -284,7 +286,7 @@ export class Ball {
   }
 
   private updateDebug() {
-    const { debugBalls } = properties;
+    const { debugBalls } = settings;
     this.debugStateRing.visible = debugBalls;
     this.debugArrowCV.visible = debugBalls;
     this.debugArrowV.visible = debugBalls;

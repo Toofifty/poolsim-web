@@ -8,6 +8,8 @@ import { PhysicsCushion } from '../physics/cushion';
 import { properties } from '../physics/properties';
 import { createCushionGeometry } from '../create-cushion-geometry';
 import { vec } from '../physics/vec';
+import { subscribe } from 'valtio';
+import { settings } from '../settings';
 
 export class Cushion {
   public physics: PhysicsCushion;
@@ -43,16 +45,22 @@ export class Cushion {
         flatShading: true,
       })
     );
-    if (properties.debugCollisionBoxes) {
-      const [position, size] = this.physics.collisionBox;
-      const collisionBoxMesh = new Mesh(
-        new PlaneGeometry(size[0], size[1]),
-        new MeshBasicMaterial({ color: 0xffffff, wireframe: true })
-      );
-      collisionBoxMesh.position.x = position[0] + size[0] / 2;
-      collisionBoxMesh.position.y = position[1] + size[1] / 2;
-      this.mesh.add(collisionBoxMesh);
-    }
+
+    const [position, size] = this.physics.collisionBox;
+    const collisionBoxMesh = new Mesh(
+      new PlaneGeometry(size[0], size[1]),
+      new MeshBasicMaterial({ color: 0xffffff, wireframe: true })
+    );
+    collisionBoxMesh.position.x = position[0] + size[0] / 2;
+    collisionBoxMesh.position.y = position[1] + size[1] / 2;
+    subscribe(settings, () => {
+      if (settings.debugCollisionBoxes) {
+        this.mesh.add(collisionBoxMesh);
+      } else {
+        this.mesh.remove(collisionBoxMesh);
+      }
+    });
+
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;
   }

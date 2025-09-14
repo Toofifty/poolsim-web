@@ -6,8 +6,9 @@ import { randomQuaternion } from '../math';
 import type {
   BallBallCollision,
   BallCushionCollision,
-  Collision,
+  BallPocketCollision,
 } from './collision';
+import type { PhysicsPocket } from './pocket';
 
 export class PhysicsBall {
   public position: Vector3;
@@ -18,7 +19,8 @@ export class PhysicsBall {
   public orientation: Quaternion;
 
   public isStationary = false;
-  public isPocketed = false;
+
+  public pocket?: PhysicsPocket;
 
   constructor(x: number, y: number) {
     this.position = new Vector3(x, y, 0);
@@ -52,10 +54,18 @@ export class PhysicsBall {
     return Math.abs(this.angularVelocity.z) > 0;
   }
 
+  get isPocketed() {
+    return !!this.pocket;
+  }
+
   get contactVelocity() {
+    if (this.isPocketed) {
+      return new Vector3(0, 0, 0);
+    }
+
     const contactPoint = new Vector3(0, 0, this.radius);
     const relativeVelocity = contactPoint.cross(this.angularVelocity);
-    return this.velocity.clone().add(relativeVelocity);
+    return this.velocity.clone().setZ(0).add(relativeVelocity);
   }
 
   private zeroVectors() {
@@ -71,16 +81,14 @@ export class PhysicsBall {
 
   private setAngularVelocityXY(v: Vector3) {
     const wt = this.angularVelocity.z;
-    this.angularVelocity.copy(v);
-    this.angularVelocity.z = wt;
+    this.angularVelocity.copy(v).setZ(wt);
   }
 
   public update(dt: number = 1 / 60) {
     if (this.isPocketed) {
-      this.isStationary = true;
+      this.updatePocket(dt);
       return;
     }
-
     this.position.add(this.velocity.clone().multiplyScalar(dt));
     const contactVelocity = this.contactVelocity;
     if (this.isSliding) {
@@ -147,6 +155,15 @@ export class PhysicsBall {
     }
 
     this.zeroVectors();
+  }
+
+  private updatePocket(dt: number) {
+    // move the ball in the pocket
+    this.velocity.z -= properties.gravity;
+    this.position.add(this.velocity.clone().multiplyScalar(dt));
+
+    this.isStationary =
+      this.velocity.length() - properties.gravity <= properties.epsilon;
   }
 
   public collideBall(other: PhysicsBall): BallBallCollision | undefined {
@@ -233,5 +250,71 @@ export class PhysicsBall {
     }
 
     return undefined;
+  }
+
+  public collidePocket(pocket: PhysicsPocket): BallPocketCollision | undefined {
+    const dist = this.position
+      .clone()
+      .setZ(0)
+      .distanceTo(pocket.position.clone().setZ(0));
+
+    if (this.isPocketed && this.pocket === pocket) {
+      // testing collision within the pocket
+      if (dist > pocket.radius - this.radius) {
+        // edge of pocket
+        const normal = this.position
+          .clone()
+          .sub(pocket.position)
+          .setZ(0)
+          .normalize();
+
+        const overlap = dist - (pocket.radius - this.radius);
+        this.position.sub(normal.clone().multiplyScalar(overlap));
+
+        const vn = this.velocity.dot(normal);
+        if (vn > 0) {
+          this.velocity.sub(normal.clone().multiplyScalar(2 * vn));
+          this.velocity.multiplyScalar(0.5);
+          if (this.velocity.length() < properties.epsilon) {
+            this.velocity.multiplyScalar(0);
+          }
+        }
+      }
+
+      const bottomZ = pocket.position.z - pocket.depth / 2;
+      if (this.position.z - this.radius < bottomZ) {
+        const overlap = bottomZ - this.position.z + this.radius;
+        this.position.z += overlap;
+
+        if (this.velocity.z < 0) {
+          this.velocity.z = -this.velocity.z * properties.restitutionBallPocket;
+        }
+
+        this.velocity.multiplyScalar(0.9);
+      }
+      return undefined;
+    }
+
+    if (dist < pocket.radius) {
+      this.pocket = pocket;
+      pocket.addBall(this);
+      return {
+        type: 'ball-pocket',
+        initiator: this,
+        other: pocket,
+        position: this.position.clone(),
+      };
+    }
+
+    return undefined;
+  }
+
+  public removeFromPocket() {
+    if (!this.pocket) {
+      return;
+    }
+
+    this.pocket.removeBall(this);
+    this.pocket = undefined;
   }
 }

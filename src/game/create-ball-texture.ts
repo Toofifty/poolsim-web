@@ -71,7 +71,7 @@ export function createBallTexture({
     ctx.fill();
 
     ctx.fillStyle = darkTheme ? '#fff' : '#000';
-    ctx.font = `${tsize / 4}px sans-serif`;
+    ctx.font = `${tsize / 5}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (let k = 0; k < 2; k++) {

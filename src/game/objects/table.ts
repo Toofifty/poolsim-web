@@ -2,7 +2,8 @@ import {
   Mesh,
   MeshLambertMaterial,
   Object3D,
-  PlaneGeometry,
+  Shape,
+  ShapeGeometry,
   Vector3,
 } from 'three';
 import { Ball } from './ball';
@@ -11,13 +12,16 @@ import { Cue } from './cue';
 import { Game } from '../game';
 import { Cushion } from './cushion';
 import type { Collision } from '../physics/collision';
+import { Pocket } from './pocket';
 
 export class Table {
   public cue: Cue;
-  public balls: Ball[];
+  public cueBall!: Ball;
+  public targetBalls: Ball[];
   public cushions: Cushion[];
+  public pockets: Pocket[];
 
-  private object3D: Object3D;
+  public object3D: Object3D;
   private cloth!: Mesh;
 
   private cursorPosition?: Vector3;
@@ -26,20 +30,73 @@ export class Table {
     this.object3D = new Object3D();
     this.cue = new Cue();
     this.object3D.add(this.cue.anchor);
-    this.balls = [];
+    this.targetBalls = [];
     this.cushions = [];
-    this.createMeshes();
+    this.pockets = [];
     this.createCushions();
+    this.createPockets();
+    this.createMeshes();
   }
 
   private createMeshes() {
+    const l = properties.tableLength + properties.pocketCornerRadius * 2;
+    const w = properties.tableWidth + properties.pocketCornerRadius * 2;
+    const shape = new Shape();
+    shape.moveTo(-l / 2, -w / 2);
+    shape.lineTo(l / 2, -w / 2);
+    shape.lineTo(l / 2, w / 2);
+    shape.lineTo(-l / 2, w / 2);
+    shape.lineTo(-l / 2, -w / 2);
+    this.pockets.forEach((pocket) => {
+      const hole = new Shape();
+      hole.absarc(
+        pocket.position.x,
+        pocket.position.y,
+        pocket.radius,
+        0,
+        Math.PI * 2,
+        false
+      );
+      shape.holes.push(hole);
+    });
+    const geometry = new ShapeGeometry(shape);
+
     this.cloth = new Mesh(
-      new PlaneGeometry(properties.tableLength, properties.tableWidth),
+      geometry,
       new MeshLambertMaterial({ color: '#227722' })
     );
+    this.cloth.castShadow = true;
     this.cloth.receiveShadow = true;
     this.cloth.position.z = -properties.ballRadius;
     this.object3D.add(this.cloth);
+  }
+
+  private createPockets() {
+    const {
+      tableLength,
+      tableWidth,
+      pocketCornerRadius: cr,
+      pocketEdgeRadius: er,
+      ballRadius,
+    } = properties;
+
+    const leftBound = -tableLength / 2;
+    const rightBound = tableLength / 2;
+    const topBound = -tableWidth / 2;
+    const bottomBound = tableWidth / 2;
+
+    const edgeOffset = cr - er;
+
+    this.pockets.push(
+      new Pocket(leftBound, topBound, -ballRadius, cr),
+      new Pocket(rightBound, topBound, -ballRadius, cr),
+      new Pocket(leftBound, bottomBound, -ballRadius, cr),
+      new Pocket(rightBound, bottomBound, -ballRadius, cr),
+      new Pocket(0, topBound - edgeOffset, -ballRadius, er),
+      new Pocket(0, bottomBound + edgeOffset, -ballRadius, er)
+    );
+
+    this.object3D.add(...this.pockets.map((pocket) => pocket.mesh));
   }
 
   private createCushions() {
@@ -49,6 +106,7 @@ export class Table {
       pocketCornerRadius,
       pocketEdgeRadius,
       pocketOverlap,
+      pocketCornerOverlap,
       bumperWidth,
     } = properties;
 
@@ -65,109 +123,149 @@ export class Table {
       // left
       Cushion.fromRelativeVertices2D(
         leftBound,
-        topBound + pocketCornerRadius - pocketOverlap,
-        bumperWidth,
-        (bumperWidth * 3) / 2,
+        topBound + pocketCornerRadius - pocketCornerOverlap,
         0,
-        vBumperHeight - bumperWidth * 3,
+        vBumperHeight + pocketCornerOverlap * 2,
+        bumperWidth,
         -bumperWidth,
-        (bumperWidth * 3) / 2 + pocketOverlap * 2
-      ),
+        0,
+        -vBumperHeight + bumperWidth * 2 - pocketCornerOverlap * 2
+      ).reverseVertices(),
       // right
       Cushion.fromRelativeVertices2D(
         rightBound,
-        topBound + pocketCornerRadius - pocketOverlap,
-        -bumperWidth,
-        (bumperWidth * 3) / 2,
+        topBound + pocketCornerRadius - pocketCornerOverlap,
         0,
-        vBumperHeight - bumperWidth * 3,
-        bumperWidth,
-        (bumperWidth * 3) / 2 + pocketOverlap * 2
+        vBumperHeight + pocketCornerOverlap * 2,
+        -bumperWidth,
+        -bumperWidth,
+        0,
+        -vBumperHeight + bumperWidth * 2 - pocketCornerOverlap * 2
       ),
       // top-left
       Cushion.fromRelativeVertices2D(
-        leftBound + pocketCornerRadius - pocketOverlap,
-        topBound,
-        hBumperWidth + pocketOverlap * 2,
+        leftBound + pocketCornerRadius - pocketCornerOverlap,
+        bottomBound,
+        hBumperWidth + pocketOverlap + pocketCornerOverlap,
         0,
         -bumperWidth / 2,
-        bumperWidth,
-        -hBumperWidth + bumperWidth * 2 - pocketOverlap,
+        -bumperWidth,
+        -hBumperWidth +
+          (bumperWidth * 3) / 2 -
+          pocketOverlap -
+          pocketCornerOverlap,
         0
-      ),
+      ).reverseVertices(),
       // top-right
       Cushion.fromRelativeVertices2D(
-        rightBound - pocketCornerRadius + pocketOverlap,
-        topBound,
-        -hBumperWidth - pocketOverlap * 2,
+        rightBound - pocketCornerRadius + pocketCornerOverlap,
+        bottomBound,
+        -hBumperWidth - pocketOverlap - pocketCornerOverlap,
         0,
         bumperWidth / 2,
-        bumperWidth,
-        hBumperWidth - bumperWidth * 2 + pocketOverlap,
+        -bumperWidth,
+        hBumperWidth -
+          (bumperWidth * 3) / 2 +
+          pocketOverlap +
+          pocketCornerOverlap,
         0
       ),
       // bottom-left
       Cushion.fromRelativeVertices2D(
-        leftBound + pocketCornerRadius - pocketOverlap,
-        bottomBound,
-        hBumperWidth + pocketOverlap * 2,
+        leftBound + pocketCornerRadius - pocketCornerOverlap,
+        topBound,
+        hBumperWidth + pocketOverlap + pocketCornerOverlap,
         0,
         -bumperWidth / 2,
-        -bumperWidth,
-        -hBumperWidth + bumperWidth * 2 - pocketOverlap,
+        bumperWidth,
+        -hBumperWidth +
+          (bumperWidth * 3) / 2 -
+          pocketOverlap -
+          pocketCornerOverlap,
         0
       ),
       // bottom-right
       Cushion.fromRelativeVertices2D(
-        rightBound - pocketCornerRadius + pocketOverlap,
-        bottomBound,
-        -hBumperWidth - pocketOverlap * 2,
+        rightBound - pocketCornerRadius + pocketCornerOverlap,
+        topBound,
+        -hBumperWidth - pocketOverlap - pocketCornerOverlap,
         0,
         bumperWidth / 2,
-        -bumperWidth,
-        hBumperWidth - bumperWidth * 2 + pocketOverlap,
+        bumperWidth,
+        hBumperWidth -
+          (bumperWidth * 3) / 2 +
+          pocketOverlap +
+          pocketCornerOverlap,
         0
-      ),
+      ).reverseVertices(),
     ];
 
     this.object3D.add(...this.cushions.map((cushion) => cushion.mesh));
   }
 
-  public getObject() {
-    return this.object3D;
-  }
-
-  public add(object: Ball) {
-    this.object3D.add(object.getMesh());
-    if (object instanceof Ball) {
-      this.balls.push(object);
-      // assume first ball is cue ball
-      if (this.balls.length === 1) {
-        this.cue.attachTo(object);
+  public add(...objects: Ball[]) {
+    objects.forEach((object) => {
+      this.object3D.add(object.parent);
+      if (object instanceof Ball) {
+        if (object.number === -1) {
+          this.cueBall = object;
+          this.cue.attachTo(object);
+          return;
+        }
+        this.targetBalls.push(object);
       }
-    }
+    });
   }
 
-  public mousedown(event: MouseEvent) {
-    if (event.button === 0) {
-      this.cue.shoot();
+  public clearTargetBalls() {
+    this.targetBalls.forEach((ball) => {
+      this.object3D.remove(ball.parent);
+    });
+    this.targetBalls = [];
+  }
+
+  public get balls() {
+    if (!this.cueBall) {
+      throw new Error('No cue ball found');
     }
+    return [this.cueBall, ...this.targetBalls];
+  }
+
+  public get settled() {
+    return this.balls.every(
+      (ball) => ball.isStationary || (ball.isPocketed && ball.number > 0)
+    );
   }
 
   public update() {
-    this.cursorPosition = Game.getFirstMouseIntersection(this.cloth);
-    if (this.cursorPosition) {
-      this.cue.setTarget(this.cursorPosition);
+    if (this.settled) {
+      this.cursorPosition = Game.getFirstMouseIntersection(this.cloth);
+      if (this.cursorPosition) {
+        this.cue.setTarget(this.cursorPosition);
+      }
+      this.cue.update();
     }
-    this.cue.update();
 
     // todo: move to simulation
     this.balls.forEach((ball) => ball.update());
-    const activeBalls = this.balls.filter((ball) => !ball.isPocketed);
+
+    // collide balls in pockets
+    this.pockets.forEach((pocket) => {
+      pocket.physics.balls.forEach((ball, i) => {
+        this.cushions.map((cushion) => ball.collideCushion(cushion.physics)),
+          ball.collidePocket(pocket.physics);
+        pocket.physics.balls.slice(i).map((other) => ball.collideBall(other));
+      });
+    });
 
     const collisions: Collision[] = [];
+    const activeBalls = this.balls.filter((ball) => !ball.isPocketed);
+
     activeBalls.forEach((ball, i) => {
       collisions.push(
+        ...this.pockets
+          .map((pocket) => ball.collide(pocket))
+          .filter((v) => v !== undefined),
         ...this.cushions
           .map((cushion) => ball.collide(cushion))
           .filter((v) => v !== undefined),
@@ -180,11 +278,10 @@ export class Table {
 
     collisions.forEach((collision) => {
       if (collision.type === 'ball-ball') {
-        console.log(collision.impulse.length());
         Game.playAudio(
           'clack',
           collision.position,
-          Math.min(collision.impulse.length() / 100, 1)
+          Math.min(collision.impulse.length() / 10, 10)
         );
       }
     });

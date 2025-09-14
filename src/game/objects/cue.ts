@@ -22,6 +22,15 @@ export class Cue {
 
   public static MAX_FORCE = 200;
 
+  private pullBackTimeLeft = 0;
+  private pushForwardTimeLeft = 0;
+
+  private restingPosition = new Vector3(
+    0,
+    -(properties.cueLength / 2 + properties.ballRadius + 2),
+    0
+  );
+
   constructor() {
     this.createMesh();
   }
@@ -49,8 +58,7 @@ export class Cue {
     handle.castShadow = true;
     this.object.add(tip);
     this.object.add(handle);
-    this.object.position.y -=
-      properties.cueLength / 2 + properties.ballRadius + 2;
+    this.object.position.copy(this.restingPosition);
     this.anchor.add(this.object);
   }
 
@@ -67,15 +75,16 @@ export class Cue {
   }
 
   public setTarget(point: Vector3) {
-    if (!this.targetBall || !this.targetBall.isStationary) {
+    if (this.isShooting || !this.targetBall || !this.targetBall.isStationary) {
       return;
     }
     const position = this.targetBall.position.clone();
     const angle = Math.atan2(point.y - position.y, point.x - position.x);
     this.anchor.rotation.z = angle - Math.PI / 2;
+    this.object.position.copy(this.restingPosition);
   }
 
-  public getAngle() {
+  public get angle() {
     return this.anchor.rotation.z + Math.PI / 2;
   }
 
@@ -84,11 +93,47 @@ export class Cue {
       return;
     }
 
-    this.targetBall.hit(new Shot(this.getAngle(), this.force));
+    this.pullBackTimeLeft = properties.cuePullBackTime;
   }
 
-  public update() {
-    if (this.targetBall && this.targetBall.isStationary) {
+  public get isShooting() {
+    return this.pullBackTimeLeft > 0 || this.pushForwardTimeLeft > 0;
+  }
+
+  public update(dt: number = 1 / 60) {
+    if (this.isShooting) {
+      if (this.pullBackTimeLeft > 0) {
+        this.object.position.lerp(
+          new Vector3(0, -this.force / 2 + this.restingPosition.y, 0),
+          dt / this.pullBackTimeLeft
+        );
+        this.pullBackTimeLeft -= dt;
+        if (this.pullBackTimeLeft <= 0) {
+          dt += this.pullBackTimeLeft;
+          this.pushForwardTimeLeft = 10 / this.force;
+        }
+      }
+
+      if (this.pushForwardTimeLeft > 0) {
+        this.object.position.lerp(
+          new Vector3(
+            0,
+            -(properties.cueLength / 2 + properties.ballRadius),
+            0
+          ),
+          dt / this.pushForwardTimeLeft
+        );
+        this.pushForwardTimeLeft -= dt;
+        if (this.pushForwardTimeLeft <= 0) {
+          this.pushForwardTimeLeft = 0;
+          this.targetBall?.hit(new Shot(this.angle, this.force));
+        }
+      }
+
+      return;
+    }
+
+    if (this.targetBall) {
       this.anchor.position.copy(this.targetBall.position);
     }
   }

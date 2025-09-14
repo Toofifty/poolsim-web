@@ -3,11 +3,12 @@ import {
   AmbientLight,
   AudioListener,
   AudioLoader,
-  Color,
+  Camera,
   DirectionalLight,
   DirectionalLightHelper,
   MOUSE,
   Object3D,
+  OrthographicCamera,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PositionalAudio,
@@ -18,9 +19,6 @@ import {
   WebGLRenderer,
 } from 'three';
 import Stats from 'stats.js';
-import { Table } from './objects/table';
-import { Ball } from './objects/ball';
-import { Rack } from './rack';
 import {
   EffectComposer,
   OrbitControls,
@@ -29,8 +27,8 @@ import {
   SSAOPass,
 } from 'three/examples/jsm/Addons.js';
 import clackUrl from '../assets/clack.wav';
-
-const DEBUG_LIGHTS = false;
+import { GameManager } from './game-manager';
+import { properties } from './physics/properties';
 
 type AudioBuffers = Partial<Record<'clack', AudioBuffer>>;
 
@@ -39,7 +37,7 @@ export class Game {
   public scene: Scene;
   public renderer: WebGLRenderer;
   public composer: EffectComposer;
-  public camera: PerspectiveCamera;
+  public camera: Camera;
   public controls: OrbitControls;
   public stats: Stats;
   public sun!: DirectionalLight;
@@ -47,7 +45,7 @@ export class Game {
   // game
   public mousePosition: Vector2;
   public mouseRaycaster: Raycaster;
-  public table!: Table;
+  public manager: GameManager;
 
   private audioListener: AudioListener;
   private audioBuffers: AudioBuffers = {};
@@ -63,14 +61,23 @@ export class Game {
 
     this.scene = new Scene();
 
-    this.camera = new PerspectiveCamera(
-      25,
-      window.innerWidth / window.innerHeight,
+    const aspect = window.innerWidth / window.innerHeight;
+    // this.camera = new PerspectiveCamera(25, aspect, 0.1, 4000);
+
+    const frustumHeight = 200;
+    const frustumWidth = frustumHeight * aspect;
+    this.camera = new OrthographicCamera(
+      -frustumWidth / 2,
+      frustumWidth / 2,
+      frustumHeight / 2,
+      -frustumHeight / 2,
       0.1,
-      1000
+      2000
     );
+
     this.camera.position.z = 400;
     this.camera.up.set(0, 0, 1);
+    this.camera.lookAt(0, 0, 0);
 
     this.renderer = new WebGLRenderer({ antialias: true });
     this.renderer.shadowMap.enabled = true;
@@ -93,7 +100,7 @@ export class Game {
     const ssao = new SSAOPass(this.scene, this.camera);
     ssao.kernelRadius = 1;
     ssao.minDistance = 0.001;
-    ssao.maxDistance = 1;
+    ssao.maxDistance = 0.1;
 
     // ssao.output = SSAOPass.OUTPUT.Blur;
     this.composer.addPass(ssao);
@@ -108,9 +115,11 @@ export class Game {
 
     this.mouseRaycaster = new Raycaster();
 
+    this.manager = new GameManager();
+    this.scene.add(this.manager.table.object3D);
+
     this.setupListeners();
     this.setupLights();
-    this.setupTable();
 
     this.renderer.setAnimationLoop(this.draw.bind(this));
   }
@@ -139,7 +148,7 @@ export class Game {
     });
 
     el.addEventListener('mousedown', (e) => {
-      this.table.mousedown(e);
+      this.manager.mousedown(e);
     });
   }
 
@@ -207,38 +216,12 @@ export class Game {
     lightBR.position.z = lheight;
     this.scene.add(lightBR);
 
-    if (DEBUG_LIGHTS) {
+    if (properties.debugLights) {
       this.scene.add(new DirectionalLightHelper(lightTL));
       this.scene.add(new DirectionalLightHelper(lightTR));
       this.scene.add(new DirectionalLightHelper(lightBL));
       this.scene.add(new DirectionalLightHelper(lightBR));
     }
-
-    // this.sun = new DirectionalLight(0xffffff, 2.5);
-    // this.sun.shadow.bias = -0.00005;
-    // this.sun.shadow.mapSize.set(4096, 4096);
-    // this.sun.castShadow = true;
-    // const r = 100;
-    // this.sun.shadow.camera.left = -r;
-    // this.sun.shadow.camera.top = r;
-    // this.sun.shadow.camera.bottom = -r;
-    // this.sun.shadow.camera.right = r;
-    // this.sun.shadow.camera.far = 200;
-    // this.scene.add(this.sun);
-
-    // const phi = MathUtils.degToRad(90 - sun.elevation);
-    // const theta = MathUtils.degToRad(sun.azimuth);
-
-    // this.sun.position.setFromSphericalCoords(100, phi, theta);
-  }
-
-  private setupTable() {
-    this.table = new Table();
-    const cueBall = new Ball(-40, 0, new Color('#FFF'));
-    this.table.add(cueBall);
-    const balls = Rack.generate8Ball(40, 0);
-    balls.forEach((ball) => this.table.add(ball));
-    this.scene.add(this.table.getObject());
   }
 
   public static getFirstMouseIntersection(object: Object3D) {
@@ -294,10 +277,14 @@ export class Game {
     }
   }
 
+  get table() {
+    return this.manager.table;
+  }
+
   public draw() {
     this.stats.begin();
     this.controls.update();
-    this.table.update();
+    this.manager.update();
     this.composer.render();
     this.stats.end();
   }

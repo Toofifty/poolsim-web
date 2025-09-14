@@ -23,18 +23,14 @@ const colors = [
 ];
 
 export class Rack {
-  static generate8Ball(tipX: number, tipY: number) {
+  private static generateFromLayout(
+    tipX: number,
+    tipY: number,
+    layout: number[][]
+  ) {
     const balls: Ball[] = [];
     const step = properties.ballRadius * 2 + gap;
     const rowOffset = (step * Math.sqrt(3)) / 2;
-
-    const layout = [
-      [1],
-      [2, 3],
-      [4, 8, 5],
-      [6, 7, 9, 10],
-      [11, 12, 13, 14, 15],
-    ];
 
     for (let row = 0; row < layout.length; row++) {
       const ballsInRow = layout[row].length;
@@ -51,5 +47,25 @@ export class Rack {
     }
 
     return balls;
+  }
+
+  static generate8Ball(tipX: number, tipY: number) {
+    return this.generateFromLayout(tipX, tipY, [
+      [1],
+      [2, 3],
+      [4, 8, 5],
+      [6, 7, 9, 10],
+      [11, 12, 13, 14, 15],
+    ]);
+  }
+
+  static generate9Ball(tipX: number, tipY: number) {
+    return this.generateFromLayout(tipX, tipY, [
+      [1],
+      [2, 3],
+      [4, 9, 5],
+      [6, 7],
+      [8],
+    ]);
   }
 }

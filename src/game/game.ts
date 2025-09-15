@@ -16,7 +16,10 @@ import {
   PerspectiveCamera,
   PositionalAudio,
   Raycaster,
+  RectAreaLight,
   Scene,
+  SpotLight,
+  SpotLightHelper,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -26,6 +29,8 @@ import {
   EffectComposer,
   OrbitControls,
   OutputPass,
+  RectAreaLightHelper,
+  RectAreaLightUniformsLib,
   RenderPass,
   Sky,
   SSAOPass,
@@ -130,12 +135,15 @@ export class Game {
 
     this.mouseRaycaster = new Raycaster();
 
+    this.setupRectLights();
+    this.setupAmbientLight();
+    this.setupSky();
+    this.setupListeners();
+    // this.setupLights();
+
     this.manager = new GameManager();
     this.scene.add(this.manager.table.object3D);
     this.clock = new Clock();
-
-    this.setupListeners();
-    this.setupLights();
 
     this.renderer.setAnimationLoop(this.draw.bind(this));
   }
@@ -172,10 +180,70 @@ export class Game {
     });
   }
 
-  private setupLights() {
+  private setupRectLights() {
+    RectAreaLightUniformsLib.init();
+
+    const lightParent = new Object3D();
+    lightParent.position.set(0, 0, 100);
+    this.scene.add(lightParent);
+
+    const createRectAreaLight = (x: number, y: number) => {
+      const ral = new RectAreaLight(0xffffff, 10, 60, 60);
+      ral.position.set(x, y, 0);
+      lightParent.add(ral);
+      const ralh = new RectAreaLightHelper(ral);
+      lightParent.add(ralh);
+      const sl = new SpotLight(0xffffff, 1);
+      sl.decay = 2;
+      sl.castShadow = true;
+      sl.shadow.bias = -0.00005;
+      sl.shadow.mapSize.set(2048, 2048);
+      sl.shadow.camera.near = 50;
+      sl.shadow.camera.far = 300;
+      sl.position.set(x, y, 10);
+      sl.target.position.set(x, y, 0);
+      sl.target.updateMatrixWorld();
+      lightParent.add(sl);
+      const slh = new SpotLightHelper(sl);
+      lightParent.add(slh);
+
+      ralh.visible = false;
+      slh.visible = false;
+      subscribe(settings, () => {
+        ralh.visible = settings.debugLights;
+        slh.visible = settings.debugLights;
+      });
+
+      return ral;
+    };
+
+    createRectAreaLight(-100, -50);
+    createRectAreaLight(0, -50);
+    createRectAreaLight(100, -50);
+
+    createRectAreaLight(-100, 50);
+    createRectAreaLight(0, 50);
+    createRectAreaLight(100, 50);
+  }
+
+  private setupAmbientLight() {
     const light = new AmbientLight(0xffffff);
     light.intensity = 0.5;
     this.scene.add(light);
+  }
+
+  private setupSky() {
+    const sky = new Sky();
+    sky.scale.setScalar(45000);
+    const phi = MathUtils.degToRad(190);
+    const theta = MathUtils.degToRad(180);
+    const sunPosition = new Vector3().setFromSphericalCoords(1, phi, theta);
+    sky.material.uniforms.sunPosition.value = sunPosition;
+    sky.material.uniforms.up.value = new Vector3(0, 0, 1);
+    this.scene.add(sky);
+  }
+
+  private setupLights() {
     const intensities = [1.5, 1.1, 1.9, 1.8];
 
     const r = 100;
@@ -251,15 +319,6 @@ export class Game {
         this.scene.remove(...helpers);
       }
     });
-
-    const sky = new Sky();
-    sky.scale.setScalar(45000);
-    const phi = MathUtils.degToRad(190);
-    const theta = MathUtils.degToRad(90);
-    const sunPosition = new Vector3().setFromSphericalCoords(1, phi, theta);
-    sky.material.uniforms.sunPosition.value = sunPosition;
-    sky.material.uniforms.up.value = new Vector3(0, 0, 1);
-    this.scene.add(sky);
   }
 
   public static getFirstMouseIntersection(object: Object3D) {

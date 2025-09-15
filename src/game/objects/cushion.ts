@@ -1,15 +1,11 @@
-import {
-  Mesh,
-  MeshBasicMaterial,
-  MeshLambertMaterial,
-  PlaneGeometry,
-} from 'three';
+import { Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
 import { PhysicsCushion } from '../physics/cushion';
 import { properties } from '../physics/properties';
 import { createCushionGeometry } from '../create-cushion-geometry';
 import { vec } from '../physics/vec';
 import { subscribe } from 'valtio';
 import { settings } from '../settings';
+import { createMaterial } from '../rendering/create-material';
 
 export class Cushion {
   public physics: PhysicsCushion;
@@ -40,9 +36,11 @@ export class Cushion {
   private createMesh() {
     this.mesh = new Mesh(
       createCushionGeometry(vec.toVector3s(this.physics.vertices), this.height),
-      new MeshLambertMaterial({
+      createMaterial({
         color: '#228822',
         flatShading: true,
+        roughness: 1,
+        metalness: 0,
       })
     );
 

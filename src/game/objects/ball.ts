@@ -7,7 +7,7 @@ import {
   LineBasicMaterial,
   Mesh,
   MeshBasicMaterial,
-  MeshPhongMaterial,
+  MeshPhysicalMaterial,
   Object3D,
   Quaternion,
   SphereGeometry,
@@ -24,6 +24,7 @@ import { properties } from '../physics/properties';
 import { Game } from '../game';
 import { vec } from '../physics/vec';
 import { settings } from '../settings';
+import { createMaterial } from '../rendering/create-material';
 
 export class Ball {
   private physics: PhysicsBall;
@@ -43,7 +44,7 @@ export class Ball {
   private projectionMeshes: Mesh[] = [];
   private trackingLine?: Line;
   private geometry!: SphereGeometry;
-  private projectionMaterial!: MeshPhongMaterial;
+  private projectionMaterial!: MeshPhysicalMaterial;
   private trackingLineMaterial!: LineBasicMaterial;
 
   private debugStateRing!: Mesh;
@@ -79,19 +80,22 @@ export class Ball {
       color: `#${this.color.getHexString()}`,
       number: this.number,
     });
-    const material = new MeshPhongMaterial({
+    const material = createMaterial({
       map: texture,
-      specular: new Color('#888'),
-      shininess: 200,
+      roughness: 0,
+      metalness: 0,
     });
+    // material.onBeforeCompile = (shader) => {
+    //   console.log(shader.fragmentShader);
+    // };
     this.mesh = new Mesh(this.geometry, material);
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;
     this.parent.add(this.mesh);
-    this.projectionMaterial = new MeshPhongMaterial({
+    this.projectionMaterial = createMaterial({
       map: texture,
-      specular: new Color('#888'),
-      shininess: 200,
+      roughness: 0.1,
+      metalness: 0,
       transparent: true,
       opacity: properties.projectionOpacity,
     });

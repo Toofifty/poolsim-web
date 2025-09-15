@@ -1,7 +1,6 @@
 import {
   Mesh,
   MeshBasicMaterial,
-  MeshLambertMaterial,
   Object3D,
   PlaneGeometry,
   Shape,
@@ -15,6 +14,7 @@ import { Game } from '../game';
 import { createCushions, Cushion } from './cushion';
 import { Pocket } from './pocket';
 import { TableState } from '../simulation/table-state';
+import { createMaterial } from '../rendering/create-material';
 
 export class Table {
   public cue: Cue;
@@ -65,7 +65,11 @@ export class Table {
 
     this.cloth = new Mesh(
       geometry,
-      new MeshLambertMaterial({ color: '#227722' })
+      createMaterial({
+        color: '#227722',
+        roughness: 1,
+        metalness: 0,
+      })
     );
     this.cloth.castShadow = true;
     this.cloth.receiveShadow = true;

@@ -1,9 +1,6 @@
 import {
-  Color,
   CylinderGeometry,
   Mesh,
-  MeshLambertMaterial,
-  MeshPhongMaterial,
   Object3D,
   SphereGeometry,
   Vector3,
@@ -12,6 +9,7 @@ import { properties } from '../physics/properties';
 import type { Ball } from './ball';
 import { Shot } from '../physics/shot';
 import { Game } from '../game';
+import { createMaterial } from '../rendering/create-material';
 
 export class Cue {
   private targetBall?: Ball;
@@ -43,7 +41,7 @@ export class Cue {
     this.object = new Object3D();
     const tip = new Mesh(
       new SphereGeometry(properties.cueTipRadius),
-      new MeshLambertMaterial({ color: '#88F' })
+      createMaterial({ color: '#88F' })
     );
     tip.position.y = properties.cueLength / 2;
     const handle = new Mesh(
@@ -52,10 +50,10 @@ export class Cue {
         properties.cueHandleRadius,
         properties.cueLength
       ),
-      new MeshPhongMaterial({
+      createMaterial({
         color: '#812e04',
-        specular: new Color('#812e04'),
-        shininess: 50,
+        roughness: 0.1,
+        metalness: 0,
       })
     );
     handle.castShadow = true;

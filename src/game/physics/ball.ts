@@ -105,10 +105,6 @@ export class PhysicsBall {
       return;
     }
 
-    if (vec.len(this.velocity) < properties.epsilon) {
-      return;
-    }
-
     vec.madd(this.position, vec.mult(this.velocity, dt));
     const contactVelocity = this.contactVelocity;
     if (this.isSliding) {

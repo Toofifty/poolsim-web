@@ -1,11 +1,6 @@
-import {
-  BackSide,
-  Color,
-  CylinderGeometry,
-  Mesh,
-  MeshPhongMaterial,
-} from 'three';
+import { BackSide, Color, CylinderGeometry, Mesh } from 'three';
 import { PhysicsPocket } from '../physics/pocket';
+import { createMaterial } from '../rendering/create-material';
 
 export class Pocket {
   public physics: PhysicsPocket;
@@ -30,7 +25,7 @@ export class Pocket {
   private createMesh() {
     this.mesh = new Mesh(
       new CylinderGeometry(this.radius, this.radius, this.depth),
-      new MeshPhongMaterial({ color: new Color('#222'), side: BackSide })
+      createMaterial({ color: new Color('#222'), side: BackSide })
     );
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;

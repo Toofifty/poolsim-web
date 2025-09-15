@@ -15,6 +15,8 @@ import { createCushions, Cushion } from './cushion';
 import { Pocket } from './pocket';
 import { TableState } from '../simulation/table-state';
 import { createMaterial } from '../rendering/create-material';
+import { createTableClothMesh } from '../models/table/create-table-cloth-mesh';
+import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
 
 export class Table {
   public cue: Cue;
@@ -41,40 +43,11 @@ export class Table {
   }
 
   private createMeshes() {
-    const l = properties.tableLength + properties.pocketCornerRadius * 2;
-    const w = properties.tableWidth + properties.pocketCornerRadius * 2;
-    const shape = new Shape();
-    shape.moveTo(-l / 2, -w / 2);
-    shape.lineTo(l / 2, -w / 2);
-    shape.lineTo(l / 2, w / 2);
-    shape.lineTo(-l / 2, w / 2);
-    shape.lineTo(-l / 2, -w / 2);
-    this.pockets.forEach((pocket) => {
-      const hole = new Shape();
-      hole.absarc(
-        pocket.position.x,
-        pocket.position.y,
-        pocket.radius,
-        0,
-        Math.PI * 2,
-        false
-      );
-      shape.holes.push(hole);
-    });
-    const geometry = new ShapeGeometry(shape);
-
-    this.cloth = new Mesh(
-      geometry,
-      createMaterial({
-        color: '#227722',
-        roughness: 1,
-        metalness: 0,
-      })
-    );
-    this.cloth.castShadow = true;
-    this.cloth.receiveShadow = true;
-    this.cloth.position.z = -properties.ballRadius;
+    this.cloth = createTableClothMesh(this.pockets);
     this.object3D.add(this.cloth);
+
+    const rail = createTableRailMesh(this.pockets);
+    this.object3D.add(rail);
 
     this.plane = new Mesh(
       new PlaneGeometry(properties.tableLength * 3, properties.tableWidth * 3),

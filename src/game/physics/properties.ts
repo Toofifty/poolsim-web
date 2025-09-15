@@ -21,13 +21,14 @@ export const properties = {
   // table (cm)
   tableWidth: 112,
   tableLength: 224,
-  pocketCornerRadius: 8.75,
+  pocketCornerRadius: 6.75,
   pocketEdgeRadius: 6.75,
   pocketDepth: 24,
   pocketOverlap: 2,
-  pocketCornerOverlap: 1.5,
+  pocketCornerOverlap: 0,
   pocketEdgeOverlap: 2,
   bumperWidth: 4,
+  railPadding: 8,
 
   // simulation
   maxIterations: 10_000,

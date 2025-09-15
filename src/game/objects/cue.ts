@@ -19,9 +19,9 @@ export class Cue {
   private object!: Object3D;
 
   // force in cm/s
-  public force = 50;
+  public force = properties.cueDefaultForce;
 
-  public static MAX_FORCE = 100;
+  public static MAX_FORCE = properties.cueMaxForce;
 
   private pullBackTimeLeft = 0;
   private pushForwardTimeLeft = 0;
@@ -113,7 +113,7 @@ export class Cue {
     if (this.isShooting) {
       if (this.pullBackTimeLeft > 0) {
         this.object.position.lerp(
-          new Vector3(0, -this.force / 2 + this.restingPosition.y, 0),
+          new Vector3(0, -this.force / 4 + this.restingPosition.y, 0),
           dt / this.pullBackTimeLeft
         );
         this.pullBackTimeLeft -= dt;

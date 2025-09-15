@@ -144,13 +144,13 @@ export class Table {
     );
   }
 
-  public update(updatePocketedBalls?: boolean) {
+  public update(dt: number, updatePocketedBalls?: boolean) {
     if (this.settled) {
       this.cursorPosition = Game.getFirstMouseIntersection(this.plane);
       if (this.cursorPosition) {
         this.cue.setTarget(this.cursorPosition);
       }
-      this.cue.update();
+      this.cue.update(dt);
     }
 
     // collide balls in pockets
@@ -158,7 +158,7 @@ export class Table {
     this.pockets.forEach((pocket) => {
       pocket.physics.balls.forEach((ball, i) => {
         if (updatePocketedBalls) {
-          ball.update();
+          ball.update(dt);
         }
         this.cushions.map((cushion) => ball.collideCushion(cushion.physics)),
           ball.collidePocket(pocket.physics);

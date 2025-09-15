@@ -4,6 +4,7 @@ import {
   AudioListener,
   AudioLoader,
   Camera,
+  Clock,
   DirectionalLight,
   DirectionalLightHelper,
   Line,
@@ -35,6 +36,7 @@ import { GameManager } from './game-manager';
 import { Profiler } from './profiler';
 import { settings } from './settings';
 import { subscribe } from 'valtio';
+import { properties } from './physics/properties';
 
 type AudioBuffers = Partial<Record<'clack' | 'break', AudioBuffer>>;
 
@@ -52,6 +54,9 @@ export class Game {
   public mousePosition: Vector2;
   public mouseRaycaster: Raycaster;
   public manager: GameManager;
+  public clock: Clock;
+  private accumulator = 0;
+  private timestep = 1 / properties.updatesPerSecond;
 
   private audioListener: AudioListener;
   private audioBuffers: AudioBuffers = {};
@@ -127,6 +132,7 @@ export class Game {
 
     this.manager = new GameManager();
     this.scene.add(this.manager.table.object3D);
+    this.clock = new Clock();
 
     this.setupListeners();
     this.setupLights();
@@ -168,13 +174,14 @@ export class Game {
 
   private setupLights() {
     const light = new AmbientLight(0xffffff);
-    light.intensity = 2;
+    light.intensity = 0.5;
     this.scene.add(light);
+    const intensities = [1.5, 1.1, 1.9, 1.8];
 
     const r = 100;
     const loff = 200;
     const lheight = 400;
-    const lightTL = new DirectionalLight(0xffffff, 0.5);
+    const lightTL = new DirectionalLight(0xffffff, intensities[0]);
     lightTL.shadow.bias = -0.00005;
     lightTL.shadow.mapSize.set(4096, 4096);
     lightTL.castShadow = true;
@@ -188,7 +195,7 @@ export class Game {
     lightTL.position.z = lheight;
     this.scene.add(lightTL);
 
-    const lightTR = new DirectionalLight(0xffffff, 1.1);
+    const lightTR = new DirectionalLight(0xffffff, intensities[1]);
     lightTR.shadow.bias = -0.00005;
     lightTR.shadow.mapSize.set(4096, 4096);
     lightTR.castShadow = true;
@@ -202,7 +209,7 @@ export class Game {
     lightTR.position.z = lheight;
     this.scene.add(lightTR);
 
-    const lightBL = new DirectionalLight(0xffffff, 0.9);
+    const lightBL = new DirectionalLight(0xffffff, intensities[2]);
     lightBL.shadow.bias = -0.00005;
     lightBL.shadow.mapSize.set(4096, 4096);
     lightBL.castShadow = true;
@@ -216,7 +223,7 @@ export class Game {
     lightBL.position.z = lheight;
     this.scene.add(lightBL);
 
-    const lightBR = new DirectionalLight(0xffffff, 0.8);
+    const lightBR = new DirectionalLight(0xffffff, intensities[3]);
     lightBR.shadow.bias = -0.00005;
     lightBR.shadow.mapSize.set(4096, 4096);
     lightBR.castShadow = true;
@@ -332,7 +339,16 @@ export class Game {
   public draw() {
     this.stats.begin();
     this.controls.update();
-    this.manager.update();
+
+    const dt = this.clock.getDelta();
+    this.accumulator += dt;
+
+    // physics step
+    while (this.accumulator >= this.timestep) {
+      this.manager.update(this.timestep);
+      this.accumulator -= this.timestep;
+    }
+
     this.composer.render();
     this.stats.end();
   }

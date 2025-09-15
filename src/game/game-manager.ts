@@ -5,6 +5,7 @@ import { Rack } from './rack';
 import { Simulation } from './simulation/simulation';
 import { Game } from './game';
 import { vec } from './physics/vec';
+import { AimAssistMode, settings } from './settings';
 
 export enum GameState {
   PlayerShoot,
@@ -109,9 +110,9 @@ export class GameManager {
     }
   }
 
-  public update() {
+  public update(dt: number) {
     if (this.isInPlay) {
-      const result = this.simulation.step();
+      const result = this.simulation.step(dt);
       result.collisions.forEach((collision) => {
         if (collision.type === 'ball-ball') {
           Game.playAudio(
@@ -123,7 +124,11 @@ export class GameManager {
       });
     }
 
-    if (this.state === GameState.PlayerShoot && !this.table.cue.isShooting) {
+    if (
+      this.state === GameState.PlayerShoot &&
+      !this.table.cue.isShooting &&
+      settings.aimAssistMode === AimAssistMode.Full
+    ) {
       this.simulation.updateAimAssist(this.table.cue.getShot());
     } else {
       this.simulation.clearAimAssist();
@@ -131,6 +136,6 @@ export class GameManager {
     this.table.state.balls.forEach((ball) => ball.updateProjection());
 
     this.updateState();
-    this.table.update(!this.isInPlay);
+    this.table.update(dt, !this.isInPlay);
   }
 }

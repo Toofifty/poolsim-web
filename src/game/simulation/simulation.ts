@@ -78,6 +78,7 @@ export class Simulation {
   }
 
   public step(
+    dt: number,
     state?: TableState,
     trackCollisionPoints?: boolean,
     stepIndex = -1
@@ -90,7 +91,7 @@ export class Simulation {
 
     const endBallUpdate = Game.profiler.startProfile('ballUpdate');
     state.balls.forEach((ball) => {
-      ball.update();
+      ball.update(dt);
       if (trackCollisionPoints && trackPath) {
         ball.addTrackingPoint();
       }
@@ -164,7 +165,8 @@ export class Simulation {
           }
 
           if (trackCollisionPoints) {
-            collision.initiator.owner.addCollisionPoint();
+            collision.initiator.owner.addTrackingPoint();
+            // collision.initiator.owner.addCollisionPoint();
           }
           result.collisions.push(collision);
         }
@@ -190,9 +192,10 @@ export class Simulation {
     for (let i = 0; i < properties.maxIterations; i++) {
       const endStep = Game.profiler.startProfile('step');
       const stepResult = this.step(
+        1 / properties.updatesPerSecond,
         copiedState,
         trackCollisionPoints,
-        trackCollisionPoints ? i : -1
+        i
       );
       const endAddResult = Game.profiler.startProfile('add');
       result.add(stepResult);

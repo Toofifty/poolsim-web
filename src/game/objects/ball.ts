@@ -98,7 +98,7 @@ export class Ball {
     this.trackingLineMaterial = new LineBasicMaterial({
       color: this.color,
       transparent: true,
-      opacity: properties.projectionOpacity,
+      opacity: properties.projectionOpacity * 2,
     });
   }
 
@@ -220,17 +220,22 @@ export class Ball {
     }
     this.collisionPoints.push(position);
     this.collisionOrientations.push(orientation);
-    this.trackingPoints.push(position);
+    this.addTrackingPoint(position);
   }
 
   public addTrackingPoint(position?: Vector3) {
     if (!this.isPocketed) {
+      position = (position ?? this.position).clone();
+      if (this.original) {
+        this.original.addTrackingPoint(position);
+        return;
+      }
       this.trackingPoints.push(position ?? this.position);
     }
   }
 
-  public update() {
-    this.physics.update();
+  public update(dt: number) {
+    this.physics.update(dt);
     if (!this.original) {
       this.updateMesh();
       this.updateDebug();

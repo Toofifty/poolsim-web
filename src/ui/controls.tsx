@@ -3,11 +3,12 @@ import { Surface } from './surface';
 import { PowerBar } from './power-bar';
 import './controls.scss';
 import { useSnapshot } from 'valtio';
-import { settings } from '../game/settings';
+import { AimAssistMode, settings } from '../game/settings';
 import { Game } from '../game/game';
 
 export const Controls = () => {
   const {
+    aimAssistMode,
     canvasEnabled,
     debugLights,
     debugBalls,
@@ -32,9 +33,38 @@ export const Controls = () => {
           <Button surface onClick={() => Game.manager.setupDebugGame()}>
             Setup single ball
           </Button>
+          <Surface>
+            <div className="group lower">
+              <span>Aim assist</span>
+              <Button
+                active={aimAssistMode === AimAssistMode.Off}
+                onClick={() => {
+                  settings.aimAssistMode = AimAssistMode.Off;
+                }}
+              >
+                Off
+              </Button>
+              <Button
+                active={aimAssistMode === AimAssistMode.FirstContact}
+                onClick={() => {
+                  settings.aimAssistMode = AimAssistMode.FirstContact;
+                }}
+              >
+                First contact
+              </Button>
+              <Button
+                active={aimAssistMode === AimAssistMode.Full}
+                onClick={() => {
+                  settings.aimAssistMode = AimAssistMode.Full;
+                }}
+              >
+                Full
+              </Button>
+            </div>
+          </Surface>
         </div>
         <Surface>
-          <div className="group space-between">
+          <div className="group">
             <div className="group lower">
               <span>Debug</span>
               <Button

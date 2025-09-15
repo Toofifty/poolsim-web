@@ -1,6 +1,6 @@
 import { CanvasTexture } from 'three';
 
-const tsize = 128;
+const tsize = 256;
 
 export function createBallTexture({
   color = '#fff',
@@ -45,7 +45,7 @@ export function createBallTexture({
     ctx.fillRect(0, 0, tsize * 2, dotSize);
     ctx.fillRect(0, tsize - dotSize, tsize * 2, dotSize);
   } else {
-    const numberSize = tsize / 6;
+    const numberSize = tsize / 8;
 
     // Numbered balls
     ctx.fillStyle = darkTheme ? '#202020' : '#fff';

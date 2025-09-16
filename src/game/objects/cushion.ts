@@ -37,7 +37,7 @@ export class Cushion {
     this.mesh = new Mesh(
       createCushionGeometry(vec.toVector3s(this.physics.vertices), this.height),
       createMaterial({
-        color: '#228822',
+        color: properties.colorTableCushion,
         flatShading: true,
         roughness: 1,
         metalness: 0,

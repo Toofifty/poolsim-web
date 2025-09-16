@@ -2,6 +2,7 @@
 
 .power-bar {
   height: 32px;
+  width: 100%;
 }
 
 .power-bar__click-area {
@@ -16,7 +17,8 @@
   width: 100%;
   height: 100%;
   border-radius: $br-surface - $pad-surface;
-  background: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(90deg, transparent, #646cff);
+  opacity: 1;
   pointer-events: none;
 }
 

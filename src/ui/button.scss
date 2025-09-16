@@ -17,6 +17,11 @@
   & + .button.surface {
     margin-left: 0;
   }
+
+  &.active {
+    border-color: #646cff;
+    background: #646cff88;
+  }
 }
 
 .button:not(.surface) {

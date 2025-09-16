@@ -29,6 +29,10 @@ export const createPocketLinerMesh = (pocket: Pocket) => {
 
   return new Mesh(
     geometry,
-    createMaterial({ color: '#262626', roughness: 0.5, metalness: 0 })
+    createMaterial({
+      color: properties.colorPocketLiner,
+      roughness: 0.5,
+      metalness: 0,
+    })
   );
 };

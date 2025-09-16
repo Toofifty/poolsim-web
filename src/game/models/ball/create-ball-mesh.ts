@@ -24,7 +24,7 @@ export const createBallMesh = ({
 }) => {
   const geometry = new SphereGeometry(radius);
   const texture = createBallTexture({
-    color: `#${color.getHexString()}`,
+    color,
     number,
   });
   const material = createMaterial({
@@ -33,6 +33,7 @@ export const createBallMesh = ({
     metalness: 0,
     normalMap,
     normalScale: new Vector2(0.5, 0.5),
+    flatShading: true,
   });
   const projectionMaterial = createMaterial({
     map: texture,

@@ -15,6 +15,7 @@
     "stats.js": "^0.17.0",
     "three": "^0.180.0",
     "three-bvh-csg": "^0.0.17",
+    "three-subdivide": "^1.1.5",
     "valtio": "^2.1.7"
   },
   "devDependencies": {

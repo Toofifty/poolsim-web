@@ -14,6 +14,7 @@ import { Pocket } from './pocket';
 import { TableState } from '../simulation/table-state';
 import { createTableClothMesh } from '../models/table/create-table-cloth-mesh';
 import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
+import { createTableRailDiamondsMesh } from '../models/table/create-table-rail-diamonds-mesh';
 
 export class Table {
   public cue: Cue;
@@ -45,6 +46,9 @@ export class Table {
 
     const rail = createTableRailMesh(this.pockets);
     this.object3D.add(rail);
+
+    const diamonds = createTableRailDiamondsMesh();
+    this.object3D.add(diamonds);
 
     this.plane = new Mesh(
       new PlaneGeometry(properties.tableLength * 3, properties.tableWidth * 3),

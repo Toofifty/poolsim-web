@@ -1,4 +1,8 @@
+import { Color } from 'three';
+
 export const properties = {
+  highDetail: true,
+
   // physics - cm/s
   frictionSlide: 0.1,
   frictionSpin: 0.0001,
@@ -27,8 +31,10 @@ export const properties = {
   pocketOverlap: 0.02,
   pocketCornerOverlap: 0.02,
   pocketEdgeOverlap: 0.02,
+  pocketBevel: 0.005,
   bumperWidth: 0.04,
-  railPadding: 0.08,
+  railPadding: 0.02,
+  diamondWidth: 0.015,
 
   // simulation
   maxIterations: 10_000,
@@ -37,4 +43,24 @@ export const properties = {
 
   // visuals
   projectionOpacity: 0.25,
+  // colors
+  colorCueBall: new Color(0xffffff),
+  colorCueBallAccent: new Color(0xff0000),
+  colorBallCircle: new Color(0xffffff),
+  colorBallNumber: new Color(0x000000),
+  color1Ball: new Color(0xffb200),
+  color2Ball: new Color(0x002564),
+  color3Ball: new Color(0x990100),
+  color4Ball: new Color(0x60067f),
+  color5Ball: new Color(0xeb5300),
+  color6Ball: new Color(0x005900),
+  color7Ball: new Color(0x500003),
+  color8Ball: new Color(0x010101),
+  // 9-15 repeat above colors
+
+  colorTableCloth: new Color(0x227722),
+  colorTableCushion: new Color(0x337733),
+  colorTableRail: new Color(0x683104),
+  colorTableRailDiamond: new Color(0xffffff),
+  colorPocketLiner: new Color(0x262626),
 };

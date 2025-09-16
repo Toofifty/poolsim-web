@@ -1,5 +1,5 @@
-import { Canvas } from './ui/canvas';
 import { Game } from './game/game';
+import { Canvas } from './ui/canvas';
 import { UIContainer } from './ui/ui-container';
 import { Controls } from './ui/controls';
 import { useSnapshot } from 'valtio';

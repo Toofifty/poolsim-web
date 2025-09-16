@@ -15,7 +15,7 @@ export const createTableRailMesh = (pockets: Pocket[]) => {
       properties.pocketCornerRadius * 2 +
       properties.railPadding,
     properties.pocketCornerRadius + properties.railPadding,
-    { depth: height - 0.01, bevelThickness: 0.01 }
+    { depth: height - 0.01, bevelThickness: 0.01, bevelSize: 0.01 }
   ).translate(0, 0, -height);
 
   const tableInner = createRoundedRect(
@@ -42,6 +42,10 @@ export const createTableRailMesh = (pockets: Pocket[]) => {
 
   return new Mesh(
     rail,
-    createMaterial({ color: '#683104', roughness: 0.2, metalness: 0.1 })
+    createMaterial({
+      color: properties.colorTableRail,
+      roughness: 0.2,
+      metalness: 0.1,
+    })
   );
 };

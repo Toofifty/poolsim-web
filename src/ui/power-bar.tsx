@@ -17,7 +17,7 @@ export const PowerBar = () => {
   };
 
   return (
-    <Surface className="power-bar">
+    <div className="power-bar">
       <div className="power-bar__click-area" onClick={onClick}>
         <div
           className="power-bar__current-power"
@@ -25,6 +25,6 @@ export const PowerBar = () => {
         />
         <span className="power-bar__power-num">{force.toFixed(2)}m/s</span>
       </div>
-    </Surface>
+    </div>
   );
 };

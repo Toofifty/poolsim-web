@@ -23,6 +23,9 @@ importers:
       three-bvh-csg:
         specifier: ^0.0.17
         version: 0.0.17(three-mesh-bvh@0.9.1(three@0.180.0))(three@0.180.0)
+      three-subdivide:
+        specifier: ^1.1.5
+        version: 1.1.5(three@0.180.0)
       valtio:
         specifier: ^2.1.7
         version: 2.1.7(@types/react@19.1.12)(react@19.1.1)
@@ -1227,6 +1230,11 @@ packages:
     peerDependencies:
       three: '>= 0.159.0'
 
+  three-subdivide@1.1.5:
+    resolution: {integrity: sha512-eEWMevrsHIMnC1xbsZSQZIB8QBr8XeXZhTSAdYrLm3ZC/yTdR4ocOZ2Qi+gEyPJFOt3iirQ+SQR0jCamk7e6FQ==}
+    peerDependencies:
+      three: '>= 0.125.0'
+
   three@0.180.0:
     resolution: {integrity: sha512-o+qycAMZrh+TsE01GqWUxUIKR1AL0S8pq7zDkYOQw8GqfX8b8VoCKYUoHbhiX5j+7hr8XsuHDVU6+gkQJQKg9w==}
 
@@ -2339,6 +2347,10 @@ snapshots:
       three-mesh-bvh: 0.9.1(three@0.180.0)
 
   three-mesh-bvh@0.9.1(three@0.180.0):
+    dependencies:
+      three: 0.180.0
+
+  three-subdivide@1.1.5(three@0.180.0):
     dependencies:
       three: 0.180.0
 

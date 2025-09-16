@@ -1,10 +1,4 @@
-import {
-  CylinderGeometry,
-  Mesh,
-  SphereGeometry,
-  TextureLoader,
-  Vector2,
-} from 'three';
+import { CylinderGeometry, Mesh, SphereGeometry } from 'three';
 import type { Pocket } from '../../objects/pocket';
 import { properties } from '../../physics/properties';
 import { createMaterial } from '../../rendering/create-material';
@@ -29,15 +23,21 @@ export const createTableClothMesh = (pockets: Pocket[]) => {
     cylinder.translate(pocket.position.x, pocket.position.y, -height / 2);
     geometry = subtract(geometry, cylinder);
     // slight bevel around pockets
-    const sphere = new SphereGeometry(pocket.radius * 2);
-    sphere.translate(pocket.position.x, pocket.position.y, pocket.radius * 1.2);
+    const sr = pocket.radius * 2;
+    const sphere = new SphereGeometry(sr);
+    const z = Math.sqrt(sr * sr - pocket.radius * pocket.radius);
+    sphere.translate(
+      pocket.position.x,
+      pocket.position.y,
+      z - height - properties.pocketBevel
+    );
     geometry = subtract(geometry, sphere);
   });
 
   const cloth = new Mesh(
     geometry,
     createMaterial({
-      color: '#227722',
+      color: properties.colorTableCloth,
       roughness: 1,
       metalness: 0,
       sheen: 1,

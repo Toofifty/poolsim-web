@@ -9,6 +9,8 @@ export enum AimAssistMode {
 export const settings = proxy({
   aimAssistMode: AimAssistMode.Off,
 
+  highDetail: false,
+
   canvasEnabled: true,
   debugLights: false,
   debugBalls: false,

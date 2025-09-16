@@ -7,7 +7,6 @@ import {
   Clock,
   DirectionalLight,
   DirectionalLightHelper,
-  HalfFloatType,
   Line,
   MathUtils,
   Mesh,
@@ -18,15 +17,12 @@ import {
   PositionalAudio,
   Raycaster,
   RectAreaLight,
-  RGBAFormat,
   Scene,
   SpotLight,
   SpotLightHelper,
   Vector2,
   Vector3,
-  WebGL3DRenderTarget,
   WebGLRenderer,
-  WebGLRenderTarget,
 } from 'three';
 import Stats from 'stats.js';
 import {
@@ -52,23 +48,23 @@ type AudioBuffers = Partial<Record<'clack' | 'break', AudioBuffer>>;
 
 export class Game {
   // rendering
-  public scene: Scene;
-  public renderer: WebGLRenderer;
-  public composer: EffectComposer;
-  public camera: Camera;
-  public controls: OrbitControls;
-  public stats: Stats;
+  public scene!: Scene;
+  public renderer!: WebGLRenderer;
+  public composer!: EffectComposer;
+  public camera!: Camera;
+  public controls!: OrbitControls;
+  public stats!: Stats;
   public sun!: DirectionalLight;
 
   // game
-  public mousePosition: Vector2;
-  public mouseRaycaster: Raycaster;
-  public manager: GameManager;
-  public clock: Clock;
+  public mousePosition!: Vector2;
+  public mouseRaycaster!: Raycaster;
+  public manager!: GameManager;
+  public clock!: Clock;
   private accumulator = 0;
   private timestep = 1 / properties.updatesPerSecond;
 
-  private audioListener: AudioListener;
+  private audioListener!: AudioListener;
   private audioBuffers: AudioBuffers = {};
 
   public static instance: Game;
@@ -76,7 +72,14 @@ export class Game {
 
   public static reflectives: Mesh[] = [];
 
+  private mounted: boolean = false;
+
   constructor() {
+    this.init();
+  }
+
+  init() {
+    this.mounted = true;
     Game.instance = this;
     this.mousePosition = new Vector2(0, 0);
     this.stats = new Stats();
@@ -121,25 +124,28 @@ export class Game {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    const ssao = new SSAOPass(this.scene, this.camera);
-    ssao.kernelRadius = 1;
-    ssao.minDistance = 0.001;
-    ssao.maxDistance = 0.1;
 
-    // ssao.output = SSAOPass.OUTPUT.Blur;
-    this.composer.addPass(ssao);
+    if (settings.highDetail) {
+      const ssao = new SSAOPass(this.scene, this.camera);
+      ssao.kernelRadius = 1;
+      ssao.minDistance = 0.001;
+      ssao.maxDistance = 0.1;
 
-    const ssr = new SSRPass({
-      renderer: this.renderer,
-      scene: this.scene,
-      camera: this.camera,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      groundReflector: null,
-      selects: Game.reflectives,
-    });
+      // ssao.output = SSAOPass.OUTPUT.Blur;
+      this.composer.addPass(ssao);
 
-    this.composer.addPass(ssr);
+      const ssr = new SSRPass({
+        renderer: this.renderer,
+        scene: this.scene,
+        camera: this.camera,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        groundReflector: null,
+        selects: Game.reflectives,
+      });
+
+      this.composer.addPass(ssr);
+    }
     this.composer.addPass(new OutputPass());
 
     this.audioListener = new AudioListener();
@@ -167,6 +173,10 @@ export class Game {
     this.renderer.setAnimationLoop(this.draw.bind(this));
   }
 
+  public safeInit() {
+    if (!this.mounted) this.init();
+  }
+
   get width() {
     return window.innerWidth;
   }
@@ -182,22 +192,39 @@ export class Game {
       return;
     }
 
-    el.addEventListener('mousemove', (e) => {
-      const { left, top, width, height } = el.getBoundingClientRect();
-      const x = e.clientX - left;
-      const y = e.clientY - top;
-      this.mousePosition.x = (x / width) * 2 - 1;
-      this.mousePosition.y = -(y / height) * 2 + 1;
-    });
-
-    el.addEventListener('mousedown', (e) => {
-      this.manager.mousedown(e);
-    });
-
-    document.addEventListener('keyup', (e) => {
-      this.manager.keyup(e);
-    });
+    el.addEventListener('mousemove', this.onMouseMove);
+    el.addEventListener('mousedown', this.onMouseDown);
+    document.addEventListener('keyup', this.onKeyUp);
   }
+
+  private teardownListeners() {
+    const el = this.renderer.domElement;
+
+    if (!el) {
+      return;
+    }
+
+    el.removeEventListener('mousemove', this.onMouseMove);
+    el.removeEventListener('mousedown', this.onMouseDown);
+    document.removeEventListener('keyup', this.onKeyUp);
+  }
+
+  private onMouseMove = (e: MouseEvent) => {
+    const { left, top, width, height } =
+      this.renderer.domElement.getBoundingClientRect();
+    const x = e.clientX - left;
+    const y = e.clientY - top;
+    this.mousePosition.x = (x / width) * 2 - 1;
+    this.mousePosition.y = -(y / height) * 2 + 1;
+  };
+
+  private onMouseDown = (e: MouseEvent) => {
+    this.manager.mousedown(e);
+  };
+
+  private onKeyUp = (e: KeyboardEvent) => {
+    this.manager.keyup(e);
+  };
 
   private setupRectLights() {
     RectAreaLightUniformsLib.init();
@@ -207,7 +234,12 @@ export class Game {
     this.scene.add(lightParent);
 
     const createRectAreaLight = (x: number, y: number) => {
-      const ral = new RectAreaLight(0xffffff, 10, 0.8, 0.4);
+      const ral = new RectAreaLight(
+        0xffffff,
+        settings.highDetail ? 10 : 20,
+        0.8,
+        0.4
+      );
       ral.position.set(x, y, 0);
       lightParent.add(ral);
       const ralh = new RectAreaLightHelper(ral);
@@ -238,18 +270,21 @@ export class Game {
     const sp = 0.4;
     const spy = 0.4;
 
-    createRectAreaLight(-sp * 2, -spy);
     createRectAreaLight(0, -spy);
-    createRectAreaLight(sp * 2, -spy);
-
-    createRectAreaLight(-sp * 2, spy);
     createRectAreaLight(0, spy);
-    createRectAreaLight(sp * 2, spy);
+
+    if (settings.highDetail) {
+      createRectAreaLight(-sp * 2, -spy);
+      createRectAreaLight(sp * 2, -spy);
+
+      createRectAreaLight(-sp * 2, spy);
+      createRectAreaLight(sp * 2, spy);
+    }
   }
 
   private setupAmbientLight() {
     const light = new AmbientLight(0xffffff);
-    light.intensity = 0.5;
+    light.intensity = settings.highDetail ? 0.5 : 2.5;
     this.scene.add(light);
   }
 
@@ -361,7 +396,14 @@ export class Game {
   }
 
   public static resetCamera() {
-    this.instance.camera.position.set(0, 0, 4);
+    this.instance.controls.target.set(0, 0, 0);
+    this.instance.camera.position.set(0, 0, 2);
+    this.instance.controls.update();
+  }
+
+  public static focusCueBall() {
+    const target = this.instance.table.balls[0].position;
+    this.instance.controls.target.copy(target);
     this.instance.controls.update();
   }
 
@@ -406,10 +448,34 @@ export class Game {
 
   public mount(container: HTMLDivElement | null) {
     if (container) {
+      this.safeInit();
       container.insertBefore(this.renderer.domElement, container.firstChild);
-    } else {
-      this.renderer.domElement.remove();
     }
+
+    return () => {
+      // dispose
+      this.renderer.setAnimationLoop(null);
+      this.teardownListeners();
+      this.scene.traverse((obj: any) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach((m: any) => m.dispose());
+          } else {
+            obj.material.dispose();
+          }
+        }
+      });
+      this.renderer.dispose();
+      this.renderer.forceContextLoss();
+
+      if (this.renderer.domElement.parentNode) {
+        this.renderer.domElement.parentNode.removeChild(
+          this.renderer.domElement
+        );
+      }
+      this.mounted = false;
+    };
   }
 
   get table() {

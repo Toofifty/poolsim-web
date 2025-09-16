@@ -9,6 +9,7 @@ import { Game } from '../game/game';
 export const Controls = () => {
   const {
     aimAssistMode,
+    highDetail,
     canvasEnabled,
     debugLights,
     debugBalls,
@@ -18,50 +19,78 @@ export const Controls = () => {
 
   return (
     <div className="controls">
-      <PowerBar />
+      <div className="group ">
+        <Surface>
+          <div className="group lower">
+            <span>Graphics</span>
+            <Button
+              active={!highDetail}
+              onClick={() => {
+                settings.highDetail = false;
+              }}
+            >
+              Low detail
+            </Button>
+            <Button
+              active={highDetail}
+              onClick={() => {
+                settings.highDetail = true;
+              }}
+            >
+              High detail
+            </Button>
+          </div>
+        </Surface>
+        <Surface>
+          <div className="group lower">
+            <span>Aim assist</span>
+            <Button
+              active={aimAssistMode === AimAssistMode.Off}
+              onClick={() => {
+                settings.aimAssistMode = AimAssistMode.Off;
+              }}
+            >
+              Off
+            </Button>
+            <Button
+              active={aimAssistMode === AimAssistMode.FirstContact}
+              onClick={() => {
+                settings.aimAssistMode = AimAssistMode.FirstContact;
+              }}
+            >
+              First contact
+            </Button>
+            <Button
+              active={aimAssistMode === AimAssistMode.Full}
+              onClick={() => {
+                settings.aimAssistMode = AimAssistMode.Full;
+              }}
+            >
+              Full
+            </Button>
+          </div>
+        </Surface>
+        <Surface className="grow">
+          <PowerBar />
+        </Surface>
+      </div>
       <div className="group space-between">
         <div className="group">
           <Button surface onClick={() => Game.resetCamera()}>
             Reset camera
           </Button>
+          <Button surface onClick={() => Game.focusCueBall()}>
+            Focus cue ball
+          </Button>
           <Button surface onClick={() => Game.manager.setup8Ball()}>
-            Setup 8 ball
+            8 ball
           </Button>
           <Button surface onClick={() => Game.manager.setup9Ball()}>
-            Setup 9 ball
+            9 ball
           </Button>
           <Button surface onClick={() => Game.manager.setupDebugGame()}>
-            Setup single ball
+            Debug
           </Button>
-          <Surface>
-            <div className="group lower">
-              <span>Aim assist</span>
-              <Button
-                active={aimAssistMode === AimAssistMode.Off}
-                onClick={() => {
-                  settings.aimAssistMode = AimAssistMode.Off;
-                }}
-              >
-                Off
-              </Button>
-              <Button
-                active={aimAssistMode === AimAssistMode.FirstContact}
-                onClick={() => {
-                  settings.aimAssistMode = AimAssistMode.FirstContact;
-                }}
-              >
-                First contact
-              </Button>
-              <Button
-                active={aimAssistMode === AimAssistMode.Full}
-                onClick={() => {
-                  settings.aimAssistMode = AimAssistMode.Full;
-                }}
-              >
-                Full
-              </Button>
-            </div>
-          </Surface>
         </div>
         <Surface>
           <div className="group">

@@ -1,25 +1,27 @@
-import { CanvasTexture } from 'three';
+import { CanvasTexture, Color } from 'three';
+import { properties } from '../../physics/properties';
 
-const tsize = 256;
+const hex = (color: Color) => '#' + color.getHexString();
 
 export function createBallTexture({
-  color = '#fff',
+  color,
   number = 1,
-  ballVariety = 32,
   darkTheme = false,
 }: {
-  color?: string;
+  color: Color;
   number?: number;
   ballVariety?: number;
   darkTheme?: boolean;
 }): CanvasTexture {
+  const tsize = properties.highDetail ? 256 : 64;
+
   const canvas = document.createElement('canvas');
   canvas.width = tsize * 2;
   canvas.height = tsize;
   const ctx = canvas.getContext('2d')!;
 
   // Background
-  ctx.fillStyle = color;
+  ctx.fillStyle = hex(color);
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // todo: noise/variance
@@ -28,7 +30,7 @@ export function createBallTexture({
     const dotSize = tsize / 16;
 
     // Red dots and stripes for cue ball
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = hex(properties.colorCueBallAccent);
     for (let k = 0; k < 5; k++) {
       ctx.beginPath();
       ctx.ellipse(
@@ -48,7 +50,7 @@ export function createBallTexture({
     const numberSize = tsize / 8;
 
     // Numbered balls
-    ctx.fillStyle = darkTheme ? '#202020' : '#fff';
+    ctx.fillStyle = hex(properties.colorBallCircle);
     ctx.beginPath();
     ctx.ellipse(
       tsize / 2,
@@ -70,17 +72,17 @@ export function createBallTexture({
     );
     ctx.fill();
 
-    ctx.fillStyle = darkTheme ? '#fff' : '#000';
+    ctx.fillStyle = hex(properties.colorBallNumber);
     ctx.font = `bold ${tsize / 5}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const offsetY = 4;
+    const offsetY = properties.highDetail ? 4 : 1;
     for (let k = 0; k < 2; k++) {
       ctx.fillText(String(number), tsize / 2 + k * tsize, tsize / 2 + offsetY);
     }
 
     if (number >= 9) {
-      ctx.fillStyle = darkTheme ? '#202020' : '#fff';
+      ctx.fillStyle = hex(properties.colorBallCircle);
       ctx.fillRect(0, 0, tsize * 2, tsize / 4);
       ctx.fillRect(0, (tsize * 3) / 4, tsize * 2, tsize / 4);
     }

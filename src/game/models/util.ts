@@ -10,9 +10,22 @@ export const subtract = (g1: BufferGeometry, g2: BufferGeometry) => {
   return new Evaluator().evaluate(new Brush(g1), new Brush(g2), SUBTRACTION)
     .geometry;
 };
+
 export const add = (g1: BufferGeometry, g2: BufferGeometry) => {
   return new Evaluator().evaluate(new Brush(g1), new Brush(g2), ADDITION)
     .geometry;
+};
+
+export const combine = (...gs: BufferGeometry[]) => {
+  if (gs.length < 2) {
+    return gs[0];
+  }
+  const [first, ...rest] = gs.map((g) => new Brush(g));
+  const evaluator = new Evaluator();
+  return rest.reduce(
+    (combination, brush) => evaluator.evaluate(combination, brush, ADDITION),
+    first
+  ).geometry;
 };
 
 export const createRoundedRect = (

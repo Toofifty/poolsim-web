@@ -6,6 +6,7 @@ import { Simulation } from './simulation/simulation';
 import { Game } from './game';
 import { vec } from './physics/vec';
 import { AimAssistMode, settings } from './settings';
+import { properties } from './physics/properties';
 
 export enum GameState {
   PlayerShoot,
@@ -40,27 +41,27 @@ export class GameManager {
   }
 
   public placeCueBall() {
-    this.table.state.cueBall.place(-40, 0);
+    this.table.state.cueBall.place(-properties.tableLength / 6, 0);
   }
 
   public setup8Ball() {
     this.placeCueBall();
     this.table.clearTargetBalls();
-    this.table.add(...Rack.generate8Ball(40, 0));
+    this.table.add(...Rack.generate8Ball(properties.tableLength / 6, 0));
     this.mode = GameMode._8Ball;
   }
 
   public setup9Ball() {
     this.placeCueBall();
     this.table.clearTargetBalls();
-    this.table.add(...Rack.generate9Ball(40, 0));
+    this.table.add(...Rack.generate9Ball(properties.tableLength / 6, 0));
     this.mode = GameMode._9Ball;
   }
 
   public setupDebugGame() {
     this.placeCueBall();
     this.table.clearTargetBalls();
-    this.table.add(...Rack.generateDebugGame(40, 0));
+    this.table.add(...Rack.generateDebugGame(properties.tableLength / 6, 0));
     this.mode = GameMode._9Ball;
   }
 

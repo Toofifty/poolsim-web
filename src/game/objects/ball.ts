@@ -79,6 +79,7 @@ export class Ball {
       number: this.number,
     });
     this.mesh = mesh;
+    Game.reflectives.push(this.mesh);
     this.geometry = this.mesh.geometry;
     this.projectionMaterial = projectionMaterial;
 
@@ -92,7 +93,7 @@ export class Ball {
 
   private createDebugMesh() {
     this.debugStateRing = new Mesh(
-      new TorusGeometry(this.physics.radius * 1.05, 0.5),
+      new TorusGeometry(this.physics.radius * 1.05, this.physics.radius * 0.1),
       new MeshBasicMaterial({ color: 0x00ff00 })
     );
     this.debugStateRing.visible = false;
@@ -101,7 +102,7 @@ export class Ball {
     this.debugArrowCV = new ArrowHelper(
       new Vector3(1, 0, 0),
       new Vector3(0, 0, 0),
-      1,
+      0.01,
       0xffff00
     );
     this.debugArrowCV.visible = false;
@@ -110,7 +111,7 @@ export class Ball {
     this.debugArrowV = new ArrowHelper(
       new Vector3(1, 0, 0),
       new Vector3(0, 0, 0),
-      1,
+      0.01,
       0x00ffff
     );
     this.debugArrowV.visible = false;
@@ -119,7 +120,7 @@ export class Ball {
     this.debugArrowW = new ArrowHelper(
       new Vector3(1, 0, 0),
       new Vector3(0, 0, 0),
-      1,
+      0.01,
       0xff00ff
     );
     this.debugArrowW.visible = false;

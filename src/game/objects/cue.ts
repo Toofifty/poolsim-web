@@ -28,7 +28,7 @@ export class Cue {
 
   private restingPosition = new Vector3(
     0,
-    -(properties.cueLength / 2 + properties.ballRadius + 2),
+    -(properties.cueLength / 2 + properties.ballRadius * 1.5),
     0
   );
 
@@ -111,13 +111,13 @@ export class Cue {
     if (this.isShooting) {
       if (this.pullBackTimeLeft > 0) {
         this.object.position.lerp(
-          new Vector3(0, -this.force / 4 + this.restingPosition.y, 0),
+          new Vector3(0, -this.force / 100 + this.restingPosition.y, 0),
           dt / this.pullBackTimeLeft
         );
         this.pullBackTimeLeft -= dt;
         if (this.pullBackTimeLeft <= 0) {
           dt += this.pullBackTimeLeft;
-          this.pushForwardTimeLeft = 10 / this.force;
+          this.pushForwardTimeLeft = 0.1 / this.force;
         }
       }
 

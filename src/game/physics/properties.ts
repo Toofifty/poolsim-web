@@ -1,34 +1,34 @@
 export const properties = {
   // physics - cm/s
-  frictionSlide: 10,
-  frictionSpin: 0.01,
-  frictionRoll: 10,
+  frictionSlide: 0.1,
+  frictionSpin: 0.0001,
+  frictionRoll: 0.1,
   restitutionBallBall: 0.95,
   restitutionBallCushion: 0.8,
   restitutionBallPocket: 0.5,
-  gravity: 1,
-  epsilon: 1e-4,
-  cueDefaultForce: 75,
-  cueMaxForce: 150,
+  gravity: 0.01,
+  epsilon: 1e-6,
+  cueDefaultForce: 0.75,
+  cueMaxForce: 1.5,
 
-  // objects (cm)
-  ballRadius: 2.8575,
-  cueLength: 120,
-  cueTipRadius: 0.6,
-  cueHandleRadius: 1,
-  cuePullBackTime: 0.1,
+  // objects (m)
+  ballRadius: 0.028575,
+  cueLength: 1.2,
+  cueTipRadius: 0.006,
+  cueHandleRadius: 0.01,
+  cuePullBackTime: 0.001,
 
-  // table (cm)
-  tableWidth: 112,
-  tableLength: 224,
-  pocketCornerRadius: 8.75,
-  pocketEdgeRadius: 6.75,
-  pocketDepth: 24,
-  pocketOverlap: 2,
-  pocketCornerOverlap: 2,
-  pocketEdgeOverlap: 2,
-  bumperWidth: 4,
-  railPadding: 8,
+  // table (m)
+  tableWidth: 1.12,
+  tableLength: 2.24,
+  pocketCornerRadius: 0.0875,
+  pocketEdgeRadius: 0.0675,
+  pocketDepth: 0.24,
+  pocketOverlap: 0.02,
+  pocketCornerOverlap: 0.02,
+  pocketEdgeOverlap: 0.02,
+  bumperWidth: 0.04,
+  railPadding: 0.08,
 
   // simulation
   maxIterations: 10_000,

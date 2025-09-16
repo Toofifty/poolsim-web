@@ -7,6 +7,7 @@ import {
   Clock,
   DirectionalLight,
   DirectionalLightHelper,
+  HalfFloatType,
   Line,
   MathUtils,
   Mesh,
@@ -17,12 +18,15 @@ import {
   PositionalAudio,
   Raycaster,
   RectAreaLight,
+  RGBAFormat,
   Scene,
   SpotLight,
   SpotLightHelper,
   Vector2,
   Vector3,
+  WebGL3DRenderTarget,
   WebGLRenderer,
+  WebGLRenderTarget,
 } from 'three';
 import Stats from 'stats.js';
 import {
@@ -34,6 +38,7 @@ import {
   RenderPass,
   Sky,
   SSAOPass,
+  SSRPass,
 } from 'three/examples/jsm/Addons.js';
 import clackUrl from '../assets/clack.wav';
 import breakUrl from '../assets/break.wav';
@@ -69,6 +74,8 @@ export class Game {
   public static instance: Game;
   public static profiler = new Profiler();
 
+  public static reflectives: Mesh[] = [];
+
   constructor() {
     Game.instance = this;
     this.mousePosition = new Vector2(0, 0);
@@ -79,7 +86,7 @@ export class Game {
     this.scene = new Scene();
 
     const aspect = window.innerWidth / window.innerHeight;
-    this.camera = new PerspectiveCamera(50, aspect, 0.1, 4000);
+    this.camera = new PerspectiveCamera(50, aspect, 0.1, 400);
 
     // const frustumHeight = 200;
     // const frustumWidth = frustumHeight * aspect;
@@ -92,7 +99,7 @@ export class Game {
     //   2000
     // );
 
-    this.camera.position.z = 200;
+    this.camera.position.z = 2;
     this.camera.up.set(0, 0, 1);
     this.camera.lookAt(0, 0, 0);
 
@@ -121,6 +128,18 @@ export class Game {
 
     // ssao.output = SSAOPass.OUTPUT.Blur;
     this.composer.addPass(ssao);
+
+    const ssr = new SSRPass({
+      renderer: this.renderer,
+      scene: this.scene,
+      camera: this.camera,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      groundReflector: null,
+      selects: Game.reflectives,
+    });
+
+    this.composer.addPass(ssr);
     this.composer.addPass(new OutputPass());
 
     this.audioListener = new AudioListener();
@@ -184,11 +203,11 @@ export class Game {
     RectAreaLightUniformsLib.init();
 
     const lightParent = new Object3D();
-    lightParent.position.set(0, 0, 100);
+    lightParent.position.set(0, 0, 1);
     this.scene.add(lightParent);
 
     const createRectAreaLight = (x: number, y: number) => {
-      const ral = new RectAreaLight(0xffffff, 10, 60, 60);
+      const ral = new RectAreaLight(0xffffff, 10, 0.8, 0.4);
       ral.position.set(x, y, 0);
       lightParent.add(ral);
       const ralh = new RectAreaLightHelper(ral);
@@ -196,11 +215,11 @@ export class Game {
       const sl = new SpotLight(0xffffff, 1);
       sl.decay = 2;
       sl.castShadow = true;
-      sl.shadow.bias = -0.00005;
+      sl.shadow.bias = -0.000005;
       sl.shadow.mapSize.set(2048, 2048);
-      sl.shadow.camera.near = 50;
-      sl.shadow.camera.far = 300;
-      sl.position.set(x, y, 10);
+      sl.shadow.camera.near = 0.1;
+      sl.shadow.camera.far = 5;
+      sl.position.set(x, y, 1);
       sl.target.position.set(x, y, 0);
       sl.target.updateMatrixWorld();
       lightParent.add(sl);
@@ -216,15 +235,16 @@ export class Game {
 
       return ral;
     };
-    const sp = 40;
+    const sp = 0.4;
+    const spy = 0.4;
 
-    createRectAreaLight(-sp * 2, -sp);
-    createRectAreaLight(0, -sp);
-    createRectAreaLight(sp * 2, -sp);
+    createRectAreaLight(-sp * 2, -spy);
+    createRectAreaLight(0, -spy);
+    createRectAreaLight(sp * 2, -spy);
 
-    createRectAreaLight(-sp * 2, sp);
-    createRectAreaLight(0, sp);
-    createRectAreaLight(sp * 2, sp);
+    createRectAreaLight(-sp * 2, spy);
+    createRectAreaLight(0, spy);
+    createRectAreaLight(sp * 2, spy);
   }
 
   private setupAmbientLight() {
@@ -341,7 +361,7 @@ export class Game {
   }
 
   public static resetCamera() {
-    this.instance.camera.position.set(0, 0, 400);
+    this.instance.camera.position.set(0, 0, 4);
     this.instance.controls.update();
   }
 

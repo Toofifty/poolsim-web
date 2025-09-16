@@ -3,8 +3,6 @@ import {
   MeshBasicMaterial,
   Object3D,
   PlaneGeometry,
-  Shape,
-  ShapeGeometry,
   Vector3,
 } from 'three';
 import { Ball } from './ball';
@@ -14,7 +12,6 @@ import { Game } from '../game';
 import { createCushions, Cushion } from './cushion';
 import { Pocket } from './pocket';
 import { TableState } from '../simulation/table-state';
-import { createMaterial } from '../rendering/create-material';
 import { createTableClothMesh } from '../models/table/create-table-cloth-mesh';
 import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
 

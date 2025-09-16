@@ -80,8 +80,8 @@ export class PhysicsBall {
   }
 
   private zeroVectors() {
-    const vEpsilon = 0.01;
-    const wEpsilon = 0.01;
+    const vEpsilon = 0.0001;
+    const wEpsilon = 0.0001;
     if (Math.abs(this.velocity[0]) < vEpsilon) this.velocity[0] = 0;
     if (Math.abs(this.velocity[1]) < vEpsilon) this.velocity[1] = 0;
     if (Math.abs(this.velocity[2]) < vEpsilon) this.velocity[2] = 0;
@@ -129,9 +129,9 @@ export class PhysicsBall {
       const omegaDiff = vec.sub(omegaIdeal, this.angularVelocity);
 
       if (vec.lenSq(dOmega) > vec.lenSq(omegaDiff)) {
-        vec.madd(this.angularVelocity, omegaDiff);
+        vec.madd(this.angularVelocity, vec.mult(omegaDiff, 100));
       } else {
-        vec.madd(this.angularVelocity, dOmega);
+        vec.madd(this.angularVelocity, vec.mult(dOmega, 100));
       }
     } else if (this.isRolling) {
       const dv = vec.mult(

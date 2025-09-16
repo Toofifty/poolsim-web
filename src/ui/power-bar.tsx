@@ -23,9 +23,7 @@ export const PowerBar = () => {
           className="power-bar__current-power"
           style={{ width: `${(force / Cue.MAX_FORCE) * 100}%` }}
         />
-        <span className="power-bar__power-num">
-          {(force / 100).toFixed(2)}m/s
-        </span>
+        <span className="power-bar__power-num">{force.toFixed(2)}m/s</span>
       </div>
     </Surface>
   );

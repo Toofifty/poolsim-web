@@ -15,7 +15,7 @@ export const createTableRailMesh = (pockets: Pocket[]) => {
       properties.pocketCornerRadius * 2 +
       properties.railPadding,
     properties.pocketCornerRadius + properties.railPadding,
-    { depth: height - 1, bevelThickness: 1, bevelSegments: 16 }
+    { depth: height - 0.01, bevelThickness: 0.01 }
   ).translate(0, 0, -height);
 
   const tableInner = createRoundedRect(

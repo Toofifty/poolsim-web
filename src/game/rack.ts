@@ -1,7 +1,7 @@
 import { properties } from './physics/properties';
 import { Ball } from './objects/ball';
 
-const gap = properties.ballRadius / 16;
+const gap = properties.ballRadius / 8;
 const colors = [
   properties.colorCueBall,
   properties.color1Ball,
@@ -20,6 +20,8 @@ const colors = [
   properties.color6Ball,
   properties.color7Ball,
 ];
+
+const randomGap = () => ((Math.random() * 2 - 1) * gap) / 2;
 
 export class Rack {
   private static generateFromLayout(
@@ -41,7 +43,7 @@ export class Rack {
         const number = layout[row][col];
         const color = colors[number];
 
-        balls.push(new Ball(x, y, color, number));
+        balls.push(new Ball(x + randomGap(), y + randomGap(), color, number));
       }
     }
 

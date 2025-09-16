@@ -117,19 +117,21 @@ export class Table {
   }
 
   public get settled() {
-    return this.balls.every(
-      (ball) => ball.isStationary || (ball.isPocketed && ball.number > 0)
-    );
+    return this.state.settled;
   }
 
-  public update(dt: number, updatePocketedBalls?: boolean) {
-    if (this.settled) {
+  public update(
+    dt: number,
+    updateCue?: boolean,
+    updatePocketedBalls?: boolean
+  ) {
+    if (this.settled && updateCue) {
       this.cursorPosition = Game.getFirstMouseIntersection(this.plane);
       if (this.cursorPosition) {
         this.cue.setTarget(this.cursorPosition);
       }
-      this.cue.update(dt);
     }
+    this.cue.update(dt, this.settled);
 
     // collide balls in pockets
     // not needed in simulation

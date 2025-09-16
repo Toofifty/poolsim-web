@@ -10,21 +10,24 @@ import type { Ball } from './ball';
 import { Shot } from '../physics/shot';
 import { Game } from '../game';
 import { createMaterial } from '../rendering/create-material';
+import { gameStore } from '../store/game';
+import { dlerp } from '../dlerp';
 
 export class Cue {
   private targetBall?: Ball;
   public anchor!: Object3D;
   private object!: Object3D;
 
-  // force in cm/s
-  public force = properties.cueDefaultForce;
+  get force() {
+    return gameStore.cueForce;
+  }
+  set force(force: number) {
+    gameStore.cueForce = force;
+  }
 
   public static MAX_FORCE = properties.cueMaxForce;
 
-  private pullBackTimeLeft = 0;
-  private pushForwardTimeLeft = 0;
-
-  private onShotMade?: () => void;
+  public isShooting = false;
 
   private restingPosition = new Vector3(
     0,
@@ -89,60 +92,52 @@ export class Cue {
     return this.anchor.rotation.z + Math.PI / 2;
   }
 
-  public shoot(onShotMade?: () => void) {
+  public async shoot(onShotMade?: () => void) {
     if (!this.targetBall || !this.targetBall.isStationary) {
       return;
     }
 
+    this.isShooting = true;
+    await dlerp(
+      (v) => (this.object.position.y = v),
+      this.object.position.y,
+      this.restingPosition.y - this.force / 2,
+      properties.cuePullBackTime
+    );
     Game.playAudio('break', this.restingPosition, this.force / 2);
-    this.pullBackTimeLeft = properties.cuePullBackTime;
-    this.onShotMade = onShotMade;
+    await dlerp(
+      (v) => (this.object.position.y = v),
+      this.object.position.y,
+      this.restingPosition.y + properties.ballRadius * 0.5,
+      properties.cueShootTime
+    );
+    this.targetBall.hit(this.getShot());
+    onShotMade?.();
+    await dlerp(
+      (v) => (this.object.position.y = v),
+      this.object.position.y,
+      this.restingPosition.y,
+      properties.cuePullBackTime
+    );
+    this.isShooting = false;
   }
 
   public getShot() {
     return new Shot(this.angle, this.force);
   }
 
-  public get isShooting() {
-    return this.pullBackTimeLeft > 0 || this.pushForwardTimeLeft > 0;
+  public setShot(shot: Shot) {
+    dlerp(
+      (v) => (this.anchor.rotation.z = v),
+      this.anchor.rotation.z,
+      shot.angle - Math.PI / 2,
+      250
+    );
+    dlerp((v) => (this.force = v), this.force, shot.force, 250);
   }
 
-  public update(dt: number = 1 / 60) {
-    if (this.isShooting) {
-      if (this.pullBackTimeLeft > 0) {
-        this.object.position.lerp(
-          new Vector3(0, -this.force / 100 + this.restingPosition.y, 0),
-          dt / this.pullBackTimeLeft
-        );
-        this.pullBackTimeLeft -= dt;
-        if (this.pullBackTimeLeft <= 0) {
-          dt += this.pullBackTimeLeft;
-          this.pushForwardTimeLeft = 0.1 / this.force;
-        }
-      }
-
-      if (this.pushForwardTimeLeft > 0) {
-        this.object.position.lerp(
-          new Vector3(
-            0,
-            -(properties.cueLength / 2 + properties.ballRadius),
-            0
-          ),
-          dt / this.pushForwardTimeLeft
-        );
-        this.pushForwardTimeLeft -= dt;
-        if (this.pushForwardTimeLeft <= 0) {
-          this.pushForwardTimeLeft = 0;
-          this.targetBall?.hit(this.getShot());
-          this.onShotMade?.();
-          this.onShotMade = undefined;
-        }
-      }
-
-      return;
-    }
-
-    if (this.targetBall) {
+  public update(dt: number = 1 / 60, settled?: boolean) {
+    if (!this.isShooting && this.targetBall && settled) {
       this.anchor.position.copy(this.targetBall.position);
     }
   }

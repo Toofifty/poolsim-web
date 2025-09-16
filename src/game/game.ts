@@ -40,9 +40,14 @@ import clackUrl from '../assets/clack.wav';
 import breakUrl from '../assets/break.wav';
 import { GameManager } from './game-manager';
 import { Profiler } from './profiler';
-import { settings } from './settings';
+import { settings } from './store/settings';
 import { subscribe } from 'valtio';
 import { properties } from './physics/properties';
+
+// import SimulationWorker from './simulation/simulation-worker?worker';
+
+// const worker = new SimulationWorker();
+// worker.postMessage('boob');
 
 type AudioBuffers = Partial<Record<'clack' | 'break', AudioBuffer>>;
 
@@ -63,6 +68,7 @@ export class Game {
   public clock!: Clock;
   private accumulator = 0;
   private timestep = 1 / properties.updatesPerSecond;
+  public lerps: Set<(dt: number) => void> = new Set();
 
   private audioListener!: AudioListener;
   private audioBuffers: AudioBuffers = {};
@@ -494,6 +500,9 @@ export class Game {
       this.manager.update(this.timestep);
       this.accumulator -= this.timestep;
     }
+
+    // run lerps
+    this.lerps.forEach((lerp) => lerp(dt));
 
     this.composer.render();
     this.stats.end();

@@ -33,7 +33,6 @@ export const createBallMesh = ({
     metalness: 0,
     normalMap,
     normalScale: new Vector2(0.5, 0.5),
-    flatShading: true,
   });
   const projectionMaterial = createMaterial({
     map: texture,

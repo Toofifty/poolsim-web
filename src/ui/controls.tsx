@@ -3,13 +3,30 @@ import { Surface } from './surface';
 import { PowerBar } from './power-bar';
 import './controls.scss';
 import { useSnapshot } from 'valtio';
-import { AimAssistMode, settings } from '../game/settings';
+import { AimAssistMode, Players, settings } from '../game/store/settings';
 import { Game } from '../game/game';
+import { gameStore } from '../game/store/game';
+import { GameState } from '../game/game-manager';
+
+const getStateName = (state: GameState | undefined) => {
+  switch (state) {
+    case GameState.AIInPlay:
+      return 'AI turn';
+    case GameState.AIShoot:
+      return 'AI is thinking';
+    case GameState.PlayerInPlay:
+    case GameState.PlayerShoot:
+      return 'Your turn';
+    default:
+      return 'Unknown';
+  }
+};
 
 export const Controls = () => {
   const {
     aimAssistMode,
     highDetail,
+    players,
     canvasEnabled,
     debugLights,
     debugBalls,
@@ -17,8 +34,18 @@ export const Controls = () => {
     enableProfiler,
   } = useSnapshot(settings);
 
+  const { state } = useSnapshot(gameStore);
+
   return (
     <div className="controls">
+      <div className="group">
+        <Surface>
+          <div className="group lower">
+            <span>Status: </span>
+            <span>{getStateName(state)}</span>
+          </div>
+        </Surface>
+      </div>
       <div className="group ">
         <Surface>
           <div className="group lower">
@@ -42,32 +69,61 @@ export const Controls = () => {
           </div>
         </Surface>
         <Surface>
-          <div className="group lower">
-            <span>Aim assist</span>
-            <Button
-              active={aimAssistMode === AimAssistMode.Off}
-              onClick={() => {
-                settings.aimAssistMode = AimAssistMode.Off;
-              }}
-            >
-              Off
-            </Button>
-            <Button
-              active={aimAssistMode === AimAssistMode.FirstContact}
-              onClick={() => {
-                settings.aimAssistMode = AimAssistMode.FirstContact;
-              }}
-            >
-              First contact
-            </Button>
-            <Button
-              active={aimAssistMode === AimAssistMode.Full}
-              onClick={() => {
-                settings.aimAssistMode = AimAssistMode.Full;
-              }}
-            >
-              Full
-            </Button>
+          <div className="group">
+            <div className="group lower">
+              <span>Aim assist</span>
+              <Button
+                active={aimAssistMode === AimAssistMode.Off}
+                onClick={() => {
+                  settings.aimAssistMode = AimAssistMode.Off;
+                }}
+              >
+                Off
+              </Button>
+              {/* <Button
+                active={aimAssistMode === AimAssistMode.FirstContact}
+                onClick={() => {
+                  settings.aimAssistMode = AimAssistMode.FirstContact;
+                }}
+              >
+                First contact
+              </Button> */}
+              <Button
+                active={aimAssistMode === AimAssistMode.Full}
+                onClick={() => {
+                  settings.aimAssistMode = AimAssistMode.Full;
+                }}
+              >
+                Full
+              </Button>
+            </div>
+            <div className="group lower">
+              <span>Players</span>
+              <Button
+                active={players === Players.PlayerVsPlayer}
+                onClick={() => {
+                  settings.players = Players.PlayerVsPlayer;
+                }}
+              >
+                PvP
+              </Button>
+              <Button
+                active={players === Players.PlayerVsAI}
+                onClick={() => {
+                  settings.players = Players.PlayerVsAI;
+                }}
+              >
+                PvAI
+              </Button>
+              <Button
+                active={players === Players.AIVsAI}
+                onClick={() => {
+                  settings.players = Players.AIVsAI;
+                }}
+              >
+                AIvAI
+              </Button>
+            </div>
           </div>
         </Surface>
         <Surface className="grow">

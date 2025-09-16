@@ -3,7 +3,7 @@ import { Canvas } from './ui/canvas';
 import { UIContainer } from './ui/ui-container';
 import { Controls } from './ui/controls';
 import { useSnapshot } from 'valtio';
-import { settings } from './game/settings';
+import { settings } from './game/store/settings';
 
 const game = new Game();
 

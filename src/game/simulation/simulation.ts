@@ -9,6 +9,7 @@ export class Result {
   stepIterations = 1;
   ballsPotted = 0;
   pottedCueBall = false;
+  // unused?
   hitFoulBall = false;
   firstStruck = -1;
 
@@ -20,7 +21,7 @@ export class Result {
 
   collisions: Collision[] = [];
 
-  constructor(public state?: TableState) {}
+  constructor(public shot?: Shot, public state?: TableState) {}
 
   public add(other: Result) {
     this.stepIterations += other.stepIterations;
@@ -37,9 +38,24 @@ export class Result {
     return this;
   }
 
+  public hasHitFoulBall() {
+    if (!this.state) {
+      return false;
+    }
+
+    if (this.state.is9Ball && this.firstStruck !== -1) {
+      return this.state.lowestActiveBall?.number !== this.firstStruck;
+    }
+
+    return false;
+  }
+
   public hasFoul() {
     return (
-      this.cueBallCollisions === 0 || this.pottedCueBall || this.hitFoulBall
+      this.cueBallCollisions === 0 ||
+      this.pottedCueBall ||
+      this.hitFoulBall ||
+      this.hasHitFoulBall()
     );
   }
 }
@@ -64,7 +80,7 @@ export class Simulation {
   }
 
   public reset() {
-    this.current = new Result(this.table.state);
+    this.current = new Result(undefined, this.table.state);
   }
 
   private getKey(shot: Shot) {
@@ -183,7 +199,7 @@ export class Simulation {
 
   public run(shot: Shot, trackCollisionPoints?: boolean) {
     const copiedState = this.table.state.clone();
-    const result = new Result(copiedState);
+    const result = new Result(shot, copiedState);
 
     copiedState.cueBall.hit(shot);
 
@@ -203,6 +219,10 @@ export class Simulation {
       endStep();
 
       if (copiedState.settled) {
+        break;
+      }
+
+      if (result.hasHitFoulBall()) {
         break;
       }
     }

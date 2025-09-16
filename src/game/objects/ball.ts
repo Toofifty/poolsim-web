@@ -21,7 +21,7 @@ import { Pocket } from './pocket';
 import { properties } from '../physics/properties';
 import { Game } from '../game';
 import { vec } from '../physics/vec';
-import { settings } from '../settings';
+import { settings } from '../store/settings';
 import { createBallMesh } from '../models/ball/create-ball-mesh';
 
 export class Ball {

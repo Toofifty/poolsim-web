@@ -1,4 +1,4 @@
-import { settings } from './settings';
+import { settings } from './store/settings';
 
 const sum = (n: number[]) => n.reduce((s, c) => s + c, 0);
 const avg = (n: number[]) => sum(n) / n.length;

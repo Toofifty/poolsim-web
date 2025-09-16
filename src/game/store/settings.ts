@@ -6,10 +6,17 @@ export enum AimAssistMode {
   Full,
 }
 
+export enum Players {
+  PlayerVsPlayer,
+  PlayerVsAI,
+  AIVsAI,
+}
+
 export const settings = proxy({
   aimAssistMode: AimAssistMode.Off,
 
   highDetail: false,
+  players: Players.AIVsAI,
 
   canvasEnabled: true,
   debugLights: false,

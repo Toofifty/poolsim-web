@@ -13,14 +13,15 @@ export const properties = {
   gravity: 0.01,
   epsilon: 1e-6,
   cueDefaultForce: 0.75,
-  cueMaxForce: 1.5,
+  cueMaxForce: 2.5,
 
   // objects (m)
   ballRadius: 0.028575,
   cueLength: 1.2,
   cueTipRadius: 0.006,
   cueHandleRadius: 0.01,
-  cuePullBackTime: 0.001,
+  cuePullBackTime: 500,
+  cueShootTime: 100,
 
   // table (m)
   tableWidth: 1.12,

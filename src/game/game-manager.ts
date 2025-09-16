@@ -1,12 +1,16 @@
-import { Color } from 'three';
+import { Color, Vector3 } from 'three';
 import { Table } from './objects/table';
 import { Ball } from './objects/ball';
 import { Rack } from './rack';
-import { Simulation } from './simulation/simulation';
+import { Result, Simulation } from './simulation/simulation';
 import { Game } from './game';
 import { vec } from './physics/vec';
-import { AimAssistMode, settings } from './settings';
+import { AimAssistMode, Players, settings } from './store/settings';
 import { properties } from './physics/properties';
+import { gameStore } from './store/game';
+import { AI } from './ai';
+import { delay } from './util/delay';
+import { RuleSet } from './simulation/table-state';
 
 export enum GameState {
   PlayerShoot,
@@ -16,20 +20,19 @@ export enum GameState {
   AIInPlay,
 }
 
-export enum GameMode {
-  _8Ball,
-  _9Ball,
-}
-
 export class GameManager {
   public table: Table;
   public simulation: Simulation;
+  public ai: AI;
   public state!: GameState;
-  public mode!: GameMode;
+  public ruleSet!: RuleSet;
+
+  private aiIsThinking = false;
 
   constructor() {
     this.table = new Table();
     this.simulation = new Simulation(this.table);
+    this.ai = new AI(this.simulation);
 
     this.setupCueBall();
     this.setup9Ball();
@@ -48,31 +51,43 @@ export class GameManager {
     this.placeCueBall();
     this.table.clearTargetBalls();
     this.table.add(...Rack.generate8Ball(properties.tableLength / 6, 0));
-    this.mode = GameMode._8Ball;
+    this.ruleSet = RuleSet._8Ball;
+    this.table.state.ruleSet = RuleSet._8Ball;
   }
 
   public setup9Ball() {
     this.placeCueBall();
     this.table.clearTargetBalls();
     this.table.add(...Rack.generate9Ball(properties.tableLength / 6, 0));
-    this.mode = GameMode._9Ball;
+    this.ruleSet = RuleSet._9Ball;
+    this.table.state.ruleSet = RuleSet._9Ball;
   }
 
   public setupDebugGame() {
     this.placeCueBall();
     this.table.clearTargetBalls();
     this.table.add(...Rack.generateDebugGame(properties.tableLength / 6, 0));
-    this.mode = GameMode._9Ball;
+    this.ruleSet = RuleSet._9Ball;
+    this.table.state.ruleSet = RuleSet._8Ball;
   }
 
   public startGame() {
-    this.state = GameState.PlayerShoot;
+    this.simulation.reset();
+    if (settings.players === Players.AIVsAI) {
+      this.setState(GameState.AIShoot);
+    } else if (settings.players === Players.PlayerVsPlayer) {
+      this.setState(GameState.PlayerShoot);
+    } else {
+      this.setState(
+        Math.random() > 0.5 ? GameState.PlayerShoot : GameState.AIShoot
+      );
+    }
   }
 
   public mousedown(event: MouseEvent) {
     if (event.button === 0 && this.state === GameState.PlayerShoot) {
       this.table.cue.shoot(() => {
-        this.state = GameState.PlayerInPlay;
+        this.setState(GameState.PlayerInPlay);
       });
     }
   }
@@ -91,6 +106,38 @@ export class GameManager {
     );
   }
 
+  private shouldSwitchTurn(result?: Result) {
+    result ??= this.simulation.getResult();
+    return false;
+  }
+
+  private async playAIShot() {
+    if (this.aiIsThinking) {
+      return;
+    }
+    this.aiIsThinking = true;
+    await delay(100);
+    const shot = this.ai.findShot();
+    if (!shot) return;
+    // let dt catch up before animating the cue
+    await delay(100);
+
+    // const oldShot = this.table.cue.getShot();
+    this.table.cue.setShot(shot);
+    await delay(500);
+    this.table.cue.shoot(async () => {
+      this.setState(GameState.AIInPlay);
+      await delay(500);
+      // this.table.cue.setShot(oldShot);
+      this.aiIsThinking = false;
+    });
+  }
+
+  private setState(state: GameState) {
+    this.state = state;
+    gameStore.state = state;
+  }
+
   private updateState() {
     if (!this.table.settled) {
       return;
@@ -102,10 +149,27 @@ export class GameManager {
 
     switch (this.state) {
       case GameState.PlayerInPlay:
-        this.state = GameState.PlayerShoot;
+        if (settings.players === Players.PlayerVsPlayer) {
+          this.setState(GameState.PlayerShoot);
+        } else {
+          this.setState(
+            this.shouldSwitchTurn() ? GameState.AIShoot : GameState.PlayerShoot
+          );
+        }
+        this.simulation.reset();
         break;
       case GameState.AIInPlay:
-        this.state = GameState.AIShoot;
+        if (settings.players === Players.AIVsAI) {
+          this.setState(GameState.AIShoot);
+        } else {
+          this.setState(
+            this.shouldSwitchTurn() ? GameState.PlayerShoot : GameState.AIShoot
+          );
+        }
+        this.simulation.reset();
+        break;
+      case GameState.AIShoot:
+        this.playAIShot();
         break;
       default:
     }
@@ -137,6 +201,6 @@ export class GameManager {
     this.table.state.balls.forEach((ball) => ball.updateProjection());
 
     this.updateState();
-    this.table.update(dt, !this.isInPlay);
+    this.table.update(dt, this.state === GameState.PlayerShoot, !this.isInPlay);
   }
 }

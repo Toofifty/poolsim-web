@@ -4,7 +4,7 @@ import { properties } from '../physics/properties';
 import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
 import { vec } from '../physics/vec';
 import { subscribe } from 'valtio';
-import { settings } from '../settings';
+import { settings } from '../store/settings';
 import { createMaterial } from '../rendering/create-material';
 
 export class Cushion {

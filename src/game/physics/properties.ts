@@ -21,11 +21,11 @@ export const properties = {
   // table (cm)
   tableWidth: 112,
   tableLength: 224,
-  pocketCornerRadius: 6.75,
+  pocketCornerRadius: 8.75,
   pocketEdgeRadius: 6.75,
   pocketDepth: 24,
   pocketOverlap: 2,
-  pocketCornerOverlap: 0,
+  pocketCornerOverlap: 2,
   pocketEdgeOverlap: 2,
   bumperWidth: 4,
   railPadding: 8,

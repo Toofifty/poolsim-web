@@ -172,12 +172,12 @@ export class PhysicsBall {
   }
 
   private updatePocket(dt: number) {
+    const gravity = properties.gravity * 5;
     // move the ball in the pocket
-    this.velocity[2] -= properties.gravity;
+    this.velocity[2] -= gravity;
     vec.madd(this.position, vec.mult(this.velocity, dt));
 
-    this.isStationary =
-      vec.len(this.velocity) - properties.gravity <= properties.epsilon;
+    this.isStationary = vec.len(this.velocity) - gravity <= properties.epsilon;
   }
 
   public collideBall(other: PhysicsBall): BallBallCollision | undefined {
@@ -284,16 +284,20 @@ export class PhysicsBall {
           vec.sub(this.position, vec.setZ(vec.from(pocket.position), 0))
         );
 
-        const overlap = dist - (pocket.radius - this.radius);
-        vec.msub(this.position, vec.mult(normal, overlap));
+        // todo: skipping overlap fix for now since it applies
+        // as soon as the ball touches the pocket
+        // const overlap = dist - (pocket.radius - this.radius);
+        // vec.msub(this.position, vec.mult(normal, overlap));
 
         const vn = vec.dot(this.velocity, normal);
         if (vn > 0) {
+          const vz = this.velocity[2];
           vec.msub(this.velocity, vec.mult(normal, 2 * vn));
           vec.mmult(this.velocity, 0.5);
           if (vec.lenSq(this.velocity) < properties.epsilon) {
             vec.mmult(this.velocity, 0);
           }
+          this.velocity[2] = vz;
         }
       }
 
@@ -307,7 +311,7 @@ export class PhysicsBall {
             -this.velocity[2] * properties.restitutionBallPocket;
         }
 
-        vec.mmult(this.velocity, 0.9);
+        vec.mmult(this.velocity, 0.5);
       }
       return undefined;
     }

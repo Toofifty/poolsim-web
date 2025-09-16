@@ -10,21 +10,19 @@ import {
   MeshPhysicalMaterial,
   Object3D,
   Quaternion,
-  SphereGeometry,
   TorusGeometry,
   Vector3,
 } from 'three';
 import { PhysicsBall } from '../physics/ball';
 import type { Shot } from '../physics/shot';
 import { Cushion } from './cushion';
-import { createBallTexture } from '../create-ball-texture';
 import type { Collision } from '../physics/collision';
 import { Pocket } from './pocket';
 import { properties } from '../physics/properties';
 import { Game } from '../game';
 import { vec } from '../physics/vec';
 import { settings } from '../settings';
-import { createMaterial } from '../rendering/create-material';
+import { createBallMesh } from '../models/ball/create-ball-mesh';
 
 export class Ball {
   private physics: PhysicsBall;
@@ -43,7 +41,7 @@ export class Ball {
 
   private projectionMeshes: Mesh[] = [];
   private trackingLine?: Line;
-  private geometry!: SphereGeometry;
+  private geometry!: BufferGeometry;
   private projectionMaterial!: MeshPhysicalMaterial;
   private trackingLineMaterial!: LineBasicMaterial;
 
@@ -75,30 +73,16 @@ export class Ball {
   }
 
   private createMesh() {
-    this.geometry = new SphereGeometry(this.physics.radius);
-    const texture = createBallTexture({
-      color: `#${this.color.getHexString()}`,
+    const { mesh, projectionMaterial } = createBallMesh({
+      radius: this.physics.radius,
+      color: this.color,
       number: this.number,
     });
-    const material = createMaterial({
-      map: texture,
-      roughness: 0,
-      metalness: 0,
-    });
-    // material.onBeforeCompile = (shader) => {
-    //   console.log(shader.fragmentShader);
-    // };
-    this.mesh = new Mesh(this.geometry, material);
-    this.mesh.castShadow = true;
-    this.mesh.receiveShadow = true;
+    this.mesh = mesh;
+    this.geometry = this.mesh.geometry;
+    this.projectionMaterial = projectionMaterial;
+
     this.parent.add(this.mesh);
-    this.projectionMaterial = createMaterial({
-      map: texture,
-      roughness: 0.1,
-      metalness: 0,
-      transparent: true,
-      opacity: properties.projectionOpacity,
-    });
     this.trackingLineMaterial = new LineBasicMaterial({
       color: this.color,
       transparent: true,

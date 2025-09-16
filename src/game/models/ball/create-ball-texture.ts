@@ -71,11 +71,12 @@ export function createBallTexture({
     ctx.fill();
 
     ctx.fillStyle = darkTheme ? '#fff' : '#000';
-    ctx.font = `${tsize / 5}px sans-serif`;
+    ctx.font = `bold ${tsize / 5}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    const offsetY = 4;
     for (let k = 0; k < 2; k++) {
-      ctx.fillText(String(number), tsize / 2 + k * tsize, tsize / 2);
+      ctx.fillText(String(number), tsize / 2 + k * tsize, tsize / 2 + offsetY);
     }
 
     if (number >= 9) {

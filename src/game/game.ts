@@ -79,7 +79,7 @@ export class Game {
     this.scene = new Scene();
 
     const aspect = window.innerWidth / window.innerHeight;
-    this.camera = new PerspectiveCamera(25, aspect, 0.1, 4000);
+    this.camera = new PerspectiveCamera(50, aspect, 0.1, 4000);
 
     // const frustumHeight = 200;
     // const frustumWidth = frustumHeight * aspect;
@@ -92,7 +92,7 @@ export class Game {
     //   2000
     // );
 
-    this.camera.position.z = 400;
+    this.camera.position.z = 200;
     this.camera.up.set(0, 0, 1);
     this.camera.lookAt(0, 0, 0);
 
@@ -216,14 +216,15 @@ export class Game {
 
       return ral;
     };
+    const sp = 40;
 
-    createRectAreaLight(-100, -50);
-    createRectAreaLight(0, -50);
-    createRectAreaLight(100, -50);
+    createRectAreaLight(-sp * 2, -sp);
+    createRectAreaLight(0, -sp);
+    createRectAreaLight(sp * 2, -sp);
 
-    createRectAreaLight(-100, 50);
-    createRectAreaLight(0, 50);
-    createRectAreaLight(100, 50);
+    createRectAreaLight(-sp * 2, sp);
+    createRectAreaLight(0, sp);
+    createRectAreaLight(sp * 2, sp);
   }
 
   private setupAmbientLight() {

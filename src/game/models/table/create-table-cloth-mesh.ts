@@ -1,32 +1,41 @@
-import { Mesh, Shape, ShapeGeometry } from 'three';
+import {
+  CylinderGeometry,
+  Mesh,
+  SphereGeometry,
+  TextureLoader,
+  Vector2,
+} from 'three';
 import type { Pocket } from '../../objects/pocket';
 import { properties } from '../../physics/properties';
 import { createMaterial } from '../../rendering/create-material';
+import { createRoundedRect, subtract } from '../util';
 
 export const createTableClothMesh = (pockets: Pocket[]) => {
-  const l = properties.tableLength + properties.pocketCornerRadius * 2;
-  const w = properties.tableWidth + properties.pocketCornerRadius * 2;
-  const shape = new Shape();
-  shape.moveTo(-l / 2, -w / 2);
-  shape.lineTo(l / 2, -w / 2);
-  shape.lineTo(l / 2, w / 2);
-  shape.lineTo(-l / 2, w / 2);
-  shape.lineTo(-l / 2, -w / 2);
+  const height = properties.ballRadius;
+  let geometry = createRoundedRect(
+    properties.tableLength + properties.pocketCornerRadius * 2,
+    properties.tableWidth + properties.pocketCornerRadius * 2,
+    properties.pocketCornerRadius,
+    { depth: height, bevelEnabled: false }
+  ).translate(0, 0, -height * 2);
+
   pockets.forEach((pocket) => {
-    const hole = new Shape();
-    hole.absarc(
-      pocket.position.x,
-      pocket.position.y,
-      pocket.radius,
-      0,
-      Math.PI * 2,
-      false
+    const cylinder = new CylinderGeometry(
+      pocket.radius * 1.01,
+      pocket.radius * 1.01,
+      height * 3
     );
-    shape.holes.push(hole);
+    cylinder.rotateX(Math.PI / 2);
+    cylinder.translate(pocket.position.x, pocket.position.y, -height / 2);
+    geometry = subtract(geometry, cylinder);
+    // slight bevel around pockets
+    const sphere = new SphereGeometry(pocket.radius * 2);
+    sphere.translate(pocket.position.x, pocket.position.y, pocket.radius * 1.2);
+    geometry = subtract(geometry, sphere);
   });
 
   const cloth = new Mesh(
-    new ShapeGeometry(shape),
+    geometry,
     createMaterial({
       color: '#227722',
       roughness: 1,
@@ -38,6 +47,5 @@ export const createTableClothMesh = (pockets: Pocket[]) => {
   );
   cloth.castShadow = true;
   cloth.receiveShadow = true;
-  cloth.position.z = -properties.ballRadius;
   return cloth;
 };

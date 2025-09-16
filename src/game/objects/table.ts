@@ -82,7 +82,7 @@ export class Table {
       new Pocket(0, bottomBound + edgeOffset, -ballRadius, er)
     );
 
-    this.object3D.add(...this.pockets.map((pocket) => pocket.mesh));
+    this.object3D.add(...this.pockets.map((pocket) => pocket.parent));
   }
 
   private createCushions() {

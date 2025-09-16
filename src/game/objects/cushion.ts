@@ -1,7 +1,7 @@
 import { Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
 import { PhysicsCushion } from '../physics/cushion';
 import { properties } from '../physics/properties';
-import { createCushionGeometry } from '../create-cushion-geometry';
+import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
 import { vec } from '../physics/vec';
 import { subscribe } from 'valtio';
 import { settings } from '../settings';

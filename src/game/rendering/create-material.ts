@@ -3,10 +3,10 @@ import {
   MeshStandardMaterial,
   type MeshPhysicalMaterialParameters,
 } from 'three';
-import { properties } from '../physics/properties';
+import { settings } from '../store/settings';
 
 export const createMaterial = (parameters: MeshPhysicalMaterialParameters) => {
-  const material = properties.highDetail
+  const material = settings.highDetail
     ? new MeshPhysicalMaterial(parameters)
     : new MeshStandardMaterial(parameters);
   (material as any).defines = {

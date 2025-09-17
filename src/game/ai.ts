@@ -9,12 +9,10 @@ import type { TableState } from './simulation/table-state';
 import { ThreadedSimulation } from './simulation/threaded-simulation';
 
 export class AI {
-  private precision = 10;
+  private precision = 20;
   private accuracy = 100;
   private prefTrickshot = 100;
   private prefMultishot = 100;
-
-  private latestShot?: Shot;
 
   private simulation: ISimulation = properties.useWorkerForAI
     ? new ThreadedSimulation()
@@ -64,7 +62,6 @@ export class AI {
     }
 
     console.timeEnd('ai-shot');
-    this.latestShot = bestShot;
 
     console.log({
       iterations,
@@ -82,6 +79,6 @@ export class AI {
       return -Infinity;
     }
 
-    return result.ballsPotted;
+    return result.ballsPotted * 100 - result.collisions.length;
   }
 }

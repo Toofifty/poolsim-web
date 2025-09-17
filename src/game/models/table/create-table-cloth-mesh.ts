@@ -45,7 +45,6 @@ export const createTableClothMesh = (pockets: Pocket[]) => {
       sheenColor: 0xffffff,
     })
   );
-  cloth.castShadow = true;
   cloth.receiveShadow = true;
   return cloth;
 };

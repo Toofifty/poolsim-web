@@ -7,8 +7,6 @@ export enum RuleSet {
   _9Ball,
 }
 
-export type SerializedTableState = {};
-
 /**
  * Table state used for simulations
  */
@@ -54,6 +52,10 @@ export class TableState {
 
   public get settled() {
     return this.balls.every((ball) => ball.isStationary);
+  }
+
+  public get isGameOver() {
+    return this.balls.every((ball) => ball.id === -1 || ball.isPocketed);
   }
 
   public get lowestActiveBallId() {

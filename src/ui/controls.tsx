@@ -25,6 +25,7 @@ const getStateName = (state: GameState | undefined) => {
 export const Controls = () => {
   const {
     aimAssistMode,
+    ortho,
     highDetail,
     players,
     canvasEnabled,
@@ -50,6 +51,14 @@ export const Controls = () => {
         <Surface>
           <div className="group lower">
             <span>Graphics</span>
+            <Button
+              active={ortho}
+              onClick={() => {
+                settings.ortho = !ortho;
+              }}
+            >
+              Ortho
+            </Button>
             <Button
               active={!highDetail}
               onClick={() => {
@@ -153,12 +162,12 @@ export const Controls = () => {
             <div className="group lower">
               <span>Debug</span>
               <Button
-                active={canvasEnabled}
+                active={!canvasEnabled}
                 onClick={() => {
                   settings.canvasEnabled = !canvasEnabled;
                 }}
               >
-                {settings.canvasEnabled ? 'Disable' : 'Enable'} canvas
+                Disable canvas
               </Button>
               <Button
                 active={debugLights}

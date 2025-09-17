@@ -38,7 +38,7 @@ export const createTableRailDiamondsMesh = () => {
     diamonds.push(createDiamond(-midX, y - tw / 2));
   }
 
-  return new Mesh(
+  const mesh = new Mesh(
     combine(...diamonds),
     createMaterial({
       color: properties.colorTableRailDiamond,
@@ -46,4 +46,6 @@ export const createTableRailDiamondsMesh = () => {
       metalness: 0.6,
     })
   );
+  mesh.receiveShadow = true;
+  return mesh;
 };

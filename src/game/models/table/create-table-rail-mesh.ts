@@ -40,7 +40,7 @@ export const createTableRailMesh = (pockets: Pocket[]) => {
 
   rail.computeVertexNormals();
 
-  return new Mesh(
+  const mesh = new Mesh(
     rail,
     createMaterial({
       color: properties.colorTableRail,
@@ -48,4 +48,6 @@ export const createTableRailMesh = (pockets: Pocket[]) => {
       metalness: 0.1,
     })
   );
+  mesh.receiveShadow = true;
+  return mesh;
 };

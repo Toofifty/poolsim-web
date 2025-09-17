@@ -6,10 +6,10 @@ import { settings } from '../game/store/settings';
 
 export const Canvas = ({ game }: { game: Game }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { highDetail } = useSnapshot(settings);
+  const { highDetail, ortho } = useSnapshot(settings);
   useLayoutEffect(
     () => (containerRef.current ? game.mount(containerRef.current) : undefined),
-    [game, highDetail]
+    [game, highDetail, ortho]
   );
   return <div className="canvas-container" ref={containerRef} />;
 };

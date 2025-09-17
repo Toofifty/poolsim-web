@@ -5,13 +5,11 @@ import {
   AudioLoader,
   Camera,
   Clock,
-  DirectionalLight,
-  DirectionalLightHelper,
-  Line,
   MathUtils,
   Mesh,
   MOUSE,
   Object3D,
+  OrthographicCamera,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PositionalAudio,
@@ -54,7 +52,6 @@ export class Game {
   public camera!: Camera;
   public controls!: OrbitControls;
   public stats!: Stats;
-  public sun!: DirectionalLight;
 
   // game
   public mousePosition!: Vector2;
@@ -90,18 +87,19 @@ export class Game {
     this.scene = new Scene();
 
     const aspect = window.innerWidth / window.innerHeight;
-    this.camera = new PerspectiveCamera(50, aspect, 0.1, 400);
 
-    // const frustumHeight = 200;
-    // const frustumWidth = frustumHeight * aspect;
-    // this.camera = new OrthographicCamera(
-    //   -frustumWidth / 2,
-    //   frustumWidth / 2,
-    //   frustumHeight / 2,
-    //   -frustumHeight / 2,
-    //   0.1,
-    //   2000
-    // );
+    if (settings.ortho) {
+      const frustumHeight = 2;
+      const frustumWidth = frustumHeight * aspect;
+      this.camera = new OrthographicCamera(
+        -frustumWidth / 2,
+        frustumWidth / 2,
+        frustumHeight / 2,
+        -frustumHeight / 2
+      );
+    } else {
+      this.camera = new PerspectiveCamera(50, aspect, 0.1, 400);
+    }
 
     this.camera.position.z = 2;
     this.camera.up.set(0, 0, 1);
@@ -298,84 +296,6 @@ export class Game {
     sky.material.uniforms.sunPosition.value = sunPosition;
     sky.material.uniforms.up.value = new Vector3(0, 0, 1);
     this.scene.add(sky);
-  }
-
-  private setupLights() {
-    const intensities = [1.5, 1.1, 1.9, 1.8];
-
-    const r = 100;
-    const loff = 200;
-    const lheight = 400;
-    const lightTL = new DirectionalLight(0xffffff, intensities[0]);
-    lightTL.shadow.bias = -0.00005;
-    lightTL.shadow.mapSize.set(4096, 4096);
-    lightTL.castShadow = true;
-    lightTL.shadow.camera.left = -r;
-    lightTL.shadow.camera.top = r;
-    lightTL.shadow.camera.bottom = -r;
-    lightTL.shadow.camera.right = r;
-    lightTL.shadow.camera.far = 400;
-    lightTL.position.x = -loff;
-    lightTL.position.y = loff;
-    lightTL.position.z = lheight;
-    this.scene.add(lightTL);
-
-    const lightTR = new DirectionalLight(0xffffff, intensities[1]);
-    lightTR.shadow.bias = -0.00005;
-    lightTR.shadow.mapSize.set(4096, 4096);
-    lightTR.castShadow = true;
-    lightTR.shadow.camera.left = -r;
-    lightTR.shadow.camera.top = r;
-    lightTR.shadow.camera.bottom = -r;
-    lightTR.shadow.camera.right = r;
-    lightTR.shadow.camera.far = lheight * 2;
-    lightTR.position.x = loff;
-    lightTR.position.y = loff;
-    lightTR.position.z = lheight;
-    this.scene.add(lightTR);
-
-    const lightBL = new DirectionalLight(0xffffff, intensities[2]);
-    lightBL.shadow.bias = -0.00005;
-    lightBL.shadow.mapSize.set(4096, 4096);
-    lightBL.castShadow = true;
-    lightBL.shadow.camera.left = -r;
-    lightBL.shadow.camera.top = r;
-    lightBL.shadow.camera.bottom = -r;
-    lightBL.shadow.camera.right = r;
-    lightBL.shadow.camera.far = lheight * 2;
-    lightBL.position.x = -loff;
-    lightBL.position.y = -loff;
-    lightBL.position.z = lheight;
-    this.scene.add(lightBL);
-
-    const lightBR = new DirectionalLight(0xffffff, intensities[3]);
-    lightBR.shadow.bias = -0.00005;
-    lightBR.shadow.mapSize.set(4096, 4096);
-    lightBR.castShadow = true;
-    lightBR.shadow.camera.left = -r;
-    lightBR.shadow.camera.top = r;
-    lightBR.shadow.camera.bottom = -r;
-    lightBR.shadow.camera.right = r;
-    lightBR.shadow.camera.far = lheight * 2;
-    lightBR.position.x = loff;
-    lightBR.position.y = -loff;
-    lightBR.position.z = lheight;
-    this.scene.add(lightBR);
-
-    const helpers = [
-      new DirectionalLightHelper(lightTL),
-      new DirectionalLightHelper(lightTR),
-      new DirectionalLightHelper(lightBL),
-      new DirectionalLightHelper(lightBR),
-    ];
-
-    subscribe(settings, () => {
-      if (settings.debugLights) {
-        this.scene.add(...helpers);
-      } else {
-        this.scene.remove(...helpers);
-      }
-    });
   }
 
   public static getFirstMouseIntersection(object: Object3D) {

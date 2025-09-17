@@ -1,4 +1,3 @@
-import { Color, Vector3 } from 'three';
 import { Table } from './objects/table';
 import { Ball } from './objects/ball';
 import { Rack } from './rack';
@@ -12,6 +11,7 @@ import { AI } from './ai';
 import { delay } from './util/delay';
 import { RuleSet } from './simulation/table-state';
 import { AimAssist } from './simulation/aim-assist';
+import { subscribe } from 'valtio';
 
 export enum GameState {
   PlayerShoot,
@@ -40,17 +40,21 @@ export class GameManager {
     this.aimAssist = new AimAssist();
 
     this.resetSimulationResult();
-    this.setupCueBall();
     this.setup9Ball();
     this.startGame();
+
+    // immediately make AI shoot if setting changes to AIvAI
+    subscribe(settings, ([[op, [path], value]]) => {
+      if (op === 'set' && path === 'players' && value === Players.AIVsAI) {
+        if (this.state === GameState.PlayerShoot) {
+          this.setState(GameState.AIShoot);
+        }
+      }
+    });
   }
 
   private resetSimulationResult() {
     this.currentSimulationResult = new Result(undefined, this.table.state);
-  }
-
-  public setupCueBall() {
-    this.table.add(new Ball(0, 0, properties.colorCueBall));
   }
 
   public placeCueBall() {
@@ -151,6 +155,7 @@ export class GameManager {
   }
 
   private setState(state: GameState) {
+    this.resetSimulationResult();
     this.state = state;
     gameStore.state = state;
   }
@@ -164,26 +169,42 @@ export class GameManager {
       this.placeCueBall();
     }
 
+    if (this.table.state.isGameOver) {
+      this.resetSimulationResult();
+      switch (this.ruleSet) {
+        case RuleSet._8Ball:
+          this.setup8Ball();
+          break;
+        default:
+          this.setup9Ball();
+          break;
+      }
+      this.startGame();
+      return;
+    }
+
     switch (this.state) {
       case GameState.PlayerInPlay:
         if (settings.players === Players.PlayerVsPlayer) {
           this.setState(GameState.PlayerShoot);
+        } else if (settings.players === Players.AIVsAI) {
+          this.setState(GameState.AIShoot);
         } else {
           this.setState(
             this.shouldSwitchTurn() ? GameState.AIShoot : GameState.PlayerShoot
           );
         }
-        this.resetSimulationResult();
         break;
       case GameState.AIInPlay:
-        if (settings.players === Players.AIVsAI) {
+        if (settings.players === Players.PlayerVsPlayer) {
+          this.setState(GameState.PlayerShoot);
+        } else if (settings.players === Players.AIVsAI) {
           this.setState(GameState.AIShoot);
         } else {
           this.setState(
             this.shouldSwitchTurn() ? GameState.PlayerShoot : GameState.AIShoot
           );
         }
-        this.resetSimulationResult();
         break;
       case GameState.AIShoot:
         this.playAIShot();

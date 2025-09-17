@@ -27,7 +27,7 @@ export const createPocketLinerMesh = (pocket: Pocket) => {
 
   geometry = subtract(geometry, tableInner);
 
-  return new Mesh(
+  const mesh = new Mesh(
     geometry,
     createMaterial({
       color: properties.colorPocketLiner,
@@ -35,4 +35,6 @@ export const createPocketLinerMesh = (pocket: Pocket) => {
       metalness: 0,
     })
   );
+  mesh.receiveShadow = true;
+  return mesh;
 };

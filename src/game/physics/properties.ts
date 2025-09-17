@@ -65,4 +65,7 @@ export const properties = {
   colorTableRail: new Color(0x683104),
   colorTableRailDiamond: new Color(0xffffff),
   colorPocketLiner: new Color(0x262626),
+  colorCueShaft: new Color(0x812e04),
+  colorCueTip: new Color(0x8888ff),
+  colorCueHandle: new Color(0x000000),
 };

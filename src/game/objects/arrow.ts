@@ -7,7 +7,6 @@ import {
   Vector3,
 } from 'three';
 import { createMaterial } from '../rendering/create-material';
-import { properties } from '../physics/properties';
 
 const up = new Vector3(0, 1, 0);
 

@@ -15,15 +15,20 @@ export const createCushionGeometry = (vertices: Vector3[], height: number) => {
   const widthVec = longestEdge[0].clone().sub(shortestEdge[0]);
   const cushionWidth = widthVec.dot(perp);
 
+  // const bottomEdge = [
+  //   shortestEdge[0]
+  //     .clone()
+  //     .add(perp.clone().multiplyScalar(cushionWidth))
+  //     .add(new Vector3(0, 0, -height)),
+  //   shortestEdge[1]
+  //     .clone()
+  //     .add(perp.clone().multiplyScalar(cushionWidth))
+  //     .add(new Vector3(0, 0, -height)),
+  // ];
+
   const bottomEdge = [
-    shortestEdge[0]
-      .clone()
-      .add(perp.clone().multiplyScalar(cushionWidth))
-      .add(new Vector3(0, 0, -height)),
-    shortestEdge[1]
-      .clone()
-      .add(perp.clone().multiplyScalar(cushionWidth))
-      .add(new Vector3(0, 0, -height)),
+    longestEdge[1].clone().add(new Vector3(0, 0, -height)),
+    longestEdge[0].clone().add(new Vector3(0, 0, -height)),
   ];
 
   const A = shortestEdge[0];

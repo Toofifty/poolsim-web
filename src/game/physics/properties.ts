@@ -27,11 +27,12 @@ export const properties = {
   // table (m)
   tableWidth: 1.12,
   tableLength: 2.24,
-  pocketCornerRadius: 0.0875,
+  pocketCornerRadius: 0.0775,
   pocketEdgeRadius: 0.0675,
   pocketDepth: 0.24,
   pocketOverlap: 0.02,
   pocketCornerOverlap: 0.02,
+  pocketCornerGirth: 0.02,
   pocketEdgeOverlap: 0.02,
   pocketBevel: 0.005,
   bumperWidth: 0.04,

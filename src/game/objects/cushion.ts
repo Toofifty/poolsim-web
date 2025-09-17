@@ -72,6 +72,7 @@ export const createCushions = () => {
     pocketEdgeRadius,
     pocketOverlap,
     pocketCornerOverlap,
+    pocketCornerGirth,
     bumperWidth,
   } = properties;
 
@@ -91,9 +92,11 @@ export const createCushions = () => {
       0,
       vBumperHeight + pocketCornerOverlap * 2,
       bumperWidth,
-      -bumperWidth,
+      -bumperWidth - pocketCornerGirth,
       0,
-      -vBumperHeight + bumperWidth * 2 - pocketCornerOverlap * 2
+      -vBumperHeight +
+        (bumperWidth + pocketCornerGirth) * 2 -
+        pocketCornerOverlap * 2
     ).reverseVertices(),
     // right
     Cushion.fromRelativeVertices2D(
@@ -102,9 +105,11 @@ export const createCushions = () => {
       0,
       vBumperHeight + pocketCornerOverlap * 2,
       -bumperWidth,
-      -bumperWidth,
+      -bumperWidth - pocketCornerGirth,
       0,
-      -vBumperHeight + bumperWidth * 2 - pocketCornerOverlap * 2
+      -vBumperHeight +
+        (bumperWidth + pocketCornerGirth) * 2 -
+        pocketCornerOverlap * 2
     ),
     // top-left
     Cushion.fromRelativeVertices2D(
@@ -117,7 +122,8 @@ export const createCushions = () => {
       -hBumperWidth +
         (bumperWidth * 3) / 2 -
         pocketOverlap -
-        pocketCornerOverlap,
+        pocketCornerOverlap +
+        pocketCornerGirth,
       0
     ).reverseVertices(),
     // top-right
@@ -131,7 +137,8 @@ export const createCushions = () => {
       hBumperWidth -
         (bumperWidth * 3) / 2 +
         pocketOverlap +
-        pocketCornerOverlap,
+        pocketCornerOverlap -
+        pocketCornerGirth,
       0
     ),
     // bottom-left
@@ -145,7 +152,8 @@ export const createCushions = () => {
       -hBumperWidth +
         (bumperWidth * 3) / 2 -
         pocketOverlap -
-        pocketCornerOverlap,
+        pocketCornerOverlap +
+        pocketCornerGirth,
       0
     ),
     // bottom-right
@@ -159,7 +167,8 @@ export const createCushions = () => {
       hBumperWidth -
         (bumperWidth * 3) / 2 +
         pocketOverlap +
-        pocketCornerOverlap,
+        pocketCornerOverlap -
+        pocketCornerGirth,
       0
     ).reverseVertices(),
   ];

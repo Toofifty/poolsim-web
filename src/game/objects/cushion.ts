@@ -6,6 +6,7 @@ import { vec } from '../physics/vec';
 import { subscribe } from 'valtio';
 import { settings } from '../store/settings';
 import { createMaterial } from '../rendering/create-material';
+import { createTableClothNormalTexture } from '../models/table/create-table-cloth-texture';
 
 export class Cushion {
   public physics: PhysicsCushion;
@@ -34,10 +35,22 @@ export class Cushion {
   }
 
   private createMesh() {
+    const geometry = createCushionGeometry(
+      vec.toVector3s(this.physics.vertices),
+      this.height
+    );
+    geometry.computeBoundingBox();
+    const bbox = geometry.boundingBox!;
     this.mesh = new Mesh(
-      createCushionGeometry(vec.toVector3s(this.physics.vertices), this.height),
+      geometry,
       createMaterial({
-        color: properties.colorTableCushion,
+        normalMap: settings.highDetail
+          ? createTableClothNormalTexture(
+              Math.abs(bbox.max.x - bbox.min.x),
+              Math.abs(bbox.max.y - bbox.min.y)
+            )
+          : null,
+        color: properties.colorTableCloth,
         flatShading: true,
         roughness: 1,
         metalness: 0,

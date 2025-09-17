@@ -1,19 +1,18 @@
 import { CanvasTexture, Color } from 'three';
 import { properties } from '../../physics/properties';
+import { settings } from '../../store/settings';
 
 const hex = (color: Color) => '#' + color.getHexString();
 
 export function createBallTexture({
   color,
   number = 1,
-  darkTheme = false,
 }: {
   color: Color;
   number?: number;
   ballVariety?: number;
-  darkTheme?: boolean;
 }): CanvasTexture {
-  const tsize = properties.highDetail ? 256 : 64;
+  const tsize = settings.highDetail ? 256 : 64;
 
   const canvas = document.createElement('canvas');
   canvas.width = tsize * 2;
@@ -76,7 +75,7 @@ export function createBallTexture({
     ctx.font = `bold ${tsize / 5}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const offsetY = properties.highDetail ? 4 : 1;
+    const offsetY = settings.highDetail ? 4 : 1;
     for (let k = 0; k < 2; k++) {
       ctx.fillText(String(number), tsize / 2 + k * tsize, tsize / 2 + offsetY);
     }

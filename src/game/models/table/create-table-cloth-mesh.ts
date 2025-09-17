@@ -2,7 +2,12 @@ import { CylinderGeometry, Mesh, SphereGeometry } from 'three';
 import type { Pocket } from '../../objects/pocket';
 import { properties } from '../../physics/properties';
 import { createMaterial } from '../../rendering/create-material';
-import { createRoundedRect, subtract } from '../util';
+import { createRoundedRect, fixUVs, subtract } from '../util';
+import {
+  createTableClothNormalTexture,
+  createTableClothTexture,
+} from './create-table-cloth-texture';
+import { settings } from '../../store/settings';
 
 export const createTableClothMesh = (pockets: Pocket[]) => {
   const height = properties.ballRadius;
@@ -12,6 +17,8 @@ export const createTableClothMesh = (pockets: Pocket[]) => {
     properties.pocketCornerRadius,
     { depth: height, bevelEnabled: false }
   ).translate(0, 0, -height * 2);
+
+  fixUVs(geometry);
 
   pockets.forEach((pocket) => {
     const cylinder = new CylinderGeometry(
@@ -37,7 +44,8 @@ export const createTableClothMesh = (pockets: Pocket[]) => {
   const cloth = new Mesh(
     geometry,
     createMaterial({
-      color: properties.colorTableCloth,
+      map: createTableClothTexture(),
+      normalMap: settings.highDetail ? createTableClothNormalTexture() : null,
       roughness: 1,
       metalness: 0,
       sheen: 1,

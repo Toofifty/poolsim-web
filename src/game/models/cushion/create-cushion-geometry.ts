@@ -1,4 +1,5 @@
 import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
+import { fixUVs, generateUVs } from '../util';
 
 export const createCushionGeometry = (vertices: Vector3[], height: number) => {
   const AB = vertices[0].distanceTo(vertices[1]);
@@ -77,6 +78,8 @@ export const createCushionGeometry = (vertices: Vector3[], height: number) => {
   geometry.setAttribute('position', new BufferAttribute(positions, 3));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
+
+  generateUVs(geometry, positions);
 
   return geometry;
 };

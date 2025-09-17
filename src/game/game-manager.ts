@@ -40,7 +40,7 @@ export class GameManager {
     this.aimAssist = new AimAssist();
 
     this.resetSimulationResult();
-    this.setup9Ball();
+    this.setup8Ball();
     this.startGame();
 
     // immediately make AI shoot if setting changes to AIvAI
@@ -61,13 +61,13 @@ export class GameManager {
     if (!this.table.cueBall) {
       this.table.add(new Ball(0, 0, properties.colorCueBall));
     }
-    this.table.cueBall.place(-properties.tableLength / 6, 0);
+    this.table.cueBall.place(-properties.tableLength / 4, 0);
   }
 
   public setup8Ball() {
     this.table.clearBalls();
     this.placeCueBall();
-    this.table.add(...Rack.generate8Ball(properties.tableLength / 6, 0));
+    this.table.add(...Rack.generate8Ball(properties.tableLength / 4, 0));
     this.ruleSet = RuleSet._8Ball;
     this.table.state.ruleSet = RuleSet._8Ball;
     this.aimAssist.setBalls([...this.table.balls]);
@@ -76,7 +76,7 @@ export class GameManager {
   public setup9Ball() {
     this.table.clearBalls();
     this.placeCueBall();
-    this.table.add(...Rack.generate9Ball(properties.tableLength / 6, 0));
+    this.table.add(...Rack.generate9Ball(properties.tableLength / 4, 0));
     this.ruleSet = RuleSet._9Ball;
     this.table.state.ruleSet = RuleSet._9Ball;
     this.aimAssist.setBalls([...this.table.balls]);

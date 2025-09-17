@@ -114,11 +114,11 @@ export class Game {
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.maxPolarAngle = Math.PI / 2;
-    this.controls.enablePan = false;
+    this.controls.screenSpacePanning = false;
     this.controls.mouseButtons = {
       LEFT: null,
       MIDDLE: MOUSE.ROTATE,
-      RIGHT: null,
+      RIGHT: MOUSE.PAN,
     };
 
     this.composer = new EffectComposer(this.renderer);

@@ -7,6 +7,8 @@ export enum RuleSet {
   _9Ball,
 }
 
+export type SerializedTableState = {};
+
 /**
  * Table state used for simulations
  */

@@ -134,7 +134,7 @@ export class GameManager {
     }
     this.aiIsThinking = true;
     await delay(100);
-    const shot = this.ai.findShot(this.table.state);
+    const shot = await this.ai.findShot(this.table.state);
     if (!shot) return;
     // let dt catch up before animating the cue
     await delay(100);
@@ -215,11 +215,15 @@ export class GameManager {
       !this.table.cue.isShooting &&
       settings.aimAssistMode === AimAssistMode.Full
     ) {
-      this.aimAssist.update(this.table.cue.getShot(), this.table.state);
+      this.aimAssist
+        .update(this.table.cue.getShot(), this.table.state)
+        .then(() => {
+          this.table.balls.forEach((ball) => ball.updateProjection());
+        });
     } else {
       this.aimAssist.clear();
+      this.table.balls.forEach((ball) => ball.updateProjection());
     }
-    this.table.balls.forEach((ball) => ball.updateProjection());
 
     this.updateState();
     this.table.update(dt, this.state === GameState.PlayerShoot, !this.isInPlay);

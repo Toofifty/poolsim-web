@@ -1,7 +1,8 @@
 import { Color } from 'three';
 
 export const properties = {
-  highDetail: true,
+  useWorkerForAimAssist: true,
+  useWorkerForAI: true,
 
   // physics - cm/s
   frictionSlide: 0.1,

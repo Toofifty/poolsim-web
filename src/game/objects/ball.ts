@@ -20,9 +20,10 @@ import type { Collision } from '../physics/collision';
 import { Pocket } from './pocket';
 import { properties } from '../physics/properties';
 import { Game } from '../game';
-import { vec } from '../physics/vec';
+import { vec, type Vec } from '../physics/vec';
 import { settings } from '../store/settings';
 import { createBallMesh } from '../models/ball/create-ball-mesh';
+import { quat, type Quat } from '../physics/quat';
 
 export class Ball {
   public physics: PhysicsBall;
@@ -180,10 +181,12 @@ export class Ball {
     this.trackingPoints = [];
   }
 
-  public addCollisionPoint(position: Vector3, orientation: Quaternion) {
-    this.collisionPoints.push(position);
-    this.collisionOrientations.push(orientation);
-    this.addTrackingPoint(position);
+  public addCollisionPoint(position: Vec, orientation: Quat) {
+    const p = vec.toVector3(position);
+    const o = quat.toQuaternion(orientation);
+    this.collisionPoints.push(p);
+    this.collisionOrientations.push(o);
+    this.addTrackingPoint(p);
   }
 
   public addTrackingPoint(position?: Vector3) {
@@ -199,7 +202,9 @@ export class Ball {
   }
 
   private updateMesh() {
-    this.mesh.rotation.setFromQuaternion(this.physics.orientation);
+    this.mesh.rotation.setFromQuaternion(
+      quat.toQuaternion(this.physics.orientation)
+    );
     this.parent.position.copy(this.position);
   }
 

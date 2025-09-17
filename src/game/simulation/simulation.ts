@@ -1,4 +1,3 @@
-import { Game } from '../game';
 import type { Collision } from '../physics/collision';
 import { properties } from '../physics/properties';
 import type { Shot } from '../physics/shot';
@@ -64,26 +63,39 @@ export class StepResult extends Result {
   }
 }
 
-export class Simulation {
+export type RunSimulationOptions = {
+  state: TableState;
+  shot: Shot;
+  profiler?: IProfiler;
+};
+
+export type RunSimulationStepOptions = {
+  simulated: boolean;
+  dt: number;
+  state: TableState;
+  stepIndex?: number;
+  profiler?: IProfiler;
+};
+
+export interface ISimulation {
+  // step(params: RunSimulationStepOptions): StepResult;
+  run(params: RunSimulationOptions): Promise<Result>;
+}
+
+export class Simulation implements ISimulation {
   public step({
     simulated,
     dt,
     state,
     stepIndex = -1,
     profiler = Profiler.none,
-  }: {
-    simulated: boolean;
-    dt: number;
-    state: TableState;
-    stepIndex?: number;
-    profiler?: IProfiler;
-  }) {
+  }: RunSimulationStepOptions) {
     const result = new StepResult();
     const trackPath = stepIndex % properties.trackingPointDist === 0;
 
     const endBallUpdate = profiler.start('ballUpdate');
     state.balls.forEach((ball) => {
-      ball.update(dt);
+      ball.update(dt, simulated);
       if (trackPath) {
         // todo: add to Result
         // ball.addTrackingPoint();
@@ -156,7 +168,7 @@ export class Simulation {
     return result;
   }
 
-  public run({
+  public async run({
     shot,
     state,
     profiler = Profiler.none,

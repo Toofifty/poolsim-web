@@ -1,8 +1,6 @@
-import { Quaternion } from 'three';
 import { properties } from './properties';
 import type { Shot } from './shot';
 import { PhysicsCushion } from './cushion';
-import { randomQuaternion } from '../math';
 import type {
   BallBallCollision,
   BallCushionCollision,
@@ -10,11 +8,12 @@ import type {
 } from './collision';
 import type { PhysicsPocket } from './pocket';
 import { vec, type Vec } from './vec';
-import { Game } from '../game';
+import { Profiler, type IProfiler } from '../profiler';
+import { quat, type Quat } from './quat';
 
 export type PhysicsBallSnapshot = {
   position: Vec;
-  orientation: Quaternion;
+  orientation: Quat;
 };
 
 export class PhysicsBall {
@@ -23,7 +22,7 @@ export class PhysicsBall {
   public angularVelocity: Vec;
 
   public radius: number;
-  public orientation: Quaternion;
+  public orientation: Quat;
 
   public isStationary = true;
 
@@ -35,7 +34,7 @@ export class PhysicsBall {
     this.angularVelocity = vec.new(0, 0, 0);
 
     this.radius = properties.ballRadius;
-    this.orientation = randomQuaternion();
+    this.orientation = quat.random();
   }
 
   public clone() {
@@ -47,7 +46,7 @@ export class PhysicsBall {
     vec.mcopy(newBall.position, this.position);
     vec.mcopy(newBall.velocity, this.velocity);
     vec.mcopy(newBall.angularVelocity, this.angularVelocity);
-    newBall.orientation.copy(this.orientation);
+    quat.mcopy(newBall.orientation, this.orientation);
     newBall.isStationary = this.isStationary;
     newBall.pocket = this.pocket;
     return newBall;
@@ -110,8 +109,14 @@ export class PhysicsBall {
     this.angularVelocity[2] = wt;
   }
 
-  public update(dt: number = 1 / 60) {
+  public update(dt: number = 1 / 60, simulated = false) {
     if (this.isPocketed) {
+      if (simulated) {
+        // stop the ball and don't bounce in pockets in
+        // simulation
+        this.isStationary = true;
+        return;
+      }
       this.updatePocket(dt);
       return;
     }
@@ -174,9 +179,10 @@ export class PhysicsBall {
       const angle = vec.len(this.angularVelocity) * dt;
       const axis = vec.norm(this.angularVelocity);
 
-      this.orientation = new Quaternion()
-        .setFromAxisAngle(vec.toVector3(axis), angle)
-        .multiply(this.orientation);
+      this.orientation = quat.mult(
+        quat.fromAxisAngle(axis, angle),
+        this.orientation
+      );
     }
 
     this.zeroVectors();
@@ -237,13 +243,14 @@ export class PhysicsBall {
   }
 
   public collideCushion(
-    cushion: PhysicsCushion
+    cushion: PhysicsCushion,
+    profiler: IProfiler = Profiler.none
   ): BallCushionCollision | undefined {
     if (!cushion.inBounds(this.position)) {
       return undefined;
     }
 
-    const endClosestPoint = Game.profiler.start('closestPoint');
+    const endClosestPoint = profiler.start('closestPoint');
     const closestPoint = cushion.findClosestPoint(this.position);
     endClosestPoint();
 
@@ -334,7 +341,7 @@ export class PhysicsBall {
       return undefined;
     }
 
-    if (dist < pocket.radius) {
+    if (!this.pocket && dist < pocket.radius) {
       this.pocket = pocket;
       if (!simulated) {
         pocket.addBall(this);

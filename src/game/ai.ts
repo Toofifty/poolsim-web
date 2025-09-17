@@ -1,25 +1,26 @@
 import { properties } from './physics/properties';
 import { Shot } from './physics/shot';
-import { Simulation, type Result } from './simulation/simulation';
+import {
+  Simulation,
+  type ISimulation,
+  type Result,
+} from './simulation/simulation';
 import type { TableState } from './simulation/table-state';
 import { ThreadedSimulation } from './simulation/threaded-simulation';
 
 export class AI {
-  private precision = 1;
+  private precision = 10;
   private accuracy = 100;
   private prefTrickshot = 100;
   private prefMultishot = 100;
 
   private latestShot?: Shot;
 
-  private simulation: Simulation = new Simulation();
-  private threadedSimulation: ThreadedSimulation;
+  private simulation: ISimulation = properties.useWorkerForAI
+    ? new ThreadedSimulation()
+    : new Simulation();
 
-  constructor() {
-    this.threadedSimulation = new ThreadedSimulation();
-  }
-
-  public findShot(state: TableState) {
+  public async findShot(state: TableState) {
     const angleSteps = this.precision * 6;
     const angleStep = (Math.PI * 2) / angleSteps;
 
@@ -35,11 +36,6 @@ export class AI {
     let stepIterations = 0;
     let anglesChecked = 0;
 
-    console.log(
-      'starting ai shot',
-      angleSteps * (maxForce / forceStep),
-      'expected iterations'
-    );
     console.time('ai-shot');
 
     for (
@@ -50,7 +46,7 @@ export class AI {
       anglesChecked++;
       for (let force = minForce; force < maxForce; force += forceStep) {
         const shot = new Shot(angle, force);
-        const result = this.simulation.run({
+        const result = await this.simulation.run({
           shot,
           state,
         });

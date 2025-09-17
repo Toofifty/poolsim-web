@@ -11,6 +11,7 @@ import { gameStore } from './store/game';
 import { AI } from './ai';
 import { delay } from './util/delay';
 import { RuleSet } from './simulation/table-state';
+import { AimAssist } from './simulation/aim-assist';
 
 export enum GameState {
   PlayerShoot,
@@ -29,50 +30,65 @@ export class GameManager {
 
   private aiIsThinking = false;
 
+  private aimAssist: AimAssist;
+  private currentSimulationResult!: Result;
+
   constructor() {
     this.table = new Table();
-    this.simulation = new Simulation(this.table);
-    this.ai = new AI(this.simulation);
+    this.simulation = new Simulation();
+    this.ai = new AI();
+    this.aimAssist = new AimAssist();
 
+    this.resetSimulationResult();
     this.setupCueBall();
     this.setup9Ball();
     this.startGame();
   }
 
+  private resetSimulationResult() {
+    this.currentSimulationResult = new Result(undefined, this.table.state);
+  }
+
   public setupCueBall() {
-    this.table.add(new Ball(0, 0, new Color('#FFF')));
+    this.table.add(new Ball(0, 0, properties.colorCueBall));
   }
 
   public placeCueBall() {
-    this.table.state.cueBall.place(-properties.tableLength / 6, 0);
+    if (!this.table.cueBall) {
+      this.table.add(new Ball(0, 0, properties.colorCueBall));
+    }
+    this.table.cueBall.place(-properties.tableLength / 6, 0);
   }
 
   public setup8Ball() {
+    this.table.clearBalls();
     this.placeCueBall();
-    this.table.clearTargetBalls();
     this.table.add(...Rack.generate8Ball(properties.tableLength / 6, 0));
     this.ruleSet = RuleSet._8Ball;
     this.table.state.ruleSet = RuleSet._8Ball;
+    this.aimAssist.setBalls([...this.table.balls]);
   }
 
   public setup9Ball() {
+    this.table.clearBalls();
     this.placeCueBall();
-    this.table.clearTargetBalls();
     this.table.add(...Rack.generate9Ball(properties.tableLength / 6, 0));
     this.ruleSet = RuleSet._9Ball;
     this.table.state.ruleSet = RuleSet._9Ball;
+    this.aimAssist.setBalls([...this.table.balls]);
   }
 
   public setupDebugGame() {
+    this.table.clearBalls();
     this.placeCueBall();
-    this.table.clearTargetBalls();
     this.table.add(...Rack.generateDebugGame(properties.tableLength / 6, 0));
     this.ruleSet = RuleSet._9Ball;
     this.table.state.ruleSet = RuleSet._8Ball;
+    this.aimAssist.setBalls([...this.table.balls]);
   }
 
   public startGame() {
-    this.simulation.reset();
+    this.resetSimulationResult();
     if (settings.players === Players.AIVsAI) {
       this.setState(GameState.AIShoot);
     } else if (settings.players === Players.PlayerVsPlayer) {
@@ -94,7 +110,7 @@ export class GameManager {
 
   public keyup(event: KeyboardEvent) {
     if (event.key === 's') {
-      this.simulation.updateAimAssist(this.table.cue.getShot());
+      this.aimAssist.update(this.table.cue.getShot(), this.table.state);
     } else {
       console.log(event.key);
     }
@@ -107,7 +123,8 @@ export class GameManager {
   }
 
   private shouldSwitchTurn(result?: Result) {
-    result ??= this.simulation.getResult();
+    result ??= this.currentSimulationResult;
+    // todo
     return false;
   }
 
@@ -117,7 +134,7 @@ export class GameManager {
     }
     this.aiIsThinking = true;
     await delay(100);
-    const shot = this.ai.findShot();
+    const shot = this.ai.findShot(this.table.state);
     if (!shot) return;
     // let dt catch up before animating the cue
     await delay(100);
@@ -156,7 +173,7 @@ export class GameManager {
             this.shouldSwitchTurn() ? GameState.AIShoot : GameState.PlayerShoot
           );
         }
-        this.simulation.reset();
+        this.resetSimulationResult();
         break;
       case GameState.AIInPlay:
         if (settings.players === Players.AIVsAI) {
@@ -166,7 +183,7 @@ export class GameManager {
             this.shouldSwitchTurn() ? GameState.PlayerShoot : GameState.AIShoot
           );
         }
-        this.simulation.reset();
+        this.resetSimulationResult();
         break;
       case GameState.AIShoot:
         this.playAIShot();
@@ -177,7 +194,11 @@ export class GameManager {
 
   public update(dt: number) {
     if (this.isInPlay) {
-      const result = this.simulation.step(dt);
+      const result = this.simulation.step({
+        simulated: false,
+        dt,
+        state: this.table.state,
+      });
       result.collisions.forEach((collision) => {
         if (collision.type === 'ball-ball') {
           Game.playAudio(
@@ -194,11 +215,11 @@ export class GameManager {
       !this.table.cue.isShooting &&
       settings.aimAssistMode === AimAssistMode.Full
     ) {
-      this.simulation.updateAimAssist(this.table.cue.getShot());
+      this.aimAssist.update(this.table.cue.getShot(), this.table.state);
     } else {
-      this.simulation.clearAimAssist();
+      this.aimAssist.clear();
     }
-    this.table.state.balls.forEach((ball) => ball.updateProjection());
+    this.table.balls.forEach((ball) => ball.updateProjection());
 
     this.updateState();
     this.table.update(dt, this.state === GameState.PlayerShoot, !this.isInPlay);

@@ -11,13 +11,14 @@ import { Cue } from './cue';
 import { Game } from '../game';
 import { createCushions, Cushion } from './cushion';
 import { Pocket } from './pocket';
-import { TableState } from '../simulation/table-state';
+import { RuleSet, TableState } from '../simulation/table-state';
 import { createTableClothMesh } from '../models/table/create-table-cloth-mesh';
 import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
 import { createTableRailDiamondsMesh } from '../models/table/create-table-rail-diamonds-mesh';
 
 export class Table {
   public cue: Cue;
+  public balls: Ball[];
   public state: TableState;
   public cushions: Cushion[];
   public pockets: Pocket[];
@@ -32,12 +33,18 @@ export class Table {
     this.object3D = new Object3D();
     this.cue = new Cue();
     this.object3D.add(this.cue.anchor);
-    this.state = new TableState();
+    this.balls = [];
     this.cushions = [];
     this.pockets = [];
     this.createCushions();
     this.createPockets();
     this.createMeshes();
+    this.state = new TableState(
+      this.balls.map((b) => b.physics),
+      this.cushions.map((c) => c.physics),
+      this.pockets.map((p) => p.physics),
+      RuleSet._9Ball
+    );
   }
 
   private createMeshes() {
@@ -96,24 +103,26 @@ export class Table {
       this.object3D.add(object.parent);
       if (object instanceof Ball) {
         if (object.number === -1) {
-          this.state.cueBall = object;
+          // cue ball
           this.cue.attachTo(object);
-          return;
         }
-        this.state.targetBalls.push(object);
+        this.balls.push(object);
       }
     });
+    this.state.balls = this.balls.map((b) => b.physics);
   }
 
-  public clearTargetBalls() {
-    this.state.targetBalls.forEach((ball) => {
+  public get cueBall() {
+    return this.balls[0];
+  }
+
+  public clearBalls() {
+    this.balls.forEach((ball) => {
       this.object3D.remove(ball.parent);
+      ball.dispose();
     });
-    this.state.targetBalls = [];
-  }
-
-  public get balls() {
-    return this.state.balls;
+    this.balls = [];
+    this.state.balls = [];
   }
 
   public get settled() {
@@ -125,6 +134,9 @@ export class Table {
     updateCue?: boolean,
     updatePocketedBalls?: boolean
   ) {
+    // sync to physics position
+    this.balls.forEach((ball) => ball.sync());
+
     if (this.settled && updateCue) {
       this.cursorPosition = Game.getFirstMouseIntersection(this.plane);
       if (this.cursorPosition) {

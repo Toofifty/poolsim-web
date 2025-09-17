@@ -3,11 +3,23 @@ import { settings } from './store/settings';
 const sum = (n: number[]) => n.reduce((s, c) => s + c, 0);
 const avg = (n: number[]) => sum(n) / n.length;
 
-export class Profiler {
+export interface IProfiler {
+  dump(): void;
+  profile<T = void>(key: string, fn: () => T): T;
+  start(key: string): () => void;
+}
+
+export class Profiler implements IProfiler {
   private profiles: Record<string, number[]> = {};
   private activeProfiles: Record<string, number> = {};
 
   private activeProfileStack: string[] = [];
+
+  public static none: IProfiler = {
+    dump: () => {},
+    profile: <T = void>(_: string, fn: () => T) => fn(),
+    start: (_) => () => {},
+  };
 
   public dump() {
     if (!settings.enableProfiler) {
@@ -40,7 +52,14 @@ export class Profiler {
     this.profiles = {};
   }
 
-  public startProfile(key: string) {
+  public profile<T = void>(key: string, fn: () => T): T {
+    const end = this.start(key);
+    const result = fn();
+    end();
+    return result;
+  }
+
+  public start(key: string) {
     if (!settings.enableProfiler) {
       return () => {};
     }

@@ -9,9 +9,13 @@ import type {
   BallPocketCollision,
 } from './collision';
 import type { PhysicsPocket } from './pocket';
-import type { Ball } from '../objects/ball';
 import { vec, type Vec } from './vec';
 import { Game } from '../game';
+
+export type PhysicsBallSnapshot = {
+  position: Vec;
+  orientation: Quaternion;
+};
 
 export class PhysicsBall {
   public position: Vec;
@@ -25,7 +29,7 @@ export class PhysicsBall {
 
   public pocket?: PhysicsPocket;
 
-  constructor(public owner: Ball, x: number, y: number) {
+  constructor(public id: number, x: number, y: number) {
     this.position = vec.new(x, y, 0);
     this.velocity = vec.new(0, 0, 0);
     this.angularVelocity = vec.new(0, 0, 0);
@@ -34,9 +38,9 @@ export class PhysicsBall {
     this.orientation = randomQuaternion();
   }
 
-  public clone(newOwner?: Ball) {
+  public clone() {
     const newBall = new PhysicsBall(
-      newOwner ?? this.owner,
+      this.id,
       this.position[0],
       this.position[1]
     );
@@ -47,6 +51,13 @@ export class PhysicsBall {
     newBall.isStationary = this.isStationary;
     newBall.pocket = this.pocket;
     return newBall;
+  }
+
+  public getSnapshot(): PhysicsBallSnapshot {
+    return {
+      position: vec.clone(this.position),
+      orientation: this.orientation,
+    };
   }
 
   public hit(shot: Shot) {
@@ -215,6 +226,10 @@ export class PhysicsBall {
         other,
         position: vec.add(this.position, vec.mult(normal, this.radius)),
         impulse,
+        snapshots: {
+          initiator: this.getSnapshot(),
+          other: other.getSnapshot(),
+        },
       };
     }
 
@@ -228,7 +243,7 @@ export class PhysicsBall {
       return undefined;
     }
 
-    const endClosestPoint = Game.profiler.startProfile('closestPoint');
+    const endClosestPoint = Game.profiler.start('closestPoint');
     const closestPoint = cushion.findClosestPoint(this.position);
     endClosestPoint();
 
@@ -261,6 +276,9 @@ export class PhysicsBall {
         other: cushion,
         position: closestPoint,
         impulse,
+        snapshots: {
+          initiator: this.getSnapshot(),
+        },
       };
     }
 
@@ -326,6 +344,9 @@ export class PhysicsBall {
         initiator: this,
         other: pocket,
         position: this.position,
+        snapshots: {
+          initiator: this.getSnapshot(),
+        },
       };
     }
 

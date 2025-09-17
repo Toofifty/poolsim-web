@@ -5,9 +5,9 @@ import {
   Color,
   Line,
   LineBasicMaterial,
+  Material,
   Mesh,
   MeshBasicMaterial,
-  MeshPhysicalMaterial,
   Object3D,
   Quaternion,
   TorusGeometry,
@@ -25,7 +25,7 @@ import { settings } from '../store/settings';
 import { createBallMesh } from '../models/ball/create-ball-mesh';
 
 export class Ball {
-  private physics: PhysicsBall;
+  public physics: PhysicsBall;
 
   public number: number;
   private color: Color;
@@ -34,7 +34,6 @@ export class Ball {
   private collisionPoints: Vector3[] = [];
   private collisionOrientations: Quaternion[] = [];
   private trackingPoints: Vector3[] = [];
-  private original?: Ball;
 
   public parent!: Object3D;
   private mesh!: Mesh;
@@ -42,7 +41,7 @@ export class Ball {
   private projectionMeshes: Mesh[] = [];
   private trackingLine?: Line;
   private geometry!: BufferGeometry;
-  private projectionMaterial!: MeshPhysicalMaterial;
+  private projectionMaterial!: Material;
   private trackingLineMaterial!: LineBasicMaterial;
 
   private debugStateRing!: Mesh;
@@ -50,26 +49,17 @@ export class Ball {
   private debugArrowV!: ArrowHelper;
   private debugArrowW!: ArrowHelper;
 
-  constructor(
-    x: number,
-    y: number,
-    color: Color,
-    number: number = -1,
-    original?: Ball
-  ) {
-    this.physics = original?.physics.clone(this) ?? new PhysicsBall(this, x, y);
+  constructor(x: number, y: number, color: Color, number: number = -1) {
+    this.physics = new PhysicsBall(number, x, y);
     this.color = color;
     this.number = number;
-    this.original = original;
-    if (!original) {
-      this.parent = new Object3D();
-      this.parent.position.add(this.position);
-      this.createMesh();
-      this.createDebugMesh();
+    this.parent = new Object3D();
+    this.parent.position.add(this.position);
+    this.createMesh();
+    this.createDebugMesh();
 
-      this.updateMesh();
-      this.updateDebug();
-    }
+    this.updateMesh();
+    this.updateDebug();
   }
 
   private createMesh() {
@@ -127,14 +117,8 @@ export class Ball {
     this.parent.add(this.debugArrowW);
   }
 
-  public clone() {
-    return new Ball(
-      this.position.x,
-      this.position.y,
-      this.color,
-      this.number,
-      this
-    );
+  get id() {
+    return this.physics.id;
   }
 
   get position() {
@@ -191,22 +175,12 @@ export class Ball {
   }
 
   public clearCollisionPoints() {
-    if (this.original) {
-      this.original.clearCollisionPoints();
-      return;
-    }
     this.collisionPoints = [];
     this.collisionOrientations = [];
     this.trackingPoints = [];
   }
 
-  public addCollisionPoint(position?: Vector3, orientation?: Quaternion) {
-    position = (position ?? this.position).clone();
-    orientation = (orientation ?? this.physics.orientation).clone();
-    if (this.original) {
-      this.original.addCollisionPoint(position, orientation);
-      return;
-    }
+  public addCollisionPoint(position: Vector3, orientation: Quaternion) {
     this.collisionPoints.push(position);
     this.collisionOrientations.push(orientation);
     this.addTrackingPoint(position);
@@ -215,20 +189,13 @@ export class Ball {
   public addTrackingPoint(position?: Vector3) {
     if (!this.isPocketed) {
       position = (position ?? this.position).clone();
-      if (this.original) {
-        this.original.addTrackingPoint(position);
-        return;
-      }
       this.trackingPoints.push(position ?? this.position);
     }
   }
 
-  public update(dt: number) {
-    this.physics.update(dt);
-    if (!this.original) {
-      this.updateMesh();
-      this.updateDebug();
-    }
+  public sync() {
+    this.updateMesh();
+    this.updateDebug();
   }
 
   private updateMesh() {
@@ -245,7 +212,7 @@ export class Ball {
     for (let i = 0; i < this.collisionPoints.length; i++) {
       const position = this.collisionPoints[i];
       const orientation = this.collisionOrientations[i];
-      if (position.distanceToSquared(thisPosition) < 0.1) {
+      if (position.distanceToSquared(thisPosition) < 0.001) {
         continue;
       }
 
@@ -259,7 +226,7 @@ export class Ball {
     // ball tracking line
     if (this.trackingLine) {
       Game.remove(this.trackingLine);
-      this.trackingLine.geometry.dispose();
+      Game.dispose(this.trackingLine);
       this.trackingLine = undefined;
     }
 
@@ -309,5 +276,16 @@ export class Ball {
     const w = vec.toVector3(this.physics.angularVelocity);
     this.debugArrowW.setDirection(w.clone().normalize());
     this.debugArrowW.setLength(w.length());
+  }
+
+  public dispose() {
+    this.projectionMeshes.forEach((mesh) => Game.remove(mesh));
+    if (this.trackingLine) {
+      Game.remove(this.trackingLine);
+      Game.dispose(this.trackingLine);
+    }
+
+    this.parent.traverse((obj) => Game.dispose(obj));
+    Game.dispose(this.parent);
   }
 }

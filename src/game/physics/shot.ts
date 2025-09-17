@@ -24,4 +24,13 @@ export class Shot {
       this.force * Math.sin(this.angle)
     );
   }
+
+  /**
+   * Get (probably) unique key for this shot
+   */
+  get key() {
+    return (
+      this.angle + this.force * 10 + this.sideSpin * 100 + this.topSpin * 1000
+    );
+  }
 }

@@ -1,4 +1,4 @@
-import type { PhysicsBall } from './ball';
+import type { PhysicsBall, PhysicsBallSnapshot } from './ball';
 import type { PhysicsCushion } from './cushion';
 import type { PhysicsPocket } from './pocket';
 import type { Vec } from './vec';
@@ -14,6 +14,10 @@ export type BallBallCollision = {
   other: PhysicsBall;
   position: Vec;
   impulse: Vec;
+  snapshots: {
+    initiator: PhysicsBallSnapshot;
+    other: PhysicsBallSnapshot;
+  };
 };
 export type BallCushionCollision = {
   type: 'ball-cushion';
@@ -21,10 +25,16 @@ export type BallCushionCollision = {
   other: PhysicsCushion;
   position: Vec;
   impulse: Vec;
+  snapshots: {
+    initiator: PhysicsBallSnapshot;
+  };
 };
 export type BallPocketCollision = {
   type: 'ball-pocket';
   initiator: PhysicsBall;
   other: PhysicsPocket;
   position: Vec;
+  snapshots: {
+    initiator: PhysicsBallSnapshot;
+  };
 };

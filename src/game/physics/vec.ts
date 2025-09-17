@@ -1,9 +1,12 @@
 import { Vector3 } from 'three';
 
+// todo: Float32Array[3]?
+
 export type Vec = [number, number, number];
 
 export const vec = {
   new: (x?: number, y?: number, z?: number): Vec => [x ?? 0, y ?? 0, z ?? 0],
+  clone: (v: Vec): Vec => [v[0], v[1], v[2]],
   from: (v: Vector3): Vec => [v.x, v.y, v.z],
   toVector3: (v: Vec) => new Vector3(v[0], v[1], v[2]),
   toVector3s: (vs: Vec[]) => vs.map((v) => vec.toVector3(v)),

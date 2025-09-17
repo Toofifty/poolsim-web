@@ -16,7 +16,7 @@ export const settings = proxy({
   aimAssistMode: AimAssistMode.Off,
 
   highDetail: false,
-  players: Players.AIVsAI,
+  players: Players.PlayerVsPlayer,
 
   canvasEnabled: true,
   debugLights: false,

@@ -44,11 +44,6 @@ import { settings } from './store/settings';
 import { subscribe } from 'valtio';
 import { properties } from './physics/properties';
 
-// import SimulationWorker from './simulation/simulation-worker?worker';
-
-// const worker = new SimulationWorker();
-// worker.postMessage('boob');
-
 type AudioBuffers = Partial<Record<'clack' | 'break', AudioBuffer>>;
 
 export class Game {
@@ -393,12 +388,12 @@ export class Game {
     return undefined;
   }
 
-  public static add(mesh: Mesh | Line) {
-    this.instance.scene.add(mesh);
+  public static add(obj: Object3D) {
+    this.instance.scene.add(obj);
   }
 
-  public static remove(mesh: Mesh | Line) {
-    this.instance.scene.remove(mesh);
+  public static remove(obj: Object3D) {
+    this.instance.scene.remove(obj);
   }
 
   public static resetCamera() {
@@ -452,6 +447,17 @@ export class Game {
     return this.mouseRaycaster;
   }
 
+  public static dispose(obj: any) {
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.material) {
+      if (Array.isArray(obj.material)) {
+        obj.material.forEach((m: any) => m.dispose());
+      } else {
+        obj.material.dispose();
+      }
+    }
+  }
+
   public mount(container: HTMLDivElement | null) {
     if (container) {
       this.safeInit();
@@ -463,14 +469,7 @@ export class Game {
       this.renderer.setAnimationLoop(null);
       this.teardownListeners();
       this.scene.traverse((obj: any) => {
-        if (obj.geometry) obj.geometry.dispose();
-        if (obj.material) {
-          if (Array.isArray(obj.material)) {
-            obj.material.forEach((m: any) => m.dispose());
-          } else {
-            obj.material.dispose();
-          }
-        }
+        Game.dispose(obj);
       });
       this.renderer.dispose();
       this.renderer.forceContextLoss();

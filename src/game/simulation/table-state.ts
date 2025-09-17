@@ -1,43 +1,66 @@
-import type { Ball } from '../objects/ball';
+import type { PhysicsBall } from '../physics/ball';
+import type { PhysicsCushion } from '../physics/cushion';
+import type { PhysicsPocket } from '../physics/pocket';
 
 export enum RuleSet {
   _8Ball,
   _9Ball,
 }
 
+/**
+ * Table state used for simulations
+ */
 export class TableState {
-  public cueBall!: Ball;
-  public targetBalls: Ball[] = [];
-  public ruleSet!: RuleSet;
+  /**
+   * Expected [cueBall, ...targetBalls]
+   * Target balls are unordered
+   */
+  public balls: PhysicsBall[] = [];
+  public cushions: PhysicsCushion[] = [];
+  public pockets: PhysicsPocket[] = [];
+  public ruleSet: RuleSet = RuleSet._9Ball;
 
-  public clone() {
-    const newState = new TableState();
-    newState.cueBall = this.cueBall.clone();
-    newState.targetBalls = this.targetBalls.map((ball) => ball.clone());
-    newState.ruleSet = this.ruleSet;
-    return newState;
+  constructor(
+    balls: PhysicsBall[],
+    cushions: PhysicsCushion[],
+    pockets: PhysicsPocket[],
+    ruleSet: RuleSet
+  ) {
+    this.balls = balls;
+    this.cushions = cushions;
+    this.pockets = pockets;
+    this.ruleSet = ruleSet;
   }
 
-  public get balls() {
-    if (!this.cueBall) {
-      throw new Error('No cue ball found');
-    }
-    return [this.cueBall, ...this.targetBalls];
+  public clone() {
+    return new TableState(
+      this.balls.map((ball) => ball.clone()),
+      this.cushions,
+      this.pockets,
+      this.ruleSet
+    );
+  }
+
+  public get cueBall() {
+    return this.balls[0];
   }
 
   public get activeBalls() {
+    // todo: optimise (filter/new array may be slow)
     return this.balls.filter((ball) => !ball.isPocketed);
   }
 
-  public get lowestActiveBall() {
-    return this.targetBalls.find((ball) => !ball.isPocketed);
+  public get settled() {
+    return this.balls.every((ball) => ball.isStationary);
   }
 
-  public get settled() {
-    return (
-      this.cueBall.isStationary &&
-      this.targetBalls.every((ball) => ball.isStationary)
-    );
+  public get lowestActiveBallId() {
+    const activeIds: number[] = [];
+    for (let i = 1; i < this.balls.length; i++) {
+      const ball = this.balls[i];
+      if (!ball.isPocketed) activeIds.push(ball.id);
+    }
+    return Math.min(...activeIds);
   }
 
   public get is8Ball() {

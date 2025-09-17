@@ -234,7 +234,7 @@ export class GameManager {
     if (
       this.state === GameState.PlayerShoot &&
       !this.table.cue.isShooting &&
-      settings.aimAssistMode === AimAssistMode.Full
+      settings.aimAssistMode !== AimAssistMode.Off
     ) {
       this.aimAssist
         .update(this.table.cue.getShot(), this.table.state)

@@ -15,6 +15,7 @@ export const quat = {
     y ?? 0,
     z ?? 0,
   ],
+  clone: (q: Quat): Quat => [q[0], q[1], q[2], q[3]],
   from: (q: Quaternion): Quat => [q.w, q.x, q.y, q.z],
   toQuaternion: (q: Quat) => new Quaternion(q[x], q[y], q[z], q[w]),
   fromAxisAngle: (axis: Vec, angle: number): Quat => {

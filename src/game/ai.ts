@@ -9,7 +9,7 @@ import type { TableState } from './simulation/table-state';
 import { ThreadedSimulation } from './simulation/threaded-simulation';
 
 export class AI {
-  private precision = 20;
+  private precision = 50;
   private accuracy = 100;
   private prefTrickshot = 100;
   private prefMultishot = 100;
@@ -79,6 +79,6 @@ export class AI {
       return -Infinity;
     }
 
-    return result.ballsPotted * 100 - result.collisions.length;
+    return result.ballsPotted * 100 + result.collisions.length;
   }
 }

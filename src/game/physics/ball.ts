@@ -13,6 +13,7 @@ import { quat, type Quat } from './quat';
 
 export type PhysicsBallSnapshot = {
   position: Vec;
+  velocity: Vec;
   orientation: Quat;
 };
 
@@ -55,7 +56,8 @@ export class PhysicsBall {
   public getSnapshot(): PhysicsBallSnapshot {
     return {
       position: vec.clone(this.position),
-      orientation: this.orientation,
+      velocity: vec.clone(this.velocity),
+      orientation: quat.clone(this.orientation),
     };
   }
 
@@ -198,6 +200,10 @@ export class PhysicsBall {
   }
 
   public collideBall(other: PhysicsBall): BallBallCollision | undefined {
+    if (this === other) {
+      return undefined;
+    }
+
     const dist = vec.dist(this.position, other.position);
 
     if (dist > 0 && dist < this.radius + other.radius) {

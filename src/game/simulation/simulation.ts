@@ -67,6 +67,7 @@ export type RunSimulationOptions = {
   state: TableState;
   shot: Shot;
   profiler?: IProfiler;
+  stopAtFirstContact?: boolean;
 };
 
 export type RunSimulationStepOptions = {
@@ -172,12 +173,8 @@ export class Simulation implements ISimulation {
     shot,
     state,
     profiler = Profiler.none,
-  }: {
-    shot: Shot;
-    /** cloned */
-    state: TableState;
-    profiler?: IProfiler;
-  }) {
+    stopAtFirstContact = false,
+  }: RunSimulationOptions) {
     const copiedState = state.clone();
     const result = new Result(shot, copiedState);
 
@@ -198,11 +195,18 @@ export class Simulation implements ISimulation {
         result.add(stepResult);
       });
 
-      if (copiedState.settled) {
+      if (result.hitFoulBall) {
         break;
       }
 
-      if (result.hitFoulBall) {
+      if (
+        stopAtFirstContact &&
+        (result.cueBallCollisions > 0 || result.cueBallCushionCollisions > 0)
+      ) {
+        break;
+      }
+
+      if (copiedState.settled) {
         break;
       }
     }

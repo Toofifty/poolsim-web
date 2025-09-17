@@ -1,5 +1,4 @@
 import {
-  ArrowHelper,
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -15,15 +14,13 @@ import {
 } from 'three';
 import { PhysicsBall } from '../physics/ball';
 import type { Shot } from '../physics/shot';
-import { Cushion } from './cushion';
-import type { Collision } from '../physics/collision';
-import { Pocket } from './pocket';
 import { properties } from '../physics/properties';
 import { Game } from '../game';
 import { vec, type Vec } from '../physics/vec';
 import { settings } from '../store/settings';
 import { createBallMesh } from '../models/ball/create-ball-mesh';
 import { quat, type Quat } from '../physics/quat';
+import { Arrow } from './arrow';
 
 export class Ball {
   public physics: PhysicsBall;
@@ -35,6 +32,7 @@ export class Ball {
   private collisionPoints: Vector3[] = [];
   private collisionOrientations: Quaternion[] = [];
   private trackingPoints: Vector3[] = [];
+  private impactVelocity?: Vector3;
 
   public parent!: Object3D;
   private mesh!: Mesh;
@@ -44,11 +42,12 @@ export class Ball {
   private geometry!: BufferGeometry;
   private projectionMaterial!: Material;
   private trackingLineMaterial!: LineBasicMaterial;
+  private impactArrow!: Arrow;
 
   private debugStateRing!: Mesh;
-  private debugArrowCV!: ArrowHelper;
-  private debugArrowV!: ArrowHelper;
-  private debugArrowW!: ArrowHelper;
+  private debugArrowCV!: Arrow;
+  private debugArrowV!: Arrow;
+  private debugArrowW!: Arrow;
 
   constructor(x: number, y: number, color: Color, number: number = -1) {
     this.physics = new PhysicsBall(number, x, y);
@@ -80,6 +79,12 @@ export class Ball {
       transparent: true,
       opacity: properties.projectionOpacity * 2,
     });
+    this.impactArrow = new Arrow({
+      color: this.color,
+      opacity: properties.projectionOpacity * 2,
+      factor: 0.5,
+    });
+    this.parent.add(this.impactArrow);
   }
 
   private createDebugMesh() {
@@ -90,30 +95,15 @@ export class Ball {
     this.debugStateRing.visible = false;
     this.parent.add(this.debugStateRing);
 
-    this.debugArrowCV = new ArrowHelper(
-      new Vector3(1, 0, 0),
-      new Vector3(0, 0, 0),
-      0.01,
-      0xffff00
-    );
+    this.debugArrowCV = new Arrow({ color: new Color(0xffff00), factor: 0.2 });
     this.debugArrowCV.visible = false;
     this.parent.add(this.debugArrowCV);
 
-    this.debugArrowV = new ArrowHelper(
-      new Vector3(1, 0, 0),
-      new Vector3(0, 0, 0),
-      0.01,
-      0x00ffff
-    );
+    this.debugArrowV = new Arrow({ color: new Color(0x00ffff), factor: 0.2 });
     this.debugArrowV.visible = false;
     this.parent.add(this.debugArrowV);
 
-    this.debugArrowW = new ArrowHelper(
-      new Vector3(1, 0, 0),
-      new Vector3(0, 0, 0),
-      0.01,
-      0xff00ff
-    );
+    this.debugArrowW = new Arrow({ color: new Color(0xff00ff), factor: 0.01 });
     this.debugArrowW.visible = false;
     this.parent.add(this.debugArrowW);
   }
@@ -136,31 +126,6 @@ export class Ball {
 
   public hit(shot: Shot) {
     this.physics.hit(shot);
-  }
-
-  public collide(object: Ball | Cushion | Pocket): Collision | undefined {
-    if (object instanceof Ball) {
-      return this.collideBall(object);
-    }
-    if (object instanceof Cushion) {
-      return this.collideCushion(object);
-    }
-    if (object instanceof Pocket) {
-      return this.collidePocket(object);
-    }
-    return undefined;
-  }
-
-  public collideBall(ball: Ball) {
-    return this.physics.collideBall(ball.physics);
-  }
-
-  public collideCushion(cushion: Cushion) {
-    return this.physics.collideCushion(cushion.physics);
-  }
-
-  public collidePocket(pocket: Pocket, simulated = false) {
-    return this.physics.collidePocket(pocket.physics, simulated);
   }
 
   public place(x: number, y: number) {
@@ -194,6 +159,17 @@ export class Ball {
       position = (position ?? this.position).clone();
       this.trackingPoints.push(position ?? this.position);
     }
+  }
+
+  public updateImpactArrow(position: Vec, velocity: Vec) {
+    this.impactArrow.position.copy(
+      vec.toVector3(vec.sub(position, this.physics.position))
+    );
+    this.impactVelocity = vec.toVector3(velocity);
+  }
+
+  public clearImpactArrow() {
+    this.impactVelocity = undefined;
   }
 
   public sync() {
@@ -249,6 +225,13 @@ export class Ball {
     geometry.setAttribute('position', new BufferAttribute(positions, 3));
     this.trackingLine = new Line(geometry, this.trackingLineMaterial);
     Game.add(this.trackingLine);
+
+    // impact arrow
+    if (this.impactVelocity) {
+      this.impactArrow.setVector(this.impactVelocity);
+    } else {
+      this.impactArrow.visible = false;
+    }
   }
 
   private updateDebug() {
@@ -270,17 +253,9 @@ export class Ball {
     );
     this.debugStateRing.lookAt(Game.instance.camera.position);
 
-    const cv = vec.toVector3(this.physics.contactVelocity);
-    this.debugArrowCV.setDirection(cv.clone().normalize());
-    this.debugArrowCV.setLength(cv.length());
-
-    const v = vec.toVector3(this.physics.velocity);
-    this.debugArrowV.setDirection(v.clone().normalize());
-    this.debugArrowV.setLength(v.length());
-
-    const w = vec.toVector3(this.physics.angularVelocity);
-    this.debugArrowW.setDirection(w.clone().normalize());
-    this.debugArrowW.setLength(w.length());
+    this.debugArrowCV.setVector(vec.toVector3(this.physics.contactVelocity));
+    this.debugArrowV.setVector(vec.toVector3(this.physics.velocity));
+    this.debugArrowW.setVector(vec.toVector3(this.physics.angularVelocity));
   }
 
   public dispose() {

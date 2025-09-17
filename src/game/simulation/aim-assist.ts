@@ -2,6 +2,7 @@ import { Game } from '../game';
 import type { Ball } from '../objects/ball';
 import { properties } from '../physics/properties';
 import type { Shot } from '../physics/shot';
+import { AimAssistMode, settings } from '../store/settings';
 import { Simulation, type ISimulation } from './simulation';
 import type { TableState } from './table-state';
 import { ThreadedSimulation } from './threaded-simulation';
@@ -26,13 +27,18 @@ export class AimAssist {
   public clear() {
     if (this.lastShotKey === 0) return;
     this.lastShotKey = 0;
-    this.balls.forEach((ball) => ball.clearCollisionPoints());
+    this.balls.forEach((ball) => {
+      ball.clearCollisionPoints();
+      ball.clearImpactArrow();
+    });
   }
 
   public async update(shot: Shot, state: TableState) {
     if (Math.abs(this.lastShotKey - shot.key) < properties.epsilon) {
       return;
     }
+
+    const firstContact = settings.aimAssistMode === AimAssistMode.FirstContact;
 
     await this.profiler.profile('aim-update', async () => {
       this.clear();
@@ -41,20 +47,40 @@ export class AimAssist {
         shot,
         state,
         profiler: this.profiler,
+        stopAtFirstContact: firstContact,
       });
 
-      result.collisions.forEach((collision) => {
+      const hasFoul = result.hasFoul();
+
+      result.collisions.forEach((collision, i) => {
         const initiator = this.ballMap.get(collision.initiator.id)!;
         initiator.addCollisionPoint(
           collision.snapshots.initiator.position,
           collision.snapshots.initiator.orientation
         );
+        if (
+          firstContact &&
+          i === 0 &&
+          (!hasFoul || collision.type === 'ball-cushion')
+        ) {
+          initiator.updateImpactArrow(
+            collision.snapshots.initiator.position,
+            collision.snapshots.initiator.velocity
+          );
+        }
+
         if (collision.type === 'ball-ball') {
           const other = this.ballMap.get(collision.other.id)!;
           other.addCollisionPoint(
             collision.snapshots.other.position,
             collision.snapshots.other.orientation
           );
+          if (firstContact && i === 0 && !hasFoul) {
+            other.updateImpactArrow(
+              collision.snapshots.other.position,
+              collision.snapshots.other.velocity
+            );
+          }
         }
       });
 

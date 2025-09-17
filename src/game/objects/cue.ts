@@ -30,6 +30,7 @@ export class Cue {
 
   constructor() {
     this.createMesh();
+    this.anchor.rotation.z = Math.PI;
   }
 
   private createMesh() {

@@ -89,14 +89,14 @@ export const Controls = () => {
               >
                 Off
               </Button>
-              {/* <Button
+              <Button
                 active={aimAssistMode === AimAssistMode.FirstContact}
                 onClick={() => {
                   settings.aimAssistMode = AimAssistMode.FirstContact;
                 }}
               >
                 First contact
-              </Button> */}
+              </Button>
               <Button
                 active={aimAssistMode === AimAssistMode.Full}
                 onClick={() => {

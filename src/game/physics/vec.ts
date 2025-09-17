@@ -1,7 +1,5 @@
 import { Vector3 } from 'three';
 
-// todo: Float32Array[3]?
-
 export type Vec = [number, number, number];
 
 export const vec = {

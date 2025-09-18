@@ -40,7 +40,7 @@ export class GameManager {
     this.aimAssist = new AimAssist();
 
     this.resetSimulationResult();
-    this.setup8Ball();
+    this.setup9Ball();
     this.startGame();
 
     // immediately make AI shoot if setting changes to AIvAI
@@ -86,7 +86,7 @@ export class GameManager {
     this.table.clearBalls();
     this.placeCueBall();
     this.table.add(...Rack.generateDebugGame(properties.tableLength / 6, 0));
-    this.ruleSet = RuleSet._9Ball;
+    this.ruleSet = RuleSet._8Ball;
     this.table.state.ruleSet = RuleSet._8Ball;
     this.aimAssist.setBalls([...this.table.balls]);
   }
@@ -145,7 +145,7 @@ export class GameManager {
 
     // const oldShot = this.table.cue.getShot();
     this.table.cue.setShot(shot);
-    await delay(500);
+    await delay(2000);
     this.table.cue.shoot(async () => {
       this.setState(GameState.AIInPlay);
       await delay(500);
@@ -232,7 +232,8 @@ export class GameManager {
     }
 
     if (
-      this.state === GameState.PlayerShoot &&
+      (this.state === GameState.PlayerShoot ||
+        this.state === GameState.AIShoot) &&
       !this.table.cue.isShooting &&
       settings.aimAssistMode !== AimAssistMode.Off
     ) {

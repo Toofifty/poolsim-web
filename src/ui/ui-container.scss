@@ -1,5 +1,11 @@
 .ui-container {
   position: fixed;
-  inset: 64px;
+  inset: 16px;
   pointer-events: none;
+}
+
+@media (max-width: 1200px) {
+  .ui-container {
+    inset: 4px;
+  }
 }

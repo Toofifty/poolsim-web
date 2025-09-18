@@ -15,6 +15,7 @@ import { RuleSet, TableState } from '../simulation/table-state';
 import { createTableClothMesh } from '../models/table/create-table-cloth-mesh';
 import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
 import { createTableRailDiamondsMesh } from '../models/table/create-table-rail-diamonds-mesh';
+import { settings } from '../store/settings';
 
 export class Table {
   public cue: Cue;
@@ -137,7 +138,7 @@ export class Table {
     // sync to physics position
     this.balls.forEach((ball) => ball.sync());
 
-    if (this.settled && updateCue) {
+    if (this.settled && updateCue && !settings.lockCue) {
       this.cursorPosition = Game.getFirstMouseIntersection(this.plane);
       if (this.cursorPosition) {
         this.cue.setTarget(this.cursorPosition);

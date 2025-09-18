@@ -81,7 +81,6 @@ export class Ball {
     });
     this.impactArrow = new Arrow({
       color: this.color,
-      opacity: properties.projectionOpacity * 2,
       factor: 0.5,
     });
     this.parent.add(this.impactArrow);

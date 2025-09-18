@@ -1,4 +1,4 @@
-import { CanvasTexture, Color } from 'three';
+import { CanvasTexture, Color, SRGBColorSpace } from 'three';
 import { properties } from '../../physics/properties';
 import { settings } from '../../store/settings';
 
@@ -88,6 +88,7 @@ export function createBallTexture({
   }
 
   const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
   texture.needsUpdate = true;
   return texture;
 }

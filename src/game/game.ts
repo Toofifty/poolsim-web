@@ -82,6 +82,8 @@ export class Game {
     this.mousePosition = new Vector2(0, 0);
     this.stats = new Stats();
     this.stats.showPanel(0);
+    this.stats.dom.style.top = 'unset';
+    this.stats.dom.style.bottom = '0';
     document.body.appendChild(this.stats.dom);
 
     this.scene = new Scene();
@@ -222,6 +224,12 @@ export class Game {
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'l':
+        settings.lockCue = !settings.lockCue;
+        return;
+    }
+
     this.manager.keyup(e);
   };
 
@@ -283,7 +291,7 @@ export class Game {
 
   private setupAmbientLight() {
     const light = new AmbientLight(0xffffff);
-    light.intensity = settings.highDetail ? 0.5 : 2.5;
+    light.intensity = settings.highDetail ? 0.5 : 1.5;
     this.scene.add(light);
   }
 

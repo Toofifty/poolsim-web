@@ -15,6 +15,9 @@
   align-items: center;
   gap: 8px;
 
+  max-width: 100%;
+  overflow-x: auto;
+
   &.lower {
     padding: $pad-surface;
     border-radius: $br-surface - $pad-surface;
@@ -29,13 +32,24 @@
     justify-content: end;
   }
 
-  span {
+  > span {
     font-weight: 500;
     margin: 0 12px;
     color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
   }
 }
 
 .grow {
   flex-grow: 1;
+}
+
+kbd {
+  background: rgba(255, 255, 255, 0.25);
+  display: inline-block;
+  padding: 2px 6px;
+  margin-left: 2px;
+  vertical-align: top;
+  border-radius: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
 }

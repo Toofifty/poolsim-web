@@ -211,6 +211,8 @@ export class Simulation implements ISimulation {
       }
     }
 
+    console.log(result.collisions);
+
     end();
     return result;
   }

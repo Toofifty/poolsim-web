@@ -61,9 +61,18 @@ export const properties = {
   color8Ball: new Color(0x010101),
   // 9-15 repeat above colors
 
-  colorTableCloth: new Color(0x227722),
-  colorTableCushion: new Color(0x337733),
-  colorTableRail: new Color(0x683104),
+  // green/brown
+  // colorTableCloth: new Color(0x227722),
+  // colorTableRail: new Color(0x683104),
+
+  // blue/black
+  colorTableCloth: new Color(0x646cff),
+  colorTableRail: new Color(0x252525),
+
+  // red/black
+  // colorTableCloth: new Color(0xff3232),
+  // colorTableRail: new Color(0x252525),
+
   colorTableRailDiamond: new Color(0xffffff),
   colorPocketLiner: new Color(0x262626),
   colorCueShaft: new Color(0x812e04),

@@ -7,9 +7,10 @@ import {
 } from './simulation/simulation';
 import type { TableState } from './simulation/table-state';
 import { ThreadedSimulation } from './simulation/threaded-simulation';
+import { gameStore } from './store/game';
 
 export class AI {
-  private precision = 50;
+  private precision = 20;
   private accuracy = 100;
   private prefTrickshot = 100;
   private prefMultishot = 100;
@@ -34,6 +35,7 @@ export class AI {
     let stepIterations = 0;
     let anglesChecked = 0;
 
+    gameStore.analysisProgress = 0;
     console.time('ai-shot');
 
     for (
@@ -42,6 +44,7 @@ export class AI {
       angle += angleStep
     ) {
       anglesChecked++;
+      gameStore.analysisProgress = (100 * anglesChecked) / angleSteps;
       for (let force = minForce; force < maxForce; force += forceStep) {
         const shot = new Shot(angle, force);
         const result = await this.simulation.run({
@@ -79,6 +82,10 @@ export class AI {
       return -Infinity;
     }
 
-    return result.ballsPotted * 100 + result.collisions.length;
+    if (result.state?.isGameOver) {
+      return 1000 - result.collisions.length;
+    }
+
+    return result.ballsPotted * 100 - result.collisions.length;
   }
 }

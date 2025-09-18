@@ -20,6 +20,7 @@ export const settings = proxy({
   players: Players.PlayerVsPlayer,
 
   canvasEnabled: true,
+  lockCue: false,
   debugLights: false,
   debugBalls: false,
   debugCollisionBoxes: false,

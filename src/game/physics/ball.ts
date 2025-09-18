@@ -53,11 +53,13 @@ export class PhysicsBall {
     return newBall;
   }
 
-  public getSnapshot(): PhysicsBallSnapshot {
+  public getSnapshot(
+    override?: Partial<PhysicsBallSnapshot>
+  ): PhysicsBallSnapshot {
     return {
-      position: vec.clone(this.position),
-      velocity: vec.clone(this.velocity),
-      orientation: quat.clone(this.orientation),
+      position: override?.position ?? vec.clone(this.position),
+      velocity: override?.velocity ?? vec.clone(this.velocity),
+      orientation: override?.orientation ?? quat.clone(this.orientation),
     };
   }
 
@@ -207,6 +209,9 @@ export class PhysicsBall {
     const dist = vec.dist(this.position, other.position);
 
     if (dist > 0 && dist < this.radius + other.radius) {
+      const initial = vec.clone(this.position);
+      const otherInitial = vec.clone(other.position);
+
       const normal = vec.norm(vec.sub(this.position, other.position));
       const rv = vec.dot(vec.sub(this.velocity, other.velocity), normal);
 
@@ -239,8 +244,8 @@ export class PhysicsBall {
         position: vec.add(this.position, vec.mult(normal, this.radius)),
         impulse,
         snapshots: {
-          initiator: this.getSnapshot(),
-          other: other.getSnapshot(),
+          initiator: this.getSnapshot({ position: initial }),
+          other: other.getSnapshot({ position: otherInitial }),
         },
       };
     }

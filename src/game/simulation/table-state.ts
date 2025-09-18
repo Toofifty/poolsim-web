@@ -55,6 +55,11 @@ export class TableState {
   }
 
   public get isGameOver() {
+    if (this.ruleSet === RuleSet._8Ball || this.ruleSet === RuleSet._9Ball) {
+      // 5th ball is 8 or 9 ball
+      return this.balls[5].isPocketed;
+    }
+
     return this.balls.every((ball) => ball.id === -1 || ball.isPocketed);
   }
 

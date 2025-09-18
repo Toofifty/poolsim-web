@@ -34,6 +34,7 @@ export class Arrow extends Object3D {
     const material = createMaterial({
       color,
       depthTest: false,
+      depthWrite: false,
       transparent: opacity < 1,
       opacity,
     });
@@ -46,7 +47,9 @@ export class Arrow extends Object3D {
       material
     );
     this.stem.castShadow = true;
+    this.stem.renderOrder = 9999;
     this.cone.castShadow = true;
+    this.cone.renderOrder = 9999;
     this.setVector(new Vector3(0, 0, 0));
     this.add(this.stem, this.cone);
   }

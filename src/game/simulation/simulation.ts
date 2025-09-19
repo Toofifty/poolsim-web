@@ -2,6 +2,7 @@ import type { Collision } from '../physics/collision';
 import { properties } from '../physics/properties';
 import type { Shot } from '../physics/shot';
 import { Profiler, type IProfiler } from '../profiler';
+import { settings } from '../store/settings';
 import { getTimeUntilEvent } from './evolution';
 import type { TableState } from './table-state';
 
@@ -69,6 +70,7 @@ export type RunSimulationOptions = {
   shot: Shot;
   profiler?: IProfiler;
   stopAtFirstContact?: boolean;
+  enableEvolutionPhysics?: boolean;
 };
 
 export type RunSimulationStepOptions = {
@@ -175,22 +177,26 @@ export class Simulation implements ISimulation {
     state,
     profiler = Profiler.none,
     stopAtFirstContact = false,
+    enableEvolutionPhysics = false,
   }: RunSimulationOptions) {
     const copiedState = state.clone();
     const result = new Result(shot, copiedState);
 
     copiedState.cueBall.hit(shot);
-    const { deltaTime, events } = getTimeUntilEvent(copiedState);
-    if (deltaTime < Infinity) {
-      const stepResult = this.step({
-        simulated: true,
-        dt: deltaTime,
-        state: copiedState,
-      });
-      console.log(events);
-      return result.add(stepResult);
+
+    if (enableEvolutionPhysics) {
+      const { deltaTime, events } = getTimeUntilEvent(copiedState);
+      if (deltaTime < Infinity) {
+        const stepResult = this.step({
+          simulated: true,
+          dt: deltaTime,
+          state: copiedState,
+        });
+        console.log(events);
+        return result.add(stepResult);
+      }
+      return result;
     }
-    return result;
 
     const end = profiler.start('run');
 

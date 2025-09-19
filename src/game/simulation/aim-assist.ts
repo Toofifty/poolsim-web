@@ -48,6 +48,7 @@ export class AimAssist {
         state,
         profiler: this.profiler,
         stopAtFirstContact: firstContact,
+        enableEvolutionPhysics: settings.enableEvolutionPhysics,
       });
 
       const hasFoul = result.hasFoul();

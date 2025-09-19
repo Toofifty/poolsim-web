@@ -30,6 +30,7 @@ export const Controls = () => {
     highDetail,
     players,
     canvasEnabled,
+    enableEvolutionPhysics,
     lockCue,
     debugLights,
     debugBalls,
@@ -174,6 +175,14 @@ export const Controls = () => {
                     }}
                   >
                     Disable canvas
+                  </Button>
+                  <Button
+                    active={enableEvolutionPhysics}
+                    onClick={() => {
+                      settings.enableEvolutionPhysics = !enableEvolutionPhysics;
+                    }}
+                  >
+                    Enable evolution
                   </Button>
                   <Button
                     active={lockCue}

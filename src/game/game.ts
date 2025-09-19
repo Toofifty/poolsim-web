@@ -41,6 +41,7 @@ import { Profiler } from './profiler';
 import { settings } from './store/settings';
 import { subscribe } from 'valtio';
 import { properties } from './physics/properties';
+import { vec } from './physics/vec';
 
 type AudioBuffers = Partial<Record<'clack' | 'break', AudioBuffer>>;
 
@@ -434,4 +435,8 @@ export class Game {
     this.composer.render();
     this.stats.end();
   }
+}
+
+if (window) {
+  (window as any).vec = vec;
 }

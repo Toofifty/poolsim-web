@@ -40,7 +40,7 @@ export class GameManager {
     this.aimAssist = new AimAssist();
 
     this.resetSimulationResult();
-    this.setup9Ball();
+    this.setupDebugGame();
     this.startGame();
 
     // immediately make AI shoot if setting changes to AIvAI
@@ -86,8 +86,8 @@ export class GameManager {
     this.table.clearBalls();
     this.placeCueBall();
     this.table.add(...Rack.generateDebugGame(properties.tableLength / 6, 0));
-    this.ruleSet = RuleSet._8Ball;
-    this.table.state.ruleSet = RuleSet._8Ball;
+    this.ruleSet = RuleSet.Debug;
+    this.table.state.ruleSet = RuleSet.Debug;
     this.aimAssist.setBalls([...this.table.balls]);
   }
 

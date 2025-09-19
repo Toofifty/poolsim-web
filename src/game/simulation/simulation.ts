@@ -2,6 +2,7 @@ import type { Collision } from '../physics/collision';
 import { properties } from '../physics/properties';
 import type { Shot } from '../physics/shot';
 import { Profiler, type IProfiler } from '../profiler';
+import { getTimeUntilEvent } from './evolution';
 import type { TableState } from './table-state';
 
 export class Result {
@@ -179,6 +180,17 @@ export class Simulation implements ISimulation {
     const result = new Result(shot, copiedState);
 
     copiedState.cueBall.hit(shot);
+    const { deltaTime, events } = getTimeUntilEvent(copiedState);
+    if (deltaTime < Infinity) {
+      const stepResult = this.step({
+        simulated: true,
+        dt: deltaTime,
+        state: copiedState,
+      });
+      console.log(events);
+      return result.add(stepResult);
+    }
+    return result;
 
     const end = profiler.start('run');
 
@@ -210,8 +222,6 @@ export class Simulation implements ISimulation {
         break;
       }
     }
-
-    console.log(result.collisions);
 
     end();
     return result;

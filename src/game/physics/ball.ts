@@ -10,6 +10,7 @@ import type { PhysicsPocket } from './pocket';
 import { vec, type Vec } from './vec';
 import { Profiler, type IProfiler } from '../profiler';
 import { quat, type Quat } from './quat';
+import { solveRelativeMotion } from '../math';
 
 export type PhysicsBallSnapshot = {
   position: Vec;
@@ -65,6 +66,7 @@ export class PhysicsBall {
 
   public hit(shot: Shot) {
     vec.madd(this.velocity, vec.from(shot.velocity));
+    this.isStationary = false;
   }
 
   get isSliding() {
@@ -126,7 +128,11 @@ export class PhysicsBall {
     }
 
     vec.madd(this.position, vec.mult(this.velocity, dt));
+    // calculate velocity at point of contact with the cloth
     const contactVelocity = this.contactVelocity;
+    // isSliding = contactVelocity > 0
+    // isRolling = velocity > 0
+    // isSpinning = angularVelocity.z > 0
     if (this.isSliding) {
       // sliding friction
       const dv = vec.mult(
@@ -199,6 +205,31 @@ export class PhysicsBall {
     vec.madd(this.position, vec.mult(this.velocity, dt));
 
     this.isStationary = vec.len(this.velocity) - gravity <= properties.epsilon;
+  }
+
+  public getSlidingTime(): number {
+    return 0;
+  }
+
+  public getRollingTime(): number {
+    return 0;
+  }
+
+  public getSpinningTime(): number {
+    return 0;
+  }
+
+  public getTimeToBallCollision(other: PhysicsBall): number {
+    if (this.isStationary) return Infinity;
+
+    return solveRelativeMotion(
+      this.position,
+      this.velocity,
+      this.radius,
+      other.position,
+      other.velocity,
+      other.radius
+    );
   }
 
   public collideBall(other: PhysicsBall): BallBallCollision | undefined {

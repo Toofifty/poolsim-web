@@ -5,6 +5,7 @@ import type { PhysicsPocket } from '../physics/pocket';
 export enum RuleSet {
   _8Ball,
   _9Ball,
+  Debug,
 }
 
 /**

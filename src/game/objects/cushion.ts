@@ -2,11 +2,11 @@ import { Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
 import { PhysicsCushion } from '../physics/cushion';
 import { properties } from '../physics/properties';
 import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
-import { vec } from '../physics/vec';
 import { subscribe } from 'valtio';
 import { settings } from '../store/settings';
 import { createMaterial } from '../rendering/create-material';
 import { createTableClothNormalTexture } from '../models/table/create-table-cloth-texture';
+import { vec } from '../physics/math';
 
 export class Cushion {
   public physics: PhysicsCushion;

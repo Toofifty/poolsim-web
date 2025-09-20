@@ -1,76 +1,14 @@
-import type { Collision } from '../physics/collision';
 import { properties } from '../physics/properties';
+import { Result, StepResult } from '../physics/result';
 import type { Shot } from '../physics/shot';
 import { Profiler, type IProfiler } from '../profiler';
-import { settings } from '../store/settings';
-import { getTimeUntilEvent } from './evolution';
 import type { TableState } from './table-state';
-
-export class Result {
-  stepIterations = 1;
-  ballsPotted = 0;
-  pottedCueBall = false;
-  hitFoulBall = false;
-  firstStruck = -1;
-
-  cueBallCollisions = 0;
-  cueBallCushionCollisions = 0;
-
-  ballBallCollisions = 0;
-  ballCushionCollisions = 0;
-
-  collisions: Collision[] = [];
-
-  constructor(public shot?: Shot, public state?: TableState) {}
-
-  public add(other: Result) {
-    if (
-      this.state &&
-      this.state.is9Ball &&
-      this.firstStruck === -1 &&
-      other.firstStruck !== -1
-    ) {
-      // adding a strike - if it's not the lowest ball, it is a foul
-      this.hitFoulBall = this.state.lowestActiveBallId !== other.firstStruck;
-    }
-
-    this.stepIterations += other.stepIterations;
-    this.ballsPotted += other.ballsPotted;
-    this.pottedCueBall ||= other.pottedCueBall;
-    this.hitFoulBall ||= other.hitFoulBall;
-    this.firstStruck =
-      this.firstStruck === -1 ? other.firstStruck : this.firstStruck;
-    this.cueBallCollisions += other.cueBallCollisions;
-    this.cueBallCushionCollisions += other.cueBallCushionCollisions;
-    this.ballBallCollisions += other.ballBallCollisions;
-    this.ballCushionCollisions += other.ballCushionCollisions;
-    this.collisions.push(...other.collisions);
-    return this;
-  }
-
-  public hasFoul() {
-    return (
-      this.cueBallCollisions === 0 || this.pottedCueBall || this.hitFoulBall
-    );
-  }
-}
-
-export class StepResult extends Result {
-  public hasBallCollision() {
-    return this.cueBallCollisions > 0 || this.ballBallCollisions > 0;
-  }
-
-  public hasCushionCollision() {
-    return this.cueBallCushionCollisions > 0 || this.ballCushionCollisions > 0;
-  }
-}
 
 export type RunSimulationOptions = {
   state: TableState;
   shot: Shot;
   profiler?: IProfiler;
   stopAtFirstContact?: boolean;
-  enableEvolutionPhysics?: boolean;
 };
 
 export type RunSimulationStepOptions = {
@@ -79,6 +17,7 @@ export type RunSimulationStepOptions = {
   state: TableState;
   stepIndex?: number;
   profiler?: IProfiler;
+  enableEvolutionPhysics?: boolean;
 };
 
 export interface ISimulation {
@@ -92,6 +31,7 @@ export class Simulation implements ISimulation {
     dt,
     state,
     stepIndex = -1,
+    enableEvolutionPhysics,
     profiler = Profiler.none,
   }: RunSimulationStepOptions) {
     const result = new StepResult();
@@ -99,10 +39,9 @@ export class Simulation implements ISimulation {
 
     const endBallUpdate = profiler.start('ballUpdate');
     state.balls.forEach((ball) => {
-      ball.update(dt, simulated);
+      ball.evolve(dt, simulated);
       if (trackPath) {
-        // todo: add to Result
-        // ball.addTrackingPoint();
+        result.addTrackingPoint(ball);
       }
     });
     endBallUpdate();
@@ -113,9 +52,11 @@ export class Simulation implements ISimulation {
     // ball <-> ball collisions
     for (let i = 0; i < activeBalls.length; i++) {
       const ball = activeBalls[i];
+
       for (let j = i + 1; j < activeBalls.length; j++) {
         const other = activeBalls[j];
-        const collision = ball.collideBall(other);
+        // dont fix overlap with evolution physics enabled
+        const collision = ball.collideBall(other, !enableEvolutionPhysics);
         if (collision) {
           if (collision.initiator.id === -1) {
             if (result.firstStruck === -1) {
@@ -156,7 +97,7 @@ export class Simulation implements ISimulation {
       const ball = activeBalls[i];
       for (let j = 0; j < state.cushions.length; j++) {
         const cushion = state.cushions[j];
-        const collision = ball.collideCushion(cushion);
+        const collision = ball.collideCushion(cushion, !enableEvolutionPhysics);
         if (collision) {
           if (collision.initiator.id === -1) {
             result.cueBallCushionCollisions++;
@@ -177,28 +118,13 @@ export class Simulation implements ISimulation {
     state,
     profiler = Profiler.none,
     stopAtFirstContact = false,
-    enableEvolutionPhysics = false,
   }: RunSimulationOptions) {
     const copiedState = state.clone();
-    const result = new Result(shot, copiedState);
 
     copiedState.cueBall.hit(shot);
 
-    if (enableEvolutionPhysics) {
-      const { deltaTime, events } = getTimeUntilEvent(copiedState);
-      if (deltaTime < Infinity) {
-        const stepResult = this.step({
-          simulated: true,
-          dt: deltaTime,
-          state: copiedState,
-        });
-        console.log(events);
-        return result.add(stepResult);
-      }
-      return result;
-    }
-
     const end = profiler.start('run');
+    const result = new Result(shot, copiedState);
 
     for (let i = 0; i < properties.maxIterations; i++) {
       const stepResult = profiler.profile('step', () =>

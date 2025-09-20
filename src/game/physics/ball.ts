@@ -7,26 +7,40 @@ import type {
   BallPocketCollision,
 } from './collision';
 import type { PhysicsPocket } from './pocket';
-import { vec, type Vec } from './vec';
 import { Profiler, type IProfiler } from '../profiler';
-import { quat, type Quat } from './quat';
-import { solveRelativeMotion } from '../math';
+import { params } from './params';
+import { assert } from '../assert';
+import { vec, quat, type Quat, type Vec } from './math';
+import { evolveBallMotion, evolveBallOrientation } from './ball/evolve';
+import {
+  collideBallBall,
+  collideBallCushion,
+  collideBallPocket,
+} from './ball/collide';
 
 export type PhysicsBallSnapshot = {
   position: Vec;
   velocity: Vec;
   orientation: Quat;
+  state: BallState;
 };
+
+export enum BallState {
+  Stationary,
+  Sliding,
+  Rolling,
+  Spinning,
+  Pocketed,
+}
 
 export class PhysicsBall {
   public position: Vec;
   public velocity: Vec;
   public angularVelocity: Vec;
+  public state: BallState;
 
   public radius: number;
   public orientation: Quat;
-
-  public isStationary = true;
 
   public pocket?: PhysicsPocket;
 
@@ -37,369 +51,192 @@ export class PhysicsBall {
 
     this.radius = properties.ballRadius;
     this.orientation = quat.random();
+    this.state = BallState.Stationary;
+  }
+
+  get r() {
+    return this.position;
+  }
+
+  get v() {
+    return this.velocity;
+  }
+
+  get w() {
+    return this.angularVelocity;
   }
 
   public clone() {
-    const newBall = new PhysicsBall(
-      this.id,
-      this.position[0],
-      this.position[1]
-    );
-    vec.mcopy(newBall.position, this.position);
-    vec.mcopy(newBall.velocity, this.velocity);
-    vec.mcopy(newBall.angularVelocity, this.angularVelocity);
+    const newBall = new PhysicsBall(this.id, this.r[0], this.r[1]);
+    vec.mcopy(newBall.r, this.r);
+    vec.mcopy(newBall.v, this.v);
+    vec.mcopy(newBall.w, this.w);
     quat.mcopy(newBall.orientation, this.orientation);
-    newBall.isStationary = this.isStationary;
     newBall.pocket = this.pocket;
     return newBall;
   }
 
-  public getSnapshot(
+  public snapshot(
     override?: Partial<PhysicsBallSnapshot>
   ): PhysicsBallSnapshot {
     return {
-      position: override?.position ?? vec.clone(this.position),
-      velocity: override?.velocity ?? vec.clone(this.velocity),
+      position: override?.position ?? vec.clone(this.r),
+      velocity: override?.velocity ?? vec.clone(this.v),
       orientation: override?.orientation ?? quat.clone(this.orientation),
+      state: this.state,
     };
   }
 
   public hit(shot: Shot) {
     vec.madd(this.velocity, vec.from(shot.velocity));
-    this.isStationary = false;
-  }
 
-  get isSliding() {
-    return vec.lenSq(this.contactVelocity) > properties.epsilon;
-  }
+    const direction = vec.norm(vec.from(shot.velocity));
+    const I = 0.4 * this.radius * this.radius;
 
-  get isRolling() {
-    return vec.lenSq(this.velocity) > properties.epsilon;
-  }
+    // apply spins
+    if (Math.abs(shot.topSpin) > 0) {
+      const r = vec.new(0, 0, shot.topSpin * this.radius);
+      const dw = vec.mult(vec.cross(r, direction), 1 / I);
+      vec.madd(this.w, dw);
+    }
 
-  get isSpinning() {
-    return Math.abs(this.angularVelocity[2]) > 0;
+    if (Math.abs(shot.sideSpin) > 0) {
+      const r = vec.new(0, shot.sideSpin * this.radius, 0);
+      const dw = vec.mult(vec.cross(r, direction), 1 / I);
+      vec.madd(this.w, dw);
+    }
   }
 
   get isPocketed() {
     return !!this.pocket;
   }
 
-  get contactVelocity() {
+  getContactVelocity() {
     if (this.isPocketed) {
       return vec.zero;
     }
 
-    const contactPoint = vec.new(0, 0, this.radius);
-    const relativeVelocity = vec.cross(contactPoint, this.angularVelocity);
-    return vec.add(this.velocity, relativeVelocity);
+    return this.getSurfaceVelocity(vec.new(0, 0, 1));
   }
 
-  private zeroVectors() {
-    const vEpsilon = 0.0001;
-    const wEpsilon = 0.0001;
-    if (Math.abs(this.velocity[0]) < vEpsilon) this.velocity[0] = 0;
-    if (Math.abs(this.velocity[1]) < vEpsilon) this.velocity[1] = 0;
-    if (Math.abs(this.velocity[2]) < vEpsilon) this.velocity[2] = 0;
-    if (Math.abs(this.angularVelocity[0]) < wEpsilon)
-      this.angularVelocity[0] = 0;
-    if (Math.abs(this.angularVelocity[1]) < wEpsilon)
-      this.angularVelocity[1] = 0;
-    if (Math.abs(this.angularVelocity[2]) < wEpsilon)
-      this.angularVelocity[2] = 0;
+  getSurfaceVelocity(normal: Vec) {
+    const relativeVelocity = vec.cross(vec.mult(normal, this.radius), this.w);
+    return vec.minimise(vec.add(this.v, relativeVelocity));
   }
 
-  private setAngularVelocityXY(v: Vec) {
-    const wt = this.angularVelocity[2];
-    vec.mcopy(this.angularVelocity, v);
-    this.angularVelocity[2] = wt;
+  getIdealAngularVelocity() {
+    const wXY = vec.mult(
+      vec.norm(vec.cross(vec.UP, this.v)),
+      vec.len(this.v) / this.radius
+    );
+    return vec.setZ(wXY, this.w[2]);
   }
 
-  public update(dt: number = 1 / 60, simulated = false) {
+  private updatePocket(dt: number) {
+    // move the ball in the pocket
+    this.v[2] -= params.ball.gravity * dt;
+    vec.madd(this.r, vec.mult(this.v, dt));
+
+    // todo: slow w
+  }
+
+  public get isStationary() {
+    return this.state === BallState.Stationary;
+  }
+
+  private minimize() {
+    const cv = this.getContactVelocity();
+    if (vec.len(cv) < 1e-8 && vec.len(cv) > 0) {
+      vec.mcopy(this.w, this.getIdealAngularVelocity());
+      assert(
+        vec.isZero(this.getContactVelocity()),
+        'Could not zero-out contact velocity'
+      );
+    }
+
+    vec.mminimise(this.v);
+    vec.mminimise(this.w);
+  }
+
+  private resolveState(): BallState {
+    this.minimize();
+
+    switch (true) {
+      case this.isPocketed:
+        return BallState.Stationary;
+      case vec.len(this.getContactVelocity()) > 0:
+        return BallState.Sliding;
+      case vec.len(this.velocity) > 0:
+        return BallState.Rolling;
+      case this.angularVelocity[2] > 0:
+        return BallState.Spinning;
+      default:
+        return BallState.Stationary;
+    }
+  }
+
+  public getSlideTime(): number {
+    if (params.ball.frictionSlide === 0) {
+      return Infinity;
+    }
+
+    return (
+      (2 * vec.len(this.getContactVelocity())) / (7 * params.ball.frictionSlide)
+    );
+  }
+
+  public getRollTime(): number {
+    if (params.ball.frictionRoll === 0) {
+      return Infinity;
+    }
+
+    return vec.len(this.v) / params.ball.frictionRoll;
+  }
+
+  public getSpinTime(): number {
+    if (params.ball.frictionSpin === 0) {
+      return Infinity;
+    }
+
+    return Math.abs(this.w[2]) * 0.4 * (this.radius / params.ball.frictionSpin);
+  }
+
+  public evolve(dt: number, simulated?: boolean) {
+    this.state = this.resolveState();
+
     if (this.isPocketed) {
-      if (simulated) {
-        // stop the ball and don't bounce in pockets in
-        // simulation
-        this.isStationary = true;
-        return;
-      }
+      if (simulated) return;
       this.updatePocket(dt);
       return;
     }
 
-    vec.madd(this.position, vec.mult(this.velocity, dt));
-    // calculate velocity at point of contact with the cloth
-    const contactVelocity = this.contactVelocity;
-    // isSliding = contactVelocity > 0
-    // isRolling = velocity > 0
-    // isSpinning = angularVelocity.z > 0
-    if (this.isSliding) {
-      // sliding friction
-      const dv = vec.mult(
-        vec.norm(contactVelocity),
-        -Math.min(vec.len(contactVelocity), properties.frictionSlide * dt)
-      );
-
-      vec.madd(this.velocity, dv);
-
-      const down = vec.new(0, 0, -1);
-      const dOmega = vec.mult(
-        vec.cross(contactVelocity, down),
-        (properties.frictionSlide * dt) / this.radius
-      );
-
-      const omegaIdeal = vec.mult(
-        vec.cross(down, this.velocity),
-        -1 / this.radius
-      );
-      const omegaDiff = vec.sub(omegaIdeal, this.angularVelocity);
-
-      if (vec.lenSq(dOmega) > vec.lenSq(omegaDiff)) {
-        vec.madd(this.angularVelocity, vec.mult(omegaDiff, 100));
-      } else {
-        vec.madd(this.angularVelocity, vec.mult(dOmega, 100));
-      }
-    } else if (this.isRolling) {
-      const dv = vec.mult(
-        vec.norm(this.velocity),
-        -Math.min(vec.len(this.velocity), properties.frictionRoll * dt)
-      );
-
-      vec.madd(this.velocity, dv);
-
-      const omegaMag = vec.len(this.velocity) / this.radius;
-      const up = vec.new(0, 0, 1);
-      const rollAxis = vec.norm(vec.cross(up, this.velocity));
-
-      this.setAngularVelocityXY(vec.mult(rollAxis, omegaMag));
-    }
-
-    if (this.isSpinning) {
-      const decay = ((5 * properties.frictionSpin) / (2 * this.radius)) * dt;
-      if (this.angularVelocity[2] > 0) {
-        this.angularVelocity[2] = Math.max(0, this.angularVelocity[2] - decay);
-      } else {
-        this.angularVelocity[2] = Math.min(0, this.angularVelocity[2] + decay);
-      }
-    }
-
-    this.isStationary = !this.isSliding && !this.isRolling && !this.isSpinning;
-
-    if (vec.len(this.angularVelocity) > 0) {
-      const angle = vec.len(this.angularVelocity) * dt;
-      const axis = vec.norm(this.angularVelocity);
-
-      this.orientation = quat.mult(
-        quat.fromAxisAngle(axis, angle),
-        this.orientation
-      );
-    }
-
-    this.zeroVectors();
-  }
-
-  private updatePocket(dt: number) {
-    const gravity = properties.gravity * 5;
-    // move the ball in the pocket
-    this.velocity[2] -= gravity;
-    vec.madd(this.position, vec.mult(this.velocity, dt));
-
-    this.isStationary = vec.len(this.velocity) - gravity <= properties.epsilon;
-  }
-
-  public getSlidingTime(): number {
-    return 0;
-  }
-
-  public getRollingTime(): number {
-    return 0;
-  }
-
-  public getSpinningTime(): number {
-    return 0;
-  }
-
-  public getTimeToBallCollision(other: PhysicsBall): number {
-    if (this.isStationary) return Infinity;
-
-    return solveRelativeMotion(
-      this.position,
-      this.velocity,
-      this.radius,
-      other.position,
-      other.velocity,
-      other.radius
-    );
+    evolveBallMotion(this, dt);
+    evolveBallOrientation(this, dt);
+    this.minimize();
   }
 
   public collideBall(other: PhysicsBall): BallBallCollision | undefined {
-    if (this === other) {
-      return undefined;
-    }
-
-    const dist = vec.dist(this.position, other.position);
-
-    if (dist > 0 && dist < this.radius + other.radius) {
-      const initial = vec.clone(this.position);
-      const otherInitial = vec.clone(other.position);
-
-      const normal = vec.norm(vec.sub(this.position, other.position));
-      const rv = vec.dot(vec.sub(this.velocity, other.velocity), normal);
-
-      const overlap = this.radius + other.radius - dist;
-      if (overlap > 0) {
-        const correction = vec.mult(normal, overlap / 2);
-        vec.madd(this.position, correction);
-        vec.msub(other.position, correction);
-      }
-
-      if (rv > 0) {
-        // balls are already moving away from each other
-        return undefined;
-      }
-
-      const j = ((1 + properties.restitutionBallBall) * rv) / 2;
-      const impulse = vec.mult(normal, j);
-
-      vec.msub(this.velocity, impulse);
-      vec.madd(other.velocity, impulse);
-
-      this.setAngularVelocityXY(vec.mult(this.angularVelocity, 0.5));
-      other.setAngularVelocityXY(vec.mult(other.angularVelocity, 0.5));
-
-      // todo: spin transfer
-      return {
-        type: 'ball-ball',
-        initiator: this,
-        other,
-        position: vec.add(this.position, vec.mult(normal, this.radius)),
-        impulse,
-        snapshots: {
-          initiator: this.getSnapshot({ position: initial }),
-          other: other.getSnapshot({ position: otherInitial }),
-        },
-      };
-    }
-
-    return undefined;
+    return collideBallBall(this, other);
   }
 
   public collideCushion(
-    cushion: PhysicsCushion,
-    profiler: IProfiler = Profiler.none
+    cushion: PhysicsCushion
   ): BallCushionCollision | undefined {
-    if (!cushion.inBounds(this.position)) {
-      return undefined;
-    }
-
-    const endClosestPoint = profiler.start('closestPoint');
-    const closestPoint = cushion.findClosestPoint(this.position);
-    endClosestPoint();
-
-    const diff = vec.sub(this.position, closestPoint);
-    const dist = vec.len(diff);
-
-    if (dist < this.radius) {
-      const normal = vec.norm(diff);
-
-      const overlap = this.radius - dist;
-      vec.madd(this.position, vec.mult(normal, overlap));
-
-      const rv = vec.dot(this.velocity, normal);
-      if (rv > 0) {
-        return undefined;
-      }
-
-      const j = -(1 + properties.restitutionBallCushion) * rv;
-      const impulse = vec.mult(normal, j);
-      vec.madd(this.velocity, impulse);
-
-      const spinAlongNormal = vec.dot(this.angularVelocity, normal);
-      const correction = vec.mult(normal, spinAlongNormal * 0.9);
-      this.setAngularVelocityXY(vec.sub(this.angularVelocity, correction));
-
-      // todo: spin transfer
-      return {
-        type: 'ball-cushion',
-        initiator: this,
-        other: cushion,
-        position: closestPoint,
-        impulse,
-        snapshots: {
-          initiator: this.getSnapshot(),
-        },
-      };
-    }
-
-    return undefined;
+    return collideBallCushion(this, cushion);
   }
 
   public collidePocket(
     pocket: PhysicsPocket,
     simulated = false
   ): BallPocketCollision | undefined {
-    const dist = vec.dist(
-      vec.setZ(this.position, 0),
-      vec.setZ(vec.from(pocket.position), 0)
-    );
+    return collideBallPocket(this, pocket, simulated);
+  }
 
-    if (!simulated && this.isPocketed && this.pocket === pocket) {
-      // testing collision within the pocket
-      if (dist > pocket.radius - this.radius) {
-        // edge of pocket
-        const normal = vec.norm(
-          vec.sub(this.position, vec.setZ(vec.from(pocket.position), 0))
-        );
-
-        // todo: skipping overlap fix for now since it applies
-        // as soon as the ball touches the pocket
-        // const overlap = dist - (pocket.radius - this.radius);
-        // vec.msub(this.position, vec.mult(normal, overlap));
-
-        const vn = vec.dot(this.velocity, normal);
-        if (vn > 0) {
-          const vz = this.velocity[2];
-          vec.msub(this.velocity, vec.mult(normal, 2 * vn));
-          vec.mmult(this.velocity, 0.5);
-          if (vec.lenSq(this.velocity) < properties.epsilon) {
-            vec.mmult(this.velocity, 0);
-          }
-          this.velocity[2] = vz;
-        }
-      }
-
-      const bottomZ = pocket.position.z - pocket.depth / 2;
-      if (this.position[2] - this.radius < bottomZ) {
-        const overlap = bottomZ - this.position[2] + this.radius;
-        this.position[2] += overlap;
-
-        if (this.velocity[2] < 0) {
-          this.velocity[2] =
-            -this.velocity[2] * properties.restitutionBallPocket;
-        }
-
-        vec.mmult(this.velocity, 0.5);
-      }
-      return undefined;
+  public addToPocket(pocket: PhysicsPocket, simulated?: boolean) {
+    this.pocket = pocket;
+    if (!simulated) {
+      pocket.addBall(this);
     }
-
-    if (!this.pocket && dist < pocket.radius) {
-      this.pocket = pocket;
-      if (!simulated) {
-        pocket.addBall(this);
-      }
-      return {
-        type: 'ball-pocket',
-        initiator: this,
-        other: pocket,
-        position: this.position,
-        snapshots: {
-          initiator: this.getSnapshot(),
-        },
-      };
-    }
-
-    return undefined;
   }
 
   public removeFromPocket() {

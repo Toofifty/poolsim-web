@@ -1,0 +1,54 @@
+$size: 150px;
+$point-size: $size * 0.2;
+
+.spin-control {
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  padding: 12px;
+
+  display: flex;
+  gap: 12px;
+}
+
+.spin-control__ball-area {
+  width: $size;
+  height: $size;
+  position: relative;
+}
+
+.spin-control__ball {
+  background: radial-gradient(white 20%, transparent);
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+}
+
+.spin-control__point {
+  border: 2px solid rgba(255, 0, 0, 0.4);
+  background: rgba(255, 0, 0, 0.2);
+  box-sizing: border-box;
+  width: $point-size;
+  height: $point-size;
+  border-radius: 100%;
+  left: calc(50% - $point-size * 0.5);
+  top: calc(50% - $point-size * 0.5);
+  position: absolute;
+  pointer-events: none;
+}
+
+.spin-control__buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.spin-control__button {
+  padding: 4px;
+  border-radius: 100% !important;
+  height: $size * 0.25;
+  width: $size * 0.25;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

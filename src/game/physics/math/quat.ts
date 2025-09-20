@@ -31,6 +31,11 @@ export const quat = {
     q1[w] * q2[y] - q1[x] * q2[z] + q1[y] * q2[w] + q1[z] * q2[x],
     q1[w] * q2[z] + q1[x] * q2[y] - q1[y] * q2[x] + q1[z] * q2[w],
   ],
+  norm: (q: Quat): Quat => {
+    const len = Math.hypot(q[0], q[1], q[2], q[3]);
+    if (len === 0) return q;
+    return [q[0] / len, q[1] / len, q[2] / len, q[3] / len];
+  },
 
   mcopy: (q1: Quat, q2: Quat) => {
     q1[0] = q2[0];

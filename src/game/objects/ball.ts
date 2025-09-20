@@ -1,9 +1,6 @@
 import {
-  BufferAttribute,
   BufferGeometry,
   Color,
-  Line,
-  LineBasicMaterial,
   Material,
   Mesh,
   MeshBasicMaterial,
@@ -12,15 +9,19 @@ import {
   TorusGeometry,
   Vector3,
 } from 'three';
-import { PhysicsBall } from '../physics/ball';
+import { BallState, PhysicsBall } from '../physics/ball';
 import type { Shot } from '../physics/shot';
 import { properties } from '../physics/properties';
 import { Game } from '../game';
-import { vec, type Vec } from '../physics/vec';
 import { settings } from '../store/settings';
 import { createBallMesh } from '../models/ball/create-ball-mesh';
-import { quat, type Quat } from '../physics/quat';
 import { Arrow } from './arrow';
+import {
+  createPathMesh,
+  type TrackingPoint,
+} from '../models/ball/create-path-mesh';
+import type { Line2 } from 'three/examples/jsm/Addons.js';
+import { quat, vec, type Quat, type Vec } from '../physics/math';
 
 export class Ball {
   public physics: PhysicsBall;
@@ -31,17 +32,16 @@ export class Ball {
   // simulation
   private collisionPoints: Vector3[] = [];
   private collisionOrientations: Quaternion[] = [];
-  private trackingPoints: Vector3[] = [];
+  private trackingPoints: TrackingPoint[] = [];
   private impactVelocity?: Vector3;
 
   public parent!: Object3D;
   private mesh!: Mesh;
 
   private projectionMeshes: Mesh[] = [];
-  private trackingLine?: Line;
+  private trackingLine?: Line2;
   private geometry!: BufferGeometry;
   private projectionMaterial!: Material;
-  private trackingLineMaterial!: LineBasicMaterial;
   private impactArrow!: Arrow;
 
   private debugStateRing!: Mesh;
@@ -74,11 +74,6 @@ export class Ball {
     this.projectionMaterial = projectionMaterial;
 
     this.parent.add(this.mesh);
-    this.trackingLineMaterial = new LineBasicMaterial({
-      color: this.color,
-      transparent: true,
-      opacity: properties.projectionOpacity * 2,
-    });
     this.impactArrow = new Arrow({
       color: this.color,
       factor: 0.5,
@@ -95,6 +90,7 @@ export class Ball {
     this.parent.add(this.debugStateRing);
 
     this.debugArrowCV = new Arrow({ color: new Color(0xffff00), factor: 0.2 });
+    this.debugArrowCV.position.z = -properties.ballRadius;
     this.debugArrowCV.visible = false;
     this.parent.add(this.debugArrowCV);
 
@@ -133,7 +129,6 @@ export class Ball {
     vec.mset(this.physics.position, x, y, 0);
     vec.mmult(this.physics.velocity, 0);
     vec.mmult(this.physics.angularVelocity, 0);
-    this.physics.isStationary = true;
 
     this.updateMesh();
     this.updateDebug();
@@ -150,13 +145,12 @@ export class Ball {
     const o = quat.toQuaternion(orientation);
     this.collisionPoints.push(p);
     this.collisionOrientations.push(o);
-    this.addTrackingPoint(p);
+    // this.addTrackingPoint(p);
   }
 
-  public addTrackingPoint(position?: Vector3) {
-    if (!this.isPocketed) {
-      position = (position ?? this.position).clone();
-      this.trackingPoints.push(position ?? this.position);
+  public addTrackingPoint(position: Vec, state: BallState) {
+    if (state !== BallState.Pocketed) {
+      this.trackingPoints.push({ position: vec.toVector3(position), state });
     }
   }
 
@@ -206,24 +200,14 @@ export class Ball {
     // ball tracking line
     if (this.trackingLine) {
       Game.remove(this.trackingLine);
-      Game.dispose(this.trackingLine);
+      this.trackingLine.geometry.dispose();
       this.trackingLine = undefined;
     }
 
-    const positions = new Float32Array(3 + this.trackingPoints.length * 3);
-    positions[0] = thisPosition.x;
-    positions[1] = thisPosition.y;
-    positions[2] = thisPosition.z;
-    for (let i = 0; i < this.trackingPoints.length; i++) {
-      positions[(i + 1) * 3] = this.trackingPoints[i].x;
-      positions[(i + 1) * 3 + 1] = this.trackingPoints[i].y;
-      positions[(i + 1) * 3 + 2] = this.trackingPoints[i].z;
+    if (this.trackingPoints.length > 0) {
+      this.trackingLine = createPathMesh(this.trackingPoints);
+      Game.add(this.trackingLine);
     }
-
-    const geometry = new BufferGeometry();
-    geometry.setAttribute('position', new BufferAttribute(positions, 3));
-    this.trackingLine = new Line(geometry, this.trackingLineMaterial);
-    Game.add(this.trackingLine);
 
     // impact arrow
     if (this.impactVelocity) {
@@ -242,17 +226,20 @@ export class Ball {
 
     if (!debugBalls) return;
 
+    const state = this.physics.state;
     let color = 0x888888;
-    if (this.physics.isStationary) color = 0xffffff;
-    else if (this.physics.isSliding) color = 0xff0000;
-    else if (this.physics.isRolling) color = 0x00ffff;
-    else if (this.physics.isSpinning) color = 0xff00ff;
+    if (state === BallState.Stationary) color = 0xffffff;
+    else if (state === BallState.Sliding) color = 0xff0000;
+    else if (state === BallState.Rolling) color = 0x00ffff;
+    else if (state === BallState.Spinning) color = 0xff00ff;
     (this.debugStateRing.material as MeshBasicMaterial).color = new Color(
       color
     );
     this.debugStateRing.lookAt(Game.instance.camera.position);
 
-    this.debugArrowCV.setVector(vec.toVector3(this.physics.contactVelocity));
+    this.debugArrowCV.setVector(
+      vec.toVector3(this.physics.getContactVelocity())
+    );
     this.debugArrowV.setVector(vec.toVector3(this.physics.velocity));
     this.debugArrowW.setVector(vec.toVector3(this.physics.angularVelocity));
   }

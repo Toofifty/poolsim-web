@@ -1,7 +1,7 @@
 import type { PhysicsBall, PhysicsBallSnapshot } from './ball';
 import type { PhysicsCushion } from './cushion';
+import type { Vec } from './math';
 import type { PhysicsPocket } from './pocket';
-import type { Vec } from './vec';
 
 export type Collision =
   | BallBallCollision

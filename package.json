@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@tabler/icons-react": "^3.35.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/stats.js": "^0.17.4",

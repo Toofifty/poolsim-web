@@ -5,12 +5,13 @@ export const properties = {
   useWorkerForAI: true,
 
   // physics - cm/s
-  frictionSlide: 0.1,
-  frictionSpin: 0.0001,
-  frictionRoll: 0.1,
-  restitutionBallBall: 0.95,
-  restitutionBallCushion: 0.8,
+  frictionSlide: 0.1, // u_s
+  frictionSpin: 0.0001, // u_sp
+  frictionRoll: 0.1, // u_r
+  restitutionBallBall: 0.95, // u_b
+  restitutionBallCushion: 0.8, //
   restitutionBallPocket: 0.5,
+  restitution: 0.1, // e_b ??
   gravity: 0.01,
   epsilon: 1e-6,
   cueDefaultForce: 0.75,
@@ -18,7 +19,7 @@ export const properties = {
 
   // objects (m)
   ballRadius: 0.028575,
-  cueLength: 1.2,
+  cueLength: 1.4732,
   cueTipRadius: 0.006,
   cueHandleRadius: 0.01,
   cuePullBackTime: 500,
@@ -27,21 +28,21 @@ export const properties = {
   // table (m)
   tableWidth: 1.12,
   tableLength: 2.24,
-  pocketCornerRadius: 0.0775,
-  pocketEdgeRadius: 0.0675,
+  pocketCornerRadius: 0.07,
+  pocketEdgeRadius: 0.06,
   pocketDepth: 0.24,
   pocketOverlap: 0.02,
   pocketCornerOverlap: 0.02,
   pocketCornerGirth: 0.02,
-  pocketEdgeOverlap: 0.02,
+  pocketEdgeOverlap: 0.025,
   pocketBevel: 0.005,
   bumperWidth: 0.04,
   railPadding: 0.02,
   diamondWidth: 0.015,
 
   // simulation
-  maxIterations: 10_000,
-  trackingPointDist: 10,
+  maxIterations: 1_000,
+  trackingPointDist: 2,
   updatesPerSecond: 100,
 
   // visuals

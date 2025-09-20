@@ -6,6 +6,7 @@ import { Game } from '../game';
 import { gameStore } from '../store/game';
 import { dlerp } from '../dlerp';
 import { createCueMeshes } from '../models/cue/create-cue-meshes';
+import { params } from '../physics/params';
 
 export class Cue {
   private targetBall?: Ball;
@@ -17,6 +18,20 @@ export class Cue {
   }
   set force(force: number) {
     gameStore.cueForce = force;
+  }
+
+  get topSpin() {
+    return -gameStore.cueSpinY;
+  }
+  set topSpin(value: number) {
+    gameStore.cueSpinY = -value;
+  }
+
+  get sideSpin() {
+    return -gameStore.cueSpinX;
+  }
+  set sideSpin(value: number) {
+    gameStore.cueSpinX = -value;
   }
 
   public static MAX_FORCE = properties.cueMaxForce;
@@ -98,7 +113,7 @@ export class Cue {
   }
 
   public getShot() {
-    return new Shot(this.angle, this.force);
+    return new Shot(this.angle, this.force, this.sideSpin, this.topSpin);
   }
 
   public setShot(shot: Shot) {
@@ -112,6 +127,10 @@ export class Cue {
   }
 
   public update(dt: number = 1 / 60, settled?: boolean) {
+    // update positon for spin from UI
+    this.object.position.x = -this.sideSpin * params.ball.radius;
+    this.object.position.z = this.topSpin * params.ball.radius;
+
     if (!this.isShooting && this.targetBall && settled) {
       this.anchor.position.copy(this.targetBall.position);
     }

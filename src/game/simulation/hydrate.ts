@@ -1,9 +1,10 @@
 import { PhysicsBall } from '../physics/ball';
 import { PhysicsCushion } from '../physics/cushion';
 import { PhysicsPocket } from '../physics/pocket';
+import { Result } from '../physics/result';
 import { Shot } from '../physics/shot';
 import { Profiler } from '../profiler';
-import { Result, type RunSimulationOptions } from './simulation';
+import { type RunSimulationOptions } from './simulation';
 import { TableState } from './table-state';
 
 const hydrateTableState = (state: TableState) => {

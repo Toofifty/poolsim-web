@@ -1,4 +1,5 @@
-import type { Result, RunSimulationOptions } from './simulation';
+import type { Result } from '../physics/result';
+import type { RunSimulationOptions } from './simulation';
 
 export type RunSimulationFn = {
   fn: 'run';

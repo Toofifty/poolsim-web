@@ -1,10 +1,7 @@
 import { properties } from './physics/properties';
+import type { Result } from './physics/result';
 import { Shot } from './physics/shot';
-import {
-  Simulation,
-  type ISimulation,
-  type Result,
-} from './simulation/simulation';
+import { Simulation, type ISimulation } from './simulation/simulation';
 import type { TableState } from './simulation/table-state';
 import { ThreadedSimulation } from './simulation/threaded-simulation';
 import { gameStore } from './store/game';
@@ -82,10 +79,15 @@ export class AI {
       return -Infinity;
     }
 
-    if (result.state?.isGameOver) {
-      return 1000 - result.collisions.length;
+    if (result.collisions.length > 200) {
+      // found a physics bug :)
+      return -Infinity;
     }
 
-    return result.ballsPotted * 100 - result.collisions.length;
+    if (result.state?.isGameOver) {
+      return 1000 + result.collisions.length;
+    }
+
+    return result.ballsPotted * 100 + result.collisions.length;
   }
 }

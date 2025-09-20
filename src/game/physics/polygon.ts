@@ -1,6 +1,6 @@
 import { constrain } from '../math';
+import { vec, type Vec } from './math';
 import { properties } from './properties';
-import { vec, type Vec } from './vec';
 
 export class Polygon {
   public vertices: Vec[];

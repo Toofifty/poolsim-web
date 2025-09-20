@@ -12,7 +12,7 @@ export class AimAssist {
     ? new ThreadedSimulation()
     : new Simulation();
   private profiler = Game.profiler;
-  private lastShotKey: number = 0;
+  private lastShotKey: bigint = 0n;
   private balls: Ball[] = [];
   private ballMap: Map<number, Ball> = new Map();
 
@@ -25,8 +25,8 @@ export class AimAssist {
   }
 
   public clear() {
-    if (this.lastShotKey === 0) return;
-    this.lastShotKey = 0;
+    if (this.lastShotKey === 0n) return;
+    this.lastShotKey = 0n;
     this.balls.forEach((ball) => {
       ball.clearCollisionPoints();
       ball.clearImpactArrow();
@@ -34,7 +34,7 @@ export class AimAssist {
   }
 
   public async update(shot: Shot, state: TableState) {
-    if (Math.abs(this.lastShotKey - shot.key) < properties.epsilon) {
+    if (this.lastShotKey === shot.key) {
       return;
     }
 
@@ -42,14 +42,18 @@ export class AimAssist {
 
     await this.profiler.profile('aim-update', async () => {
       this.clear();
+      this.lastShotKey = shot.key;
+
+      console.time('aim-assist');
 
       const result = await this.simulation.run({
         shot,
         state,
         profiler: this.profiler,
         stopAtFirstContact: firstContact,
-        enableEvolutionPhysics: settings.enableEvolutionPhysics,
       });
+
+      console.log(result);
 
       const hasFoul = result.hasFoul();
 
@@ -85,13 +89,21 @@ export class AimAssist {
         }
       });
 
-      // add final resting positions
-      result.state?.balls.forEach((ball) => {
-        const { position, orientation } = ball.getSnapshot();
-        this.ballMap.get(ball.id)!.addCollisionPoint(position, orientation);
+      // add tracking points
+      result.trackingPoints.forEach(({ id, snapshot }) => {
+        this.ballMap
+          .get(id)!
+          .addTrackingPoint(snapshot.position, snapshot.state);
       });
 
-      this.lastShotKey = shot.key;
+      // add final resting positions
+      result.state?.balls.forEach((ball) => {
+        const { position, orientation, state } = ball.snapshot();
+        this.ballMap.get(ball.id)!.addCollisionPoint(position, orientation);
+        this.ballMap.get(ball.id)!.addTrackingPoint(position, state);
+      });
+
+      console.timeEnd('aim-assist');
     });
     this.profiler.dump();
   }

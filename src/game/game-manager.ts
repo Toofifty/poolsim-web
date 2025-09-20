@@ -1,9 +1,8 @@
 import { Table } from './objects/table';
 import { Ball } from './objects/ball';
 import { Rack } from './rack';
-import { Result, Simulation } from './simulation/simulation';
+import { Simulation } from './simulation/simulation';
 import { Game } from './game';
-import { vec } from './physics/vec';
 import { AimAssistMode, Players, settings } from './store/settings';
 import { properties } from './physics/properties';
 import { gameStore } from './store/game';
@@ -12,6 +11,8 @@ import { delay } from './util/delay';
 import { RuleSet } from './simulation/table-state';
 import { AimAssist } from './simulation/aim-assist';
 import { subscribe } from 'valtio';
+import { Result } from './physics/result';
+import { vec } from './physics/math';
 
 export enum GameState {
   PlayerShoot,
@@ -85,7 +86,7 @@ export class GameManager {
   public setupDebugGame() {
     this.table.clearBalls();
     this.placeCueBall();
-    this.table.add(...Rack.generateDebugGame(properties.tableLength / 6, 0));
+    this.table.add(...Rack.generateDebugGame(properties.tableLength / 4, 0));
     this.ruleSet = RuleSet.Debug;
     this.table.state.ruleSet = RuleSet.Debug;
     this.aimAssist.setBalls([...this.table.balls]);

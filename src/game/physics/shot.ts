@@ -25,12 +25,17 @@ export class Shot {
     );
   }
 
-  /**
-   * Get (probably) unique key for this shot
-   */
   get key() {
+    const angleQ = BigInt(Math.round(this.angle * 1000));
+    const forceQ = BigInt(Math.round(this.force * 100));
+    const sideQ = BigInt(Math.round((this.sideSpin + 1) * 500));
+    const topQ = BigInt(Math.round((this.topSpin + 1) * 500));
+
     return (
-      this.angle + this.force * 10 + this.sideSpin * 100 + this.topSpin * 1000
+      ((angleQ & 0xfffffn) << 44n) |
+      ((forceQ & 0xfffffn) << 24n) |
+      ((sideQ & 0xfffn) << 12n) |
+      (topQ & 0xfffn)
     );
   }
 }

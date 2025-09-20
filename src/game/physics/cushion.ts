@@ -1,5 +1,5 @@
+import { vec, type Vec } from './math';
 import { Polygon } from './polygon';
-import { vec, type Vec } from './vec';
 
 export class PhysicsCushion extends Polygon {
   static fromRelativeVertices(...verticesXY: number[]) {

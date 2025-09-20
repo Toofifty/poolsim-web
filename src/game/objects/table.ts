@@ -151,7 +151,7 @@ export class Table {
     this.pockets.forEach((pocket) => {
       pocket.physics.balls.forEach((ball, i) => {
         if (updatePocketedBalls) {
-          ball.update(dt);
+          ball.evolve(dt);
         }
         this.cushions.map((cushion) => ball.collideCushion(cushion.physics)),
           ball.collidePocket(pocket.physics);

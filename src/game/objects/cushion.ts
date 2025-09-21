@@ -1,4 +1,4 @@
-import { Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
+import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from 'three';
 import { PhysicsCushion } from '../physics/cushion';
 import { properties } from '../physics/properties';
 import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
@@ -7,14 +7,17 @@ import { settings } from '../store/settings';
 import { createMaterial } from '../rendering/create-material';
 import { createTableClothNormalTexture } from '../models/table/create-table-cloth-texture';
 import { vec } from '../physics/math';
+import { themed } from '../store/theme';
+import { Game } from '../game';
 
-export class Cushion {
+export class Cushion extends Object3D {
   public physics: PhysicsCushion;
-  public mesh!: Mesh;
+  private mesh!: Mesh;
 
   private height = properties.ballRadius;
 
   constructor(physics: PhysicsCushion) {
+    super();
     this.physics = physics;
     this.createMesh();
   }
@@ -41,21 +44,32 @@ export class Cushion {
     );
     geometry.computeBoundingBox();
     const bbox = geometry.boundingBox!;
-    this.mesh = new Mesh(
-      geometry,
-      createMaterial({
-        normalMap: settings.highDetail
-          ? createTableClothNormalTexture(
-              Math.abs(bbox.max.x - bbox.min.x),
-              Math.abs(bbox.max.y - bbox.min.y)
-            )
-          : null,
-        color: properties.colorTableCloth,
-        flatShading: true,
-        roughness: 1,
-        metalness: 0,
-      })
-    );
+    themed((theme) => {
+      if (this.mesh) {
+        Game.dispose(this.mesh);
+        this.remove(this.mesh);
+      }
+
+      this.mesh = new Mesh(
+        geometry,
+        createMaterial({
+          normalMap: settings.highDetail
+            ? createTableClothNormalTexture(
+                Math.abs(bbox.max.x - bbox.min.x),
+                Math.abs(bbox.max.y - bbox.min.y)
+              )
+            : null,
+          color: theme.table.colorCloth,
+          flatShading: true,
+          roughness: 1,
+          metalness: 0,
+        })
+      );
+
+      this.mesh.castShadow = true;
+      this.mesh.receiveShadow = true;
+      this.add(this.mesh);
+    });
 
     const [position, size] = this.physics.collisionBox;
     const collisionBoxMesh = new Mesh(
@@ -66,14 +80,11 @@ export class Cushion {
     collisionBoxMesh.position.y = position[1] + size[1] / 2;
     subscribe(settings, () => {
       if (settings.debugCollisionBoxes) {
-        this.mesh.add(collisionBoxMesh);
+        this.add(collisionBoxMesh);
       } else {
-        this.mesh.remove(collisionBoxMesh);
+        this.remove(collisionBoxMesh);
       }
     });
-
-    this.mesh.castShadow = true;
-    this.mesh.receiveShadow = true;
   }
 }
 

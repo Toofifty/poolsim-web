@@ -44,16 +44,12 @@ export class AimAssist {
       this.clear();
       this.lastShotKey = shot.key;
 
-      console.time('aim-assist');
-
       const result = await this.simulation.run({
         shot,
         state,
         profiler: this.profiler,
         stopAtFirstContact: firstContact,
       });
-
-      console.log(result);
 
       const hasFoul = result.hasFoul();
 
@@ -102,8 +98,6 @@ export class AimAssist {
         this.ballMap.get(ball.id)!.addCollisionPoint(position, orientation);
         this.ballMap.get(ball.id)!.addTrackingPoint(position, state);
       });
-
-      console.timeEnd('aim-assist');
     });
     this.profiler.dump();
   }

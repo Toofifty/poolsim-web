@@ -8,8 +8,9 @@ import {
   createTableClothTexture,
 } from './create-table-cloth-texture';
 import { settings } from '../../store/settings';
+import type { ThemeObject } from '../../store/theme';
 
-export const createTableClothMesh = (pockets: Pocket[]) => {
+export const createTableClothMesh = (pockets: Pocket[], theme: ThemeObject) => {
   const height = properties.ballRadius;
   let geometry = createRoundedRect(
     properties.tableLength + properties.pocketCornerRadius * 2,
@@ -44,7 +45,7 @@ export const createTableClothMesh = (pockets: Pocket[]) => {
   const cloth = new Mesh(
     geometry,
     createMaterial({
-      map: createTableClothTexture(),
+      map: createTableClothTexture(theme),
       normalMap: settings.highDetail ? createTableClothNormalTexture() : null,
       roughness: 1,
       metalness: 0,

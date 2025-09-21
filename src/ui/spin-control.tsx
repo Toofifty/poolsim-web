@@ -8,10 +8,11 @@ import {
 } from '@tabler/icons-react';
 import { useSnapshot } from 'valtio';
 import { gameStore } from '../game/store/game';
-import { useMemo, useState, type MouseEvent } from 'react';
+import { useMemo, useState } from 'react';
+import { useMouseInputs } from './use-mouse-inputs';
 
 export const SpinControl = () => {
-  const { cueSpinX, cueSpinY } = useSnapshot(gameStore);
+  const { cueSpinX, cueSpinY, cueLift } = useSnapshot(gameStore);
 
   const [lockTopSpin, setLockTopSpin] = useState(false);
   const [lockSideSpin, setLockSideSpin] = useState(false);
@@ -26,13 +27,23 @@ export const SpinControl = () => {
     return [0, 0];
   }, [clickArea]);
 
-  const onClick = (event: MouseEvent) => {
-    const area = (event.target as HTMLElement).getBoundingClientRect();
-    const x = (event.clientX - area.left - area.width / 2) / area.width;
-    const y = (event.clientY - area.top - area.height / 2) / area.height;
-    if (!lockSideSpin) gameStore.cueSpinX = x * 1;
-    if (!lockTopSpin) gameStore.cueSpinY = y * 1;
-  };
+  const ballAreaProps = useMouseInputs(
+    ({ x, y }) => {
+      const rx = x - 0.5;
+      const ry = y - 0.5;
+
+      if (Math.sqrt(rx * rx + ry * ry) > 0.5) return;
+
+      gameStore.cueSpinX = lockSideSpin ? 0 : rx;
+      gameStore.cueSpinY = lockTopSpin ? 0 : ry;
+    },
+    [lockSideSpin, lockTopSpin]
+  );
+
+  const liftAreaProps = useMouseInputs(({ y }) => {
+    if (y <= 0.01) y = 0.01;
+    gameStore.cueLift = ((1 - y) * Math.PI) / 2;
+  }, []);
 
   return (
     <Surface className="spin-control">
@@ -56,13 +67,14 @@ export const SpinControl = () => {
           onClick={() => {
             gameStore.cueSpinX = 0;
             gameStore.cueSpinY = 0;
+            gameStore.cueLift = 0;
           }}
         >
           <IconRefresh size={16} />
         </Button>
       </div>
       <div ref={setClickArea} className="spin-control__ball-area">
-        <div className="spin-control__ball" onClick={onClick} />
+        <div className="spin-control__ball" {...ballAreaProps} />
         <div
           className="spin-control__point"
           style={{
@@ -71,6 +83,43 @@ export const SpinControl = () => {
             }px)`,
           }}
         />
+      </div>
+      <div className="spin-control__lift-area" {...liftAreaProps}>
+        <div className="spin-control__lift-container">
+          <div className="spin-control__lift-mark">
+            <span className="spin-control__lift-mark-line" />
+            <span className="spin-control__lift-mark-value">90°</span>
+          </div>
+          <div className="spin-control__lift-mark" style={{ top: '16.666%' }}>
+            <span className="spin-control__lift-mark-line subtle" />
+          </div>
+          <div className="spin-control__lift-mark" style={{ top: '33.333%' }}>
+            <span className="spin-control__lift-mark-line subtle" />
+          </div>
+          <div className="spin-control__lift-mark" style={{ top: '50%' }}>
+            <span className="spin-control__lift-mark-line" />
+            <span className="spin-control__lift-mark-value">45°</span>
+          </div>
+          <div className="spin-control__lift-mark" style={{ top: '66.666%' }}>
+            <span className="spin-control__lift-mark-line subtle" />
+          </div>
+          <div className="spin-control__lift-mark" style={{ top: '83.333%' }}>
+            <span className="spin-control__lift-mark-line subtle" />
+          </div>
+          <div className="spin-control__lift-mark" style={{ bottom: 0 }}>
+            <span className="spin-control__lift-mark-line" />
+            <span className="spin-control__lift-mark-value">0°</span>
+          </div>
+          <div
+            className="spin-control__lift-mark"
+            style={{ bottom: `${(200 * cueLift) / Math.PI}%` }}
+          >
+            <span className="spin-control__lift-mark-line is-indicator" />
+            <span className="spin-control__lift-mark-value is-indicator">
+              {((cueLift / Math.PI) * 180).toFixed(0)}°
+            </span>
+          </div>
+        </div>
       </div>
     </Surface>
   );

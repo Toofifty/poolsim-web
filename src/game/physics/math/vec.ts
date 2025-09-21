@@ -17,7 +17,7 @@ export const vec = {
 
   norm: (v: Vec): Vec => {
     const l = vec.len(v);
-    if (l === 0) return vec.zero;
+    if (l < 1e-8) return vec.zero;
     return [v[0] / l, v[1] / l, v[2] / l];
   },
 
@@ -44,6 +44,17 @@ export const vec = {
   perp: (v: Vec): Vec => [-v[1], v[0], 0],
   /** vec.mult(v, -1) */
   neg: (v: Vec): Vec => [-v[0], -v[1], -v[2]],
+  rotate: (v: Vec, axis: Vec, angle: number) => {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const dot = vec.dot(axis, v);
+    const cross = vec.cross(axis, v);
+
+    return vec.add(
+      vec.add(vec.mult(v, cos), vec.mult(cross, sin)),
+      vec.mult(axis, dot * (1 - cos))
+    );
+  },
 
   // mutative - only for class properties
   madd: (v1: Vec, v2: Vec) => {
@@ -105,6 +116,10 @@ export const vec = {
     if (Math.abs(v[1]) < epsilon) v[1] = 0;
     if (Math.abs(v[2]) < epsilon) v[2] = 0;
     return v;
+  },
+
+  toString: (v: Vec) => {
+    return v.map((c) => c.toExponential(2)).join(', ');
   },
 
   zero: [0, 0, 0] as Vec,

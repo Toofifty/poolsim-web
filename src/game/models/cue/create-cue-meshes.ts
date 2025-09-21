@@ -1,17 +1,10 @@
-import {
-  CylinderGeometry,
-  Mesh,
-  Object3D,
-  SphereGeometry,
-  Vector3,
-} from 'three';
+import { CylinderGeometry, Mesh, Object3D, SphereGeometry } from 'three';
 import { properties } from '../../physics/properties';
 import { createMaterial } from '../../rendering/create-material';
 
 export const createCueMeshes = () => {
   const anchor = new Object3D();
   const lift = new Object3D();
-  lift.rotateOnAxis(new Vector3(1, 0, 0), -Math.PI / 48);
   const cue = new Object3D();
 
   const tip = new Mesh(
@@ -55,5 +48,5 @@ export const createCueMeshes = () => {
   lift.add(cue);
   anchor.add(lift);
 
-  return { cue, anchor };
+  return { cue, lift, anchor };
 };

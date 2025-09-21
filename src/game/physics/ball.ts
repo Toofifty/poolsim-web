@@ -7,7 +7,6 @@ import type {
   BallPocketCollision,
 } from './collision';
 import type { PhysicsPocket } from './pocket';
-import { Profiler, type IProfiler } from '../profiler';
 import { params } from './params';
 import { assert } from '../assert';
 import { vec, quat, type Quat, type Vec } from './math';
@@ -88,23 +87,32 @@ export class PhysicsBall {
   }
 
   public hit(shot: Shot) {
-    vec.madd(this.velocity, vec.from(shot.velocity));
-
-    const direction = vec.norm(vec.from(shot.velocity));
+    let direction = vec.norm(vec.from(shot.velocity));
+    if (shot.lift > 0) {
+      // apply vertical angle
+      const right = vec.norm(vec.cross(vec.UP, direction));
+      direction = vec.norm(vec.rotate(direction, right, shot.lift));
+    }
     const I = 0.4 * this.radius * this.radius;
+
+    const right = vec.norm(vec.cross(vec.UP, direction));
+    const up = vec.norm(vec.cross(direction, right));
 
     // apply spins
     if (Math.abs(shot.topSpin) > 0) {
-      const r = vec.new(0, 0, shot.topSpin * this.radius);
+      const r = vec.mult(up, shot.topSpin * this.radius);
       const dw = vec.mult(vec.cross(r, direction), 1 / I);
       vec.madd(this.w, dw);
     }
 
     if (Math.abs(shot.sideSpin) > 0) {
-      const r = vec.new(0, shot.sideSpin * this.radius, 0);
+      const r = vec.mult(right, shot.sideSpin * this.radius);
       const dw = vec.mult(vec.cross(r, direction), 1 / I);
       vec.madd(this.w, dw);
     }
+
+    const dv = vec.mult(direction, shot.velocity.length());
+    vec.madd(this.v, dv);
   }
 
   get isPocketed() {
@@ -144,7 +152,7 @@ export class PhysicsBall {
     return this.state === BallState.Stationary;
   }
 
-  private minimize() {
+  public minimize() {
     const cv = this.getContactVelocity();
     if (vec.len(cv) < 1e-8 && vec.len(cv) > 0) {
       vec.mcopy(this.w, this.getIdealAngularVelocity());

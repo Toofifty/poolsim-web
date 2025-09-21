@@ -12,6 +12,7 @@ export class Cue {
   private targetBall?: Ball;
   public anchor!: Object3D;
   private object!: Object3D;
+  private liftAnchor!: Object3D;
 
   get force() {
     return gameStore.cueForce;
@@ -34,6 +35,13 @@ export class Cue {
     gameStore.cueSpinX = -value;
   }
 
+  get lift() {
+    return gameStore.cueLift;
+  }
+  set lift(value: number) {
+    gameStore.cueLift = value;
+  }
+
   public static MAX_FORCE = properties.cueMaxForce;
 
   public isShooting = false;
@@ -49,9 +57,10 @@ export class Cue {
   }
 
   private createMesh() {
-    const { cue, anchor } = createCueMeshes();
-    this.anchor = anchor;
+    const { cue, lift, anchor } = createCueMeshes();
     this.object = cue;
+    this.liftAnchor = lift;
+    this.anchor = anchor;
     this.object.position.y = this.restingPositionY;
     Game.reflectives.push(...(cue.children as Mesh[]));
   }
@@ -113,7 +122,13 @@ export class Cue {
   }
 
   public getShot() {
-    return new Shot(this.angle, this.force, this.sideSpin, this.topSpin);
+    return new Shot(
+      this.angle,
+      this.force,
+      this.sideSpin,
+      this.topSpin,
+      this.lift
+    );
   }
 
   public setShot(shot: Shot) {
@@ -130,6 +145,11 @@ export class Cue {
     // update positon for spin from UI
     this.object.position.x = -this.sideSpin * params.ball.radius;
     this.object.position.z = this.topSpin * params.ball.radius;
+
+    this.liftAnchor.setRotationFromAxisAngle(
+      new Vector3(1, 0, 0),
+      -Math.PI / 48 - this.lift
+    );
 
     if (!this.isShooting && this.targetBall && settled) {
       this.anchor.position.copy(this.targetBall.position);

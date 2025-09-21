@@ -60,7 +60,7 @@ export class GameManager {
 
   public placeCueBall() {
     if (!this.table.cueBall) {
-      this.table.add(new Ball(0, 0, properties.colorCueBall));
+      this.table.addBalls(new Ball(0, 0, properties.colorCueBall));
     }
     this.table.cueBall.place(-properties.tableLength / 4, 0);
   }
@@ -68,7 +68,7 @@ export class GameManager {
   public setup8Ball() {
     this.table.clearBalls();
     this.placeCueBall();
-    this.table.add(...Rack.generate8Ball(properties.tableLength / 4, 0));
+    this.table.addBalls(...Rack.generate8Ball(properties.tableLength / 4, 0));
     this.ruleSet = RuleSet._8Ball;
     this.table.state.ruleSet = RuleSet._8Ball;
     this.aimAssist.setBalls([...this.table.balls]);
@@ -77,7 +77,7 @@ export class GameManager {
   public setup9Ball() {
     this.table.clearBalls();
     this.placeCueBall();
-    this.table.add(...Rack.generate9Ball(properties.tableLength / 4, 0));
+    this.table.addBalls(...Rack.generate9Ball(properties.tableLength / 4, 0));
     this.ruleSet = RuleSet._9Ball;
     this.table.state.ruleSet = RuleSet._9Ball;
     this.aimAssist.setBalls([...this.table.balls]);
@@ -86,7 +86,9 @@ export class GameManager {
   public setupDebugGame() {
     this.table.clearBalls();
     this.placeCueBall();
-    this.table.add(...Rack.generateDebugGame(properties.tableLength / 4, 0));
+    this.table.addBalls(
+      ...Rack.generateDebugGame(properties.tableLength / 4, 0)
+    );
     this.ruleSet = RuleSet.Debug;
     this.table.state.ruleSet = RuleSet.Debug;
     this.aimAssist.setBalls([...this.table.balls]);
@@ -215,21 +217,24 @@ export class GameManager {
   }
 
   public update(dt: number) {
-    if (this.isInPlay) {
+    if (this.isInPlay && !settings.pauseSimulation) {
       const result = this.simulation.step({
         simulated: false,
         dt,
         state: this.table.state,
       });
-      result.collisions.forEach((collision) => {
-        if (collision.type === 'ball-ball') {
-          Game.playAudio(
-            'clack',
-            vec.toVector3(collision.position),
-            Math.min(vec.len(collision.impulse) / 10, 10)
-          );
-        }
-      });
+      if (result.collisions.length < 2) {
+        result.collisions.forEach((collision) => {
+          if (collision.type === 'ball-ball') {
+            console.log(vec.len(collision.impulse));
+            Game.playAudio(
+              'clack',
+              vec.toVector3(collision.position),
+              Math.min(vec.len(collision.impulse) / 10, 10)
+            );
+          }
+        });
+      }
     }
 
     if (

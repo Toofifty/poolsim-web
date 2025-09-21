@@ -8,6 +8,7 @@ import { Game } from '../game/game';
 import { gameStore } from '../game/store/game';
 import { GameState } from '../game/game-manager';
 import { useState } from 'react';
+import { theme } from '../game/store/theme';
 
 const getStateName = (state: GameState | undefined) => {
   switch (state) {
@@ -24,19 +25,6 @@ const getStateName = (state: GameState | undefined) => {
 };
 
 export const Controls = () => {
-  const {
-    aimAssistMode,
-    ortho,
-    highDetail,
-    players,
-    canvasEnabled,
-    lockCue,
-    debugLights,
-    debugBalls,
-    debugCollisionBoxes,
-    enableProfiler,
-  } = useSnapshot(settings);
-
   const { state, analysisProgress } = useSnapshot(gameStore);
 
   const [showUI, setShotUI] = useState(true);
@@ -66,82 +54,15 @@ export const Controls = () => {
         <>
           <div className="group ">
             <Surface>
-              <div className="group lower">
-                <span>Graphics</span>
-                <Button
-                  active={ortho}
-                  onClick={() => {
-                    settings.ortho = !ortho;
-                  }}
-                >
-                  Ortho
-                </Button>
-                <Button
-                  active={highDetail}
-                  onClick={() => {
-                    settings.highDetail = !highDetail;
-                  }}
-                >
-                  HD
-                </Button>
+              <div className="group">
+                <GraphicsControls />
+                <ThemeControls />
               </div>
             </Surface>
             <Surface>
               <div className="group">
-                <div className="group lower">
-                  <span>Aim assist</span>
-                  <Button
-                    active={aimAssistMode === AimAssistMode.Off}
-                    onClick={() => {
-                      settings.aimAssistMode = AimAssistMode.Off;
-                    }}
-                  >
-                    Off
-                  </Button>
-                  <Button
-                    active={aimAssistMode === AimAssistMode.FirstContact}
-                    onClick={() => {
-                      settings.aimAssistMode = AimAssistMode.FirstContact;
-                    }}
-                  >
-                    Simple
-                  </Button>
-                  <Button
-                    active={aimAssistMode === AimAssistMode.Full}
-                    onClick={() => {
-                      settings.aimAssistMode = AimAssistMode.Full;
-                    }}
-                  >
-                    Full
-                  </Button>
-                </div>
-                <div className="group lower">
-                  <span>Players</span>
-                  <Button
-                    active={players === Players.PlayerVsPlayer}
-                    onClick={() => {
-                      settings.players = Players.PlayerVsPlayer;
-                    }}
-                  >
-                    PvP
-                  </Button>
-                  <Button
-                    active={players === Players.PlayerVsAI}
-                    onClick={() => {
-                      settings.players = Players.PlayerVsAI;
-                    }}
-                  >
-                    PvAI
-                  </Button>
-                  <Button
-                    active={players === Players.AIVsAI}
-                    onClick={() => {
-                      settings.players = Players.AIVsAI;
-                    }}
-                  >
-                    AIvAI
-                  </Button>
-                </div>
+                <AimAssistControls />
+                <PlayerControls />
               </div>
             </Surface>
           </div>
@@ -164,63 +85,200 @@ export const Controls = () => {
               </div>
             </Surface>
             <Surface>
-              <div className="group">
-                <div className="group lower">
-                  <span>Debug</span>
-                  <Button
-                    active={!canvasEnabled}
-                    onClick={() => {
-                      settings.canvasEnabled = !canvasEnabled;
-                    }}
-                  >
-                    Disable canvas
-                  </Button>
-                  <Button
-                    active={lockCue}
-                    onClick={() => {
-                      settings.lockCue = !lockCue;
-                    }}
-                  >
-                    Lock cue <kbd>L</kbd>
-                  </Button>
-                  <Button
-                    active={debugLights}
-                    onClick={() => {
-                      settings.debugLights = !debugLights;
-                    }}
-                  >
-                    Debug lights
-                  </Button>
-                  <Button
-                    active={debugBalls}
-                    onClick={() => {
-                      settings.debugBalls = !debugBalls;
-                    }}
-                  >
-                    Debug balls
-                  </Button>
-                  <Button
-                    active={debugCollisionBoxes}
-                    onClick={() => {
-                      settings.debugCollisionBoxes = !debugCollisionBoxes;
-                    }}
-                  >
-                    Debug collision boxes
-                  </Button>
-                  <Button
-                    active={enableProfiler}
-                    onClick={() => {
-                      settings.enableProfiler = !enableProfiler;
-                    }}
-                  >
-                    {enableProfiler ? 'Disable' : 'Enable'} profiler
-                  </Button>
-                </div>
-              </div>
+              <DebugControls />
             </Surface>
           </div>
         </>
       )}
+    </div>
+  );
+};
+
+const GraphicsControls = () => {
+  const { ortho, highDetail } = useSnapshot(settings);
+
+  return (
+    <div className="group lower">
+      <span>Graphics</span>
+      <Button
+        active={ortho}
+        onClick={() => {
+          settings.ortho = !ortho;
+        }}
+      >
+        Ortho
+      </Button>
+      <Button
+        active={highDetail}
+        onClick={() => {
+          settings.highDetail = !highDetail;
+        }}
+      >
+        HD
+      </Button>
+    </div>
+  );
+};
+
+const AimAssistControls = () => {
+  const { aimAssistMode } = useSnapshot(settings);
+
+  return (
+    <div className="group lower">
+      <span>Aim assist</span>
+      <Button
+        active={aimAssistMode === AimAssistMode.Off}
+        onClick={() => {
+          settings.aimAssistMode = AimAssistMode.Off;
+        }}
+      >
+        Off
+      </Button>
+      <Button
+        active={aimAssistMode === AimAssistMode.FirstContact}
+        onClick={() => {
+          settings.aimAssistMode = AimAssistMode.FirstContact;
+        }}
+      >
+        Simple
+      </Button>
+      <Button
+        active={aimAssistMode === AimAssistMode.Full}
+        onClick={() => {
+          settings.aimAssistMode = AimAssistMode.Full;
+        }}
+      >
+        Full
+      </Button>
+    </div>
+  );
+};
+
+const PlayerControls = () => {
+  const { players } = useSnapshot(settings);
+
+  return (
+    <div className="group lower">
+      <span>Players</span>
+      <Button
+        active={players === Players.PlayerVsPlayer}
+        onClick={() => {
+          settings.players = Players.PlayerVsPlayer;
+        }}
+      >
+        PvP
+      </Button>
+      <Button
+        active={players === Players.PlayerVsAI}
+        onClick={() => {
+          settings.players = Players.PlayerVsAI;
+        }}
+      >
+        PvAI
+      </Button>
+      <Button
+        active={players === Players.AIVsAI}
+        onClick={() => {
+          settings.players = Players.AIVsAI;
+        }}
+      >
+        AIvAI
+      </Button>
+    </div>
+  );
+};
+
+const DebugControls = () => {
+  const {
+    canvasEnabled,
+    pauseSimulation,
+    lockCue,
+    debugLights,
+    debugBalls,
+    debugCollisionBoxes,
+    enableProfiler,
+  } = useSnapshot(settings);
+
+  return (
+    <div className="group lower">
+      <span>Debug</span>
+      <Button
+        active={!canvasEnabled}
+        onClick={() => {
+          settings.canvasEnabled = !canvasEnabled;
+        }}
+      >
+        Disable canvas
+      </Button>
+      <Button
+        active={pauseSimulation}
+        onClick={() => {
+          settings.pauseSimulation = !pauseSimulation;
+        }}
+      >
+        Pause simulation
+      </Button>
+      <Button
+        active={lockCue}
+        onClick={() => {
+          settings.lockCue = !lockCue;
+        }}
+      >
+        Lock cue <kbd>L</kbd>
+      </Button>
+      <Button
+        active={debugLights}
+        onClick={() => {
+          settings.debugLights = !debugLights;
+        }}
+      >
+        Debug lights
+      </Button>
+      <Button
+        active={debugBalls}
+        onClick={() => {
+          settings.debugBalls = !debugBalls;
+        }}
+      >
+        Debug balls
+      </Button>
+      <Button
+        active={debugCollisionBoxes}
+        onClick={() => {
+          settings.debugCollisionBoxes = !debugCollisionBoxes;
+        }}
+      >
+        Debug collision boxes
+      </Button>
+      <Button
+        active={enableProfiler}
+        onClick={() => {
+          settings.enableProfiler = !enableProfiler;
+        }}
+      >
+        {enableProfiler ? 'Disable' : 'Enable'} profiler
+      </Button>
+    </div>
+  );
+};
+
+const ThemeControls = () => {
+  const { table } = useSnapshot(theme);
+
+  return (
+    <div className="group lower">
+      <span>Theme</span>
+      <div className="group">
+        {(['green', 'blue', 'red', 'purple'] as const).map((v) => (
+          <Button
+            key={v}
+            active={table === v}
+            onClick={() => (theme.table = v)}
+          >
+            {v[0].toLocaleUpperCase() + v.slice(1).toLowerCase()}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 };

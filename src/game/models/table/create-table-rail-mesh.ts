@@ -3,8 +3,9 @@ import type { Pocket } from '../../objects/pocket';
 import { properties } from '../../physics/properties';
 import { createMaterial } from '../../rendering/create-material';
 import { createRoundedRect, subtract } from '../util';
+import type { ThemeObject } from '../../store/theme';
 
-export const createTableRailMesh = (pockets: Pocket[]) => {
+export const createTableRailMesh = (pockets: Pocket[], theme: ThemeObject) => {
   const height = properties.ballRadius * 2;
 
   const railBase = createRoundedRect(
@@ -43,7 +44,7 @@ export const createTableRailMesh = (pockets: Pocket[]) => {
   const mesh = new Mesh(
     rail,
     createMaterial({
-      color: properties.colorTableRail,
+      color: theme.table.colorRail,
       roughness: 0.2,
       metalness: 0.1,
     })

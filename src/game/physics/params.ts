@@ -7,7 +7,7 @@ export const params = {
     /** u_s */
     frictionSlide: 0.2,
     /** u_r */
-    frictionRoll: 0.1,
+    frictionRoll: 0.01,
     /** u_sp */
     frictionSpin: (0.028575 * 4) / 9,
     /** u_b */

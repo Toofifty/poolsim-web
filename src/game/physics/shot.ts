@@ -5,17 +5,21 @@ export class Shot {
   public force: number;
   public sideSpin: number;
   public topSpin: number;
+  /** 0 - pi/2 */
+  public lift: number;
 
   constructor(
     angle: number,
     force: number,
     sideSpin?: number,
-    topSpin?: number
+    topSpin?: number,
+    lift?: number
   ) {
     this.angle = angle;
     this.force = force;
     this.sideSpin = sideSpin ?? 0;
     this.topSpin = topSpin ?? 0;
+    this.lift = lift ?? 0;
   }
 
   get velocity() {
@@ -26,16 +30,15 @@ export class Shot {
   }
 
   get key() {
-    const angleQ = BigInt(Math.round(this.angle * 1000));
-    const forceQ = BigInt(Math.round(this.force * 100));
-    const sideQ = BigInt(Math.round((this.sideSpin + 1) * 500));
-    const topQ = BigInt(Math.round((this.topSpin + 1) * 500));
+    const angleQ = BigInt(Math.round(this.angle * 1000)) & 0xffffn;
+    const forceQ = BigInt(Math.round(this.force * 100)) & 0xffffn;
+    const liftQ =
+      BigInt(Math.round((this.lift / (Math.PI / 2)) * 4095)) & 0xfffn;
+    const sideQ = BigInt(Math.round((this.sideSpin + 1) * 500)) & 0xfffn;
+    const topQ = BigInt(Math.round((this.topSpin + 1) * 255)) & 0xffn;
 
     return (
-      ((angleQ & 0xfffffn) << 44n) |
-      ((forceQ & 0xfffffn) << 24n) |
-      ((sideQ & 0xfffn) << 12n) |
-      (topQ & 0xfffn)
+      (angleQ << 48n) | (forceQ << 32n) | (liftQ << 20n) | (sideQ << 8n) | topQ
     );
   }
 }

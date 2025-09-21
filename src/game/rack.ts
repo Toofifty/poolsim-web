@@ -71,6 +71,6 @@ export class Rack {
   }
 
   static generateDebugGame(tipX: number, tipY: number) {
-    return this.generateFromLayout(tipX, tipY, [[9]]);
+    return this.generateFromLayout(tipX, tipY, [[9], [8, 7]]);
   }
 }

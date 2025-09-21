@@ -5,6 +5,7 @@ import {
   Mesh,
   Object3D,
   Vector3,
+  type MeshPhysicalMaterialParameters,
 } from 'three';
 import { createMaterial } from '../rendering/create-material';
 
@@ -25,7 +26,7 @@ export class Arrow extends Object3D {
     factor = 1,
     opacity = 1,
   }: {
-    color: Color;
+    color: MeshPhysicalMaterialParameters['color'];
     factor?: number;
     opacity?: number;
   }) {

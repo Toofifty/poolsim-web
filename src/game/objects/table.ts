@@ -16,6 +16,7 @@ import { createTableClothMesh } from '../models/table/create-table-cloth-mesh';
 import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
 import { createTableRailDiamondsMesh } from '../models/table/create-table-rail-diamonds-mesh';
 import { settings } from '../store/settings';
+import { themed } from '../store/theme';
 
 export class Table {
   public cue: Cue;
@@ -26,6 +27,8 @@ export class Table {
 
   public object3D: Object3D;
   private cloth!: Mesh;
+  private rail!: Mesh;
+  private diamonds!: Mesh;
   private plane!: Mesh;
 
   private cursorPosition?: Vector3;
@@ -49,14 +52,31 @@ export class Table {
   }
 
   private createMeshes() {
-    this.cloth = createTableClothMesh(this.pockets);
-    this.object3D.add(this.cloth);
+    themed((theme) => {
+      if (this.cloth) {
+        Game.dispose(this.cloth);
+        this.object3D.remove(this.cloth);
+      }
 
-    const rail = createTableRailMesh(this.pockets);
-    this.object3D.add(rail);
+      this.cloth = createTableClothMesh(this.pockets, theme);
+      this.object3D.add(this.cloth);
 
-    const diamonds = createTableRailDiamondsMesh();
-    this.object3D.add(diamonds);
+      if (this.rail) {
+        Game.dispose(this.rail);
+        this.object3D.remove(this.rail);
+      }
+
+      this.rail = createTableRailMesh(this.pockets, theme);
+      this.object3D.add(this.rail);
+
+      if (this.diamonds) {
+        Game.dispose(this.diamonds);
+        this.object3D.remove(this.diamonds);
+      }
+
+      this.diamonds = createTableRailDiamondsMesh();
+      this.object3D.add(this.diamonds);
+    });
 
     this.plane = new Mesh(
       new PlaneGeometry(properties.tableLength * 3, properties.tableWidth * 3),
@@ -96,18 +116,18 @@ export class Table {
 
   private createCushions() {
     this.cushions = createCushions();
-    this.object3D.add(...this.cushions.map((cushion) => cushion.mesh));
+    this.object3D.add(...this.cushions);
   }
 
-  public add(...objects: Ball[]) {
-    objects.forEach((object) => {
-      this.object3D.add(object.parent);
-      if (object instanceof Ball) {
-        if (object.number === -1) {
+  public addBalls(...balls: Ball[]) {
+    balls.forEach((ball) => {
+      this.object3D.add(ball.parent);
+      if (ball instanceof Ball) {
+        if (ball.number === -1) {
           // cue ball
-          this.cue.attachTo(object);
+          this.cue.attachTo(ball);
         }
-        this.balls.push(object);
+        this.balls.push(ball);
       }
     });
     this.state.balls = this.balls.map((b) => b.physics);

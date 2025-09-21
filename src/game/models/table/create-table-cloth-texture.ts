@@ -1,13 +1,13 @@
 import { CanvasTexture, SRGBColorSpace, type Color } from 'three';
 import { properties } from '../../physics/properties';
 import { settings } from '../../store/settings';
+import type { ThemeObject } from '../../store/theme';
 
 const hex = (color: Color) => '#' + color.getHexString();
 
-export const createTableClothTexture = () => {
+export const createTableClothTexture = (theme: ThemeObject) => {
   const scale = settings.highDetail ? 2000 : 500;
 
-  const { colorTableCloth } = properties;
   const tableLength = properties.tableLength * scale;
   const tableWidth = properties.tableWidth * scale;
   const pocketCornerRadius = properties.pocketCornerRadius * scale;
@@ -17,7 +17,7 @@ export const createTableClothTexture = () => {
   canvas.height = tableWidth + pocketCornerRadius * 2;
   const ctx = canvas.getContext('2d')!;
 
-  ctx.fillStyle = hex(colorTableCloth);
+  ctx.fillStyle = hex(theme.table.colorCloth);
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = '#ffffff22';

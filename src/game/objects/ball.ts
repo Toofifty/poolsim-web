@@ -22,6 +22,7 @@ import {
 } from '../models/ball/create-path-mesh';
 import type { Line2 } from 'three/examples/jsm/Addons.js';
 import { quat, vec, type Quat, type Vec } from '../physics/math';
+import { BallDebug } from './ball-debug';
 
 export class Ball {
   public physics: PhysicsBall;
@@ -44,10 +45,7 @@ export class Ball {
   private projectionMaterial!: Material;
   private impactArrow!: Arrow;
 
-  private debugStateRing!: Mesh;
-  private debugArrowCV!: Arrow;
-  private debugArrowV!: Arrow;
-  private debugArrowW!: Arrow;
+  private debug: BallDebug;
 
   constructor(x: number, y: number, color: Color, number: number = -1) {
     this.physics = new PhysicsBall(number, x, y);
@@ -55,11 +53,12 @@ export class Ball {
     this.number = number;
     this.parent = new Object3D();
     this.parent.position.add(this.position);
-    this.createMesh();
-    this.createDebugMesh();
+    this.debug = new BallDebug(this);
+    this.debug.update();
+    this.parent.add(this.debug);
 
+    this.createMesh();
     this.updateMesh();
-    this.updateDebug();
   }
 
   private createMesh() {
@@ -81,34 +80,20 @@ export class Ball {
     this.parent.add(this.impactArrow);
   }
 
-  private createDebugMesh() {
-    this.debugStateRing = new Mesh(
-      new TorusGeometry(this.physics.radius * 1.05, this.physics.radius * 0.1),
-      new MeshBasicMaterial({ color: 0x00ff00 })
-    );
-    this.debugStateRing.visible = false;
-    this.parent.add(this.debugStateRing);
-
-    this.debugArrowCV = new Arrow({ color: new Color(0xffff00), factor: 0.2 });
-    this.debugArrowCV.position.z = -properties.ballRadius;
-    this.debugArrowCV.visible = false;
-    this.parent.add(this.debugArrowCV);
-
-    this.debugArrowV = new Arrow({ color: new Color(0x00ffff), factor: 0.2 });
-    this.debugArrowV.visible = false;
-    this.parent.add(this.debugArrowV);
-
-    this.debugArrowW = new Arrow({ color: new Color(0xff00ff), factor: 0.01 });
-    this.debugArrowW.visible = false;
-    this.parent.add(this.debugArrowW);
-  }
-
   get id() {
     return this.physics.id;
   }
 
   get position() {
     return vec.toVector3(this.physics.position);
+  }
+
+  get radius() {
+    return this.physics.radius;
+  }
+
+  get state() {
+    return this.physics.state;
   }
 
   get isStationary() {
@@ -131,7 +116,7 @@ export class Ball {
     vec.mmult(this.physics.angularVelocity, 0);
 
     this.updateMesh();
-    this.updateDebug();
+    this.debug.update();
   }
 
   public clearCollisionPoints() {
@@ -167,7 +152,7 @@ export class Ball {
 
   public sync() {
     this.updateMesh();
-    this.updateDebug();
+    this.debug.update();
   }
 
   private updateMesh() {
@@ -215,33 +200,6 @@ export class Ball {
     } else {
       this.impactArrow.visible = false;
     }
-  }
-
-  private updateDebug() {
-    const { debugBalls } = settings;
-    this.debugStateRing.visible = debugBalls;
-    this.debugArrowCV.visible = debugBalls;
-    this.debugArrowV.visible = debugBalls;
-    this.debugArrowW.visible = debugBalls;
-
-    if (!debugBalls) return;
-
-    const state = this.physics.state;
-    let color = 0x888888;
-    if (state === BallState.Stationary) color = 0xffffff;
-    else if (state === BallState.Sliding) color = 0xff0000;
-    else if (state === BallState.Rolling) color = 0x00ffff;
-    else if (state === BallState.Spinning) color = 0xff00ff;
-    (this.debugStateRing.material as MeshBasicMaterial).color = new Color(
-      color
-    );
-    this.debugStateRing.lookAt(Game.instance.camera.position);
-
-    this.debugArrowCV.setVector(
-      vec.toVector3(this.physics.getContactVelocity())
-    );
-    this.debugArrowV.setVector(vec.toVector3(this.physics.velocity));
-    this.debugArrowW.setVector(vec.toVector3(this.physics.angularVelocity));
   }
 
   public dispose() {

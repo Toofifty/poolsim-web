@@ -5,7 +5,7 @@ import type {
   BallPocketCollision,
 } from '../collision';
 import type { PhysicsCushion } from '../cushion';
-import { vec } from '../math';
+import { vec, type Vec } from '../math';
 import { params } from '../params';
 import type { PhysicsPocket } from '../pocket';
 
@@ -28,7 +28,7 @@ export const collideBallBall = (
 
     const overlap = b1.radius + b2.radius - dist;
     if (overlap > 0) {
-      const correction = vec.mult(normal, (overlap * 1.01) / 2);
+      const correction = vec.mult(normal, (overlap * 1.1) / 2);
       vec.madd(b1.r, correction);
       vec.msub(b2.r, correction);
     }
@@ -41,13 +41,12 @@ export const collideBallBall = (
     const j = ((1 + eb) * rv) / 2;
     const impulse = vec.mult(normal, j);
 
+    // impulse from collision
     vec.msub(b1.v, impulse);
     vec.madd(b2.v, impulse);
 
-    vec.msetXY(b1.w, vec.mult(b1.w, 0.5));
-    vec.msetXY(b2.w, vec.mult(b2.w, 0.5));
+    applyBallCollisionSpin(b1, b2, impulse, normal);
 
-    // todo: spin transfer
     return {
       type: 'ball-ball',
       initiator: b1,
@@ -62,6 +61,61 @@ export const collideBallBall = (
   }
 
   return undefined;
+};
+
+const applyBallCollisionSpin = (
+  b1: PhysicsBall,
+  b2: PhysicsBall,
+  impulse: Vec,
+  normal: Vec
+) => {
+  const R1 = b1.radius;
+  const R2 = b2.radius;
+  const m = params.ball.mass;
+  const I1 = (2 / 5) * m * R1 * R1;
+  const I2 = (2 / 5) * m * R2 * R2;
+
+  // relative vectors from center to contact
+  const r1 = vec.mult(normal, -R1);
+  const r2 = vec.mult(normal, R2);
+
+  // velocity at contact points
+  const vContact1 = vec.add(b1.v, vec.cross(b1.w, r1));
+  const vContact2 = vec.add(b2.v, vec.cross(b2.w, r2));
+  const vRel = vec.sub(vContact1, vContact2);
+
+  // tangential component only
+  const vRel_t = vec.sub(vRel, vec.mult(normal, vec.dot(vRel, normal)));
+
+  const vRel_t_len = vec.len(vRel_t);
+  if (vRel_t_len > 1e-12) {
+    // tangential effective mass
+    const Kt = 1 / m + 1 / m + (R1 * R1) / I1 + (R2 * R2) / I2;
+
+    // unconstrained tangential impulse
+    let Jt = vec.mult(vRel_t, -1 / Kt);
+
+    // Coulomb friction limit based on normal impulse
+    const mu = params.ball.frictionBall;
+    const JtMax = vec.len(impulse) * mu;
+
+    if (vec.len(Jt) > JtMax) {
+      Jt = vec.mult(vec.norm(Jt), JtMax);
+    }
+
+    if (vec.len(Jt) > 1e-2) {
+      // only apply spin transfer for substantial velocities
+      vec.msub(b1.v, vec.mult(Jt, 1 / m));
+      vec.madd(b2.v, vec.mult(Jt, 1 / m));
+
+      vec.msub(b1.w, vec.mult(vec.cross(normal, Jt), R1 / I1));
+      vec.madd(b2.w, vec.mult(vec.cross(normal, Jt), R2 / I2));
+    } else {
+      // otherwise, set to expected w
+      vec.mcopy(b1.w, b1.getIdealAngularVelocity());
+      vec.mcopy(b2.w, b2.getIdealAngularVelocity());
+    }
+  }
 };
 
 export const collideBallCushion = (

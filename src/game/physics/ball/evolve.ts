@@ -61,8 +61,9 @@ const evolveSlide = (ball: PhysicsBall, dt: number) => {
     vec.add(vec.mult(ball.v, dt), vec.mult(accel, 0.5 * dt * dt))
   );
 
-  // v += at;
-  vec.madd(ball.v, vec.mult(accel, dt));
+  const dv = vec.mult(accel, dt);
+  // v += at
+  vec.madd(ball.v, dv);
 
   // slate (table)
   if (ball.r[2] < 0) {
@@ -92,14 +93,20 @@ const evolveRoll = (ball: PhysicsBall, dt: number) => {
   const vh = vec.norm(ball.v);
 
   // r += vt - 0.5at²
-  const accel = vec.mult(vh, -ur);
+  const accel = vec.mult(vh, -ur * g);
   vec.madd(
     ball.r,
     vec.add(vec.mult(ball.v, dt), vec.mult(accel, 0.5 * dt * dt))
   );
 
-  // v += at
-  vec.madd(ball.v, vec.mult(accel, dt));
+  const dv = vec.mult(accel, dt);
+  if (vec.lenSq(dv) > vec.lenSq(ball.v)) {
+    // |a| > |v| -> set velocity to 0
+    vec.mcopy(ball.v, vec.zero);
+  } else {
+    // v += at
+    vec.madd(ball.v, dv);
+  }
 
   // align w with v
   const wXY = ball.getIdealAngularVelocity();

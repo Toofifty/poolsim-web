@@ -41,6 +41,8 @@ import { Profiler } from './profiler';
 import { settings } from './store/settings';
 import { subscribe } from 'valtio';
 import { properties } from './physics/properties';
+import { makeTheme } from './store/theme';
+import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 
 type AudioBuffers = Partial<Record<'clack' | 'break', AudioBuffer>>;
 
@@ -240,13 +242,8 @@ export class Game {
     lightParent.position.set(0, 0, 1);
     this.scene.add(lightParent);
 
-    const createRectAreaLight = (x: number, y: number) => {
-      const ral = new RectAreaLight(
-        0xffffff,
-        settings.highDetail ? 10 : 20,
-        0.8,
-        0.4
-      );
+    const createCeilingLight = (x: number, y: number, intensity: number) => {
+      const ral = new RectAreaLight(0xffffff, intensity, 0.8, 0.4);
       ral.position.set(x, y, 0);
       lightParent.add(ral);
       const ralh = new RectAreaLightHelper(ral);
@@ -274,18 +271,31 @@ export class Game {
 
       return ral;
     };
+
     const sp = 0.4;
     const spy = 0.4;
 
-    createRectAreaLight(0, -spy);
-    createRectAreaLight(0, spy);
+    const { lighting } = makeTheme();
+
+    if (lighting.theme === 'neon') {
+      createCeilingLight(0, -spy, settings.highDetail ? 2 : 4);
+      createCeilingLight(0, spy, settings.highDetail ? 2 : 4);
+
+      const lights = createNeonLightStrips();
+      this.scene.add(...lights);
+
+      return;
+    }
+
+    createCeilingLight(0, -spy, settings.highDetail ? 10 : 20);
+    createCeilingLight(0, spy, settings.highDetail ? 10 : 20);
 
     if (settings.highDetail) {
-      createRectAreaLight(-sp * 2, -spy);
-      createRectAreaLight(sp * 2, -spy);
+      createCeilingLight(-sp * 2, -spy, settings.highDetail ? 10 : 20);
+      createCeilingLight(sp * 2, -spy, settings.highDetail ? 10 : 20);
 
-      createRectAreaLight(-sp * 2, spy);
-      createRectAreaLight(sp * 2, spy);
+      createCeilingLight(-sp * 2, spy, settings.highDetail ? 10 : 20);
+      createCeilingLight(sp * 2, spy, settings.highDetail ? 10 : 20);
     }
   }
 

@@ -1,6 +1,7 @@
 import { BallState, type PhysicsBall } from '../ball';
 import { quat, vec } from '../math';
 import { params } from '../params';
+import type { PhysicsPocket } from '../pocket';
 
 const {
   gravity: g,
@@ -9,6 +10,7 @@ const {
   frictionSpin: usp,
   frictionAir: ua,
   restitutionSlate: es,
+  restitutionPocket: ep,
 } = params.ball;
 
 export const evolveBallMotion = (ball: PhysicsBall, dt: number) => {
@@ -160,5 +162,59 @@ const collideWithSlate = (ball: PhysicsBall) => {
     if (Math.abs(ball.v[2]) < 1e-1) {
       ball.v[2] = 0;
     }
+  }
+};
+
+export const evolvePocket = (
+  ball: PhysicsBall,
+  pocket: PhysicsPocket,
+  dt: number
+) => {
+  ball.v[2] -= params.ball.gravity * dt;
+  vec.madd(ball.r, vec.mult(ball.v, dt));
+
+  collidePocketInternal(ball, pocket);
+};
+
+const collidePocketInternal = (b: PhysicsBall, p: PhysicsPocket) => {
+  // xy dist
+  const dist = vec.dist(vec.setZ(b.r, 0), vec.setZ(vec.from(p.position), 0));
+
+  if (b.r[2] <= 0 && b.r[2] > -2 * b.radius) {
+    // tipping over pocket edge
+    // return;
+  }
+
+  if (dist > p.radius - b.radius) {
+    // edge of pocket
+    const normal = vec.norm(vec.sub(b.r, vec.setZ(vec.from(p.position), 0)));
+
+    // todo: skipping overlap fix for now since it applies
+    // as soon as the ball touches the pocket
+    // const overlap = dist - (pocket.radius - ball.radius);
+    // vec.msub(ball.r, vec.mult(normal, overlap));
+
+    const vn = vec.dot(b.v, normal);
+    if (vn > 0) {
+      const vz = b.v[2];
+      vec.msub(b.v, vec.mult(normal, 2 * vn));
+      vec.mmult(b.v, 0.5);
+      if (vec.lenSq(b.v) < 1e-8) {
+        vec.mmult(b.v, 0);
+      }
+      b.v[2] = vz;
+    }
+  }
+
+  const bottomZ = p.position.z - p.depth / 2;
+  if (b.r[2] - b.radius < bottomZ) {
+    const overlap = bottomZ - b.r[2] + b.radius;
+    b.r[2] += overlap;
+
+    if (b.v[2] < 0) {
+      b.v[2] = -b.v[2] * ep;
+    }
+
+    vec.mmult(b.v, 0.5);
   }
 };

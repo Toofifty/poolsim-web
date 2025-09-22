@@ -150,11 +150,7 @@ export class Table {
     return this.state.settled;
   }
 
-  public update(
-    dt: number,
-    updateCue?: boolean,
-    updatePocketedBalls?: boolean
-  ) {
+  public update(dt: number, updateCue?: boolean) {
     // sync to physics position
     this.balls.forEach((ball) => ball.sync());
 
@@ -165,18 +161,5 @@ export class Table {
       }
     }
     this.cue.update(dt, this.settled);
-
-    // collide balls in pockets
-    // not needed in simulation
-    this.pockets.forEach((pocket) => {
-      pocket.physics.balls.forEach((ball, i) => {
-        if (updatePocketedBalls) {
-          ball.evolve(dt);
-        }
-        this.cushions.map((cushion) => ball.collideCushion(cushion.physics)),
-          ball.collidePocket(pocket.physics);
-        pocket.physics.balls.slice(i).map((other) => ball.collideBall(other));
-      });
-    });
   }
 }

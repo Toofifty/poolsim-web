@@ -10,7 +10,11 @@ import type { PhysicsPocket } from './pocket';
 import { params } from './params';
 import { assert } from '../assert';
 import { vec, quat, type Quat, type Vec } from './math';
-import { evolveBallMotion, evolveBallOrientation } from './ball/evolve';
+import {
+  evolveBallMotion,
+  evolveBallOrientation,
+  evolvePocket,
+} from './ball/evolve';
 import {
   collideBallBall,
   collideBallCushion,
@@ -120,6 +124,10 @@ export class PhysicsBall {
     return !!this.pocket;
   }
 
+  get isPocketedStationary() {
+    return this.isPocketed && vec.lenSq(this.v) < 1e-2;
+  }
+
   getContactVelocity() {
     if (this.isPocketed) {
       return vec.zero;
@@ -145,14 +153,6 @@ export class PhysicsBall {
     return this.r[2] > 0;
   }
 
-  private updatePocket(dt: number) {
-    // move the ball in the pocket
-    this.v[2] -= params.ball.gravity * dt;
-    vec.madd(this.r, vec.mult(this.v, dt));
-
-    // todo: slow w
-  }
-
   public get isStationary() {
     return this.state === BallState.Stationary;
   }
@@ -176,7 +176,7 @@ export class PhysicsBall {
 
     switch (true) {
       case this.isPocketed:
-        return BallState.Stationary;
+        return BallState.Pocketed;
       case this.r[2] > 0:
         return BallState.Airborne;
       case vec.len(this.getContactVelocity()) > 0:
@@ -230,9 +230,9 @@ export class PhysicsBall {
   public evolve(dt: number, simulated?: boolean) {
     this.state = this.resolveState();
 
-    if (this.isPocketed) {
+    if (this.pocket) {
       if (simulated) return;
-      this.updatePocket(dt);
+      evolvePocket(this, this.pocket, dt);
       return;
     }
 
@@ -251,11 +251,8 @@ export class PhysicsBall {
     return collideBallCushion(this, cushion);
   }
 
-  public collidePocket(
-    pocket: PhysicsPocket,
-    simulated = false
-  ): BallPocketCollision | undefined {
-    return collideBallPocket(this, pocket, simulated);
+  public collidePocket(pocket: PhysicsPocket): BallPocketCollision | undefined {
+    return collideBallPocket(this, pocket);
   }
 
   public addToPocket(pocket: PhysicsPocket, simulated?: boolean) {
@@ -272,5 +269,6 @@ export class PhysicsBall {
 
     this.pocket.removeBall(this);
     this.pocket = undefined;
+    this.state = BallState.Stationary;
   }
 }

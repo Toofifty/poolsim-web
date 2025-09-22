@@ -179,17 +179,18 @@ export const collideBallCushion = (
 
 export const collideBallPocket = (
   b: PhysicsBall,
-  p: PhysicsPocket,
-  simulated = false
+  p: PhysicsPocket
 ): BallPocketCollision | undefined => {
-  if (!simulated && b.pocket === p) {
-    collidePocketInternal(b, p);
+  if (b.pocket) {
+    // already pocketed, skip
     return undefined;
   }
 
   const dist = vec.dist(vec.setZ(b.r, 0), vec.setZ(vec.from(p.position), 0));
 
-  if (!b.pocket && dist < p.radius) {
+  // only considered in the pocket if within it's radius,
+  // and the ball is below rail height
+  if (dist < p.radius && b.r[2] <= params.cushion.height) {
     b.addToPocket(p);
     return {
       type: 'ball-pocket',
@@ -203,41 +204,4 @@ export const collideBallPocket = (
   }
 
   return undefined;
-};
-
-const collidePocketInternal = (b: PhysicsBall, p: PhysicsPocket) => {
-  const dist = vec.dist(vec.setZ(b.r, 0), vec.setZ(vec.from(p.position), 0));
-
-  if (dist > p.radius - b.radius) {
-    // edge of pocket
-    const normal = vec.norm(vec.sub(b.r, vec.setZ(vec.from(p.position), 0)));
-
-    // todo: skipping overlap fix for now since it applies
-    // as soon as the ball touches the pocket
-    // const overlap = dist - (pocket.radius - ball.radius);
-    // vec.msub(ball.r, vec.mult(normal, overlap));
-
-    const vn = vec.dot(b.v, normal);
-    if (vn > 0) {
-      const vz = b.v[2];
-      vec.msub(b.v, vec.mult(normal, 2 * vn));
-      vec.mmult(b.v, 0.5);
-      if (vec.lenSq(b.v) < 1e-8) {
-        vec.mmult(b.v, 0);
-      }
-      b.v[2] = vz;
-    }
-  }
-
-  const bottomZ = p.position.z - p.depth / 2;
-  if (b.r[2] - b.radius < bottomZ) {
-    const overlap = bottomZ - b.r[2] + b.radius;
-    b.r[2] += overlap;
-
-    if (b.v[2] < 0) {
-      b.v[2] = -b.v[2] * ep;
-    }
-
-    vec.mmult(b.v, 0.5);
-  }
 };

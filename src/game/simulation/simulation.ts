@@ -17,7 +17,6 @@ export type RunSimulationStepOptions = {
   state: TableState;
   stepIndex?: number;
   profiler?: IProfiler;
-  enableEvolutionPhysics?: boolean;
 };
 
 export interface ISimulation {
@@ -31,7 +30,6 @@ export class Simulation implements ISimulation {
     dt,
     state,
     stepIndex = -1,
-    enableEvolutionPhysics,
     profiler = Profiler.none,
   }: RunSimulationStepOptions) {
     const result = new StepResult();
@@ -56,7 +54,7 @@ export class Simulation implements ISimulation {
       for (let j = i + 1; j < activeBalls.length; j++) {
         const other = activeBalls[j];
         // dont fix overlap with evolution physics enabled
-        const collision = ball.collideBall(other, !enableEvolutionPhysics);
+        const collision = ball.collideBall(other);
         if (collision) {
           if (collision.initiator.id === -1) {
             if (result.firstStruck === -1) {
@@ -72,32 +70,13 @@ export class Simulation implements ISimulation {
     }
     endBallBall();
 
-    const endBallPocket = profiler.start('ballPocket');
-    // ball -> pocket collisions
-    for (let i = 0; i < activeBalls.length; i++) {
-      const ball = activeBalls[i];
-      for (let j = 0; j < state.pockets.length; j++) {
-        const pocket = state.pockets[j];
-        const collision = ball.collidePocket(pocket, simulated);
-        if (collision) {
-          if (collision.initiator.id === -1) {
-            result.pottedCueBall = true;
-          } else {
-            result.ballsPotted++;
-          }
-          result.collisions.push(collision);
-        }
-      }
-    }
-    endBallPocket();
-
     const endBallCushion = profiler.start('ballCushion');
     // ball -> cushion collisions
     for (let i = 0; i < activeBalls.length; i++) {
       const ball = activeBalls[i];
       for (let j = 0; j < state.cushions.length; j++) {
         const cushion = state.cushions[j];
-        const collision = ball.collideCushion(cushion, !enableEvolutionPhysics);
+        const collision = ball.collideCushion(cushion);
         if (collision) {
           if (collision.initiator.id === -1) {
             result.cueBallCushionCollisions++;
@@ -109,6 +88,25 @@ export class Simulation implements ISimulation {
       }
     }
     endBallCushion();
+
+    const endBallPocket = profiler.start('ballPocket');
+    // ball -> pocket collisions
+    for (let i = 0; i < activeBalls.length; i++) {
+      const ball = activeBalls[i];
+      for (let j = 0; j < state.pockets.length; j++) {
+        const pocket = state.pockets[j];
+        const collision = ball.collidePocket(pocket);
+        if (collision) {
+          if (collision.initiator.id === -1) {
+            result.pottedCueBall = true;
+          } else {
+            result.ballsPotted++;
+          }
+          result.collisions.push(collision);
+        }
+      }
+    }
+    endBallPocket();
 
     return result;
   }

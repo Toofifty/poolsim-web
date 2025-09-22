@@ -52,7 +52,9 @@ export class TableState {
   }
 
   public get settled() {
-    return this.balls.every((ball) => ball.isStationary);
+    return this.balls.every(
+      (ball) => ball.isStationary || ball.isPocketedStationary
+    );
   }
 
   public get isGameOver() {

@@ -41,7 +41,7 @@ export class GameManager {
     this.aimAssist = new AimAssist();
 
     this.resetSimulationResult();
-    this.setup9Ball();
+    this.setupDebugGame();
     this.startGame();
 
     // immediately make AI shoot if setting changes to AIvAI
@@ -173,7 +173,7 @@ export class GameManager {
       return;
     }
 
-    if (this.table.state.cueBall.isPocketed) {
+    if (this.table.state.cueBall.isPocketedStationary) {
       this.placeCueBall();
     }
 
@@ -258,6 +258,6 @@ export class GameManager {
     }
 
     this.updateState();
-    this.table.update(dt, this.state === GameState.PlayerShoot, !this.isInPlay);
+    this.table.update(dt, this.state === GameState.PlayerShoot);
   }
 }

@@ -29,6 +29,7 @@ export enum BallState {
   Sliding,
   Rolling,
   Spinning,
+  Airborne,
   Pocketed,
 }
 
@@ -140,6 +141,10 @@ export class PhysicsBall {
     return vec.setZ(wXY, this.w[2]);
   }
 
+  get isAirborne() {
+    return this.r[2] > 0;
+  }
+
   private updatePocket(dt: number) {
     // move the ball in the pocket
     this.v[2] -= params.ball.gravity * dt;
@@ -172,6 +177,8 @@ export class PhysicsBall {
     switch (true) {
       case this.isPocketed:
         return BallState.Stationary;
+      case this.r[2] > 0:
+        return BallState.Airborne;
       case vec.len(this.getContactVelocity()) > 0:
         return BallState.Sliding;
       case vec.len(this.velocity) > 0:
@@ -207,6 +214,17 @@ export class PhysicsBall {
     }
 
     return Math.abs(this.w[2]) * 0.4 * (this.radius / params.ball.frictionSpin);
+  }
+
+  public getAirTime(): number {
+    if (this.r[2] <= 0 && this.v[2] <= 0) {
+      return 0;
+    }
+
+    const disc = this.v[2] * this.v[2] + 2 * params.ball.gravity * this.r[2];
+    if (disc < 0) return 0;
+
+    return this.v[2] + Math.sqrt(disc) / params.ball.gravity;
   }
 
   public evolve(dt: number, simulated?: boolean) {

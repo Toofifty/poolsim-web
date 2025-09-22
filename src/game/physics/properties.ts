@@ -15,7 +15,7 @@ export const properties = {
   gravity: 0.01,
   epsilon: 1e-6,
   cueDefaultForce: 0.75,
-  cueMaxForce: 2.5,
+  cueMaxForce: 4,
 
   // objects (m)
   ballRadius: 0.028575,

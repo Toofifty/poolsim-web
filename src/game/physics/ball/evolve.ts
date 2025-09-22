@@ -7,6 +7,8 @@ const {
   frictionSlide: us,
   frictionRoll: ur,
   frictionSpin: usp,
+  frictionAir: ua,
+  restitutionSlate: es,
 } = params.ball;
 
 export const evolveBallMotion = (ball: PhysicsBall, dt: number) => {
@@ -14,6 +16,14 @@ export const evolveBallMotion = (ball: PhysicsBall, dt: number) => {
 
   // state can progress during motion
   let state = ball.state;
+
+  collideWithSlate(ball);
+
+  if (state === BallState.Airborne) {
+    // todo: dt breakdown with getAirTime()
+    evolveVertical(ball, dt);
+    return;
+  }
 
   if (state === BallState.Sliding) {
     const slideTime = ball.getSlideTime();
@@ -52,24 +62,15 @@ const evolveSlide = (ball: PhysicsBall, dt: number) => {
   const u0 = vec.norm(ball.getContactVelocity());
 
   // acceleration due to friction
-  const accelFriction = vec.mult(u0, -us * g);
-  const accelGravity = vec.new(0, 0, -g);
-  const accel = vec.add(accelFriction, accelGravity);
+  const accel = vec.mult(u0, -us * g);
   // r += vt + 0.5at²
   vec.madd(
     ball.r,
     vec.add(vec.mult(ball.v, dt), vec.mult(accel, 0.5 * dt * dt))
   );
 
-  const dv = vec.mult(accel, dt);
   // v += at
-  vec.madd(ball.v, dv);
-
-  // slate (table)
-  if (ball.r[2] < 0) {
-    ball.r[2] = 0;
-    if (ball.v[2] < 0) ball.v[2] = 0;
-  }
+  vec.madd(ball.v, vec.mult(accel, dt));
 
   // Δw = -(5/2R) μ t (u0 × ẑ)
   const zh = vec.new(0, 0, 1);
@@ -138,5 +139,26 @@ export const evolveBallOrientation = (ball: PhysicsBall, dt: number) => {
     ball.orientation = quat.norm(
       quat.mult(quat.fromAxisAngle(axis, angle), ball.orientation)
     );
+  }
+};
+
+const evolveVertical = (ball: PhysicsBall, dt: number) => {
+  const accel = vec.new(0, 0, -g);
+  // r += vt + 0.5at²
+  vec.madd(
+    ball.r,
+    vec.add(vec.mult(ball.v, dt), vec.mult(accel, 0.5 * dt * dt))
+  );
+
+  // v += at
+  vec.madd(ball.v, vec.mult(accel, dt));
+};
+
+const collideWithSlate = (ball: PhysicsBall) => {
+  if (ball.r[2] < 0 && ball.v[2] < 0) {
+    ball.v[2] = -ball.v[2] * es;
+    if (Math.abs(ball.v[2]) < 1e-1) {
+      ball.v[2] = 0;
+    }
   }
 };

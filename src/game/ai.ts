@@ -16,7 +16,12 @@ export class AI {
     ? new ThreadedSimulation()
     : new Simulation();
 
-  public async findShot(state: TableState) {
+  public async findShot(
+    state: TableState,
+    sideSpin?: number,
+    topSpin?: number,
+    lift?: number
+  ) {
     const angleSteps = this.precision * 6;
     const angleStep = (Math.PI * 2) / angleSteps;
 
@@ -43,7 +48,7 @@ export class AI {
       anglesChecked++;
       gameStore.analysisProgress = (100 * anglesChecked) / angleSteps;
       for (let force = minForce; force < maxForce; force += forceStep) {
-        const shot = new Shot(angle, force);
+        const shot = new Shot(angle, force, sideSpin, topSpin, lift);
         const result = await this.simulation.run({
           shot,
           state,
@@ -85,9 +90,9 @@ export class AI {
     }
 
     if (result.state?.isGameOver) {
-      return 1000 + result.collisions.length;
+      return 1000 - result.collisions.length;
     }
 
-    return result.ballsPotted * 100 + result.collisions.length;
+    return result.ballsPotted * 100 - result.collisions.length;
   }
 }

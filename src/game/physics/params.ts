@@ -12,12 +12,16 @@ export const params = {
     frictionSpin: (0.028575 * 4) / 9,
     /** u_b */
     frictionBall: 0.05,
+    /** u_a */
+    frictionAir: 0.001,
     /** e_b */
     restitutionBall: 0.95,
     /** e_p */
     restitutionPocket: 0.5,
     /** e_c */
     restitutionCushion: 0.85,
+    /** e_s */
+    restitutionSlate: 0.5,
     /** f_c */
     frictionCushion: 0.2,
     /** g */

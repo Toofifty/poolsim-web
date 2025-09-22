@@ -8,6 +8,8 @@ import {
 
 export const getColor = (state: BallState) => {
   switch (state) {
+    case BallState.Airborne:
+      return new Color(0x00ffff);
     case BallState.Sliding:
       return new Color(0xff0000);
     case BallState.Rolling:
@@ -17,7 +19,7 @@ export const getColor = (state: BallState) => {
     case BallState.Stationary:
       return new Color(0xffffff);
     case BallState.Pocketed:
-      return new Color(0x00ffff);
+      return new Color(0xff00ff);
     default:
       return new Color(0x000000);
   }

@@ -141,7 +141,12 @@ export class GameManager {
     }
     this.aiIsThinking = true;
     await delay(100);
-    const shot = await this.ai.findShot(this.table.state);
+    const shot = await this.ai.findShot(
+      this.table.state,
+      this.table.cue.sideSpin,
+      this.table.cue.topSpin,
+      this.table.cue.lift
+    );
     if (!shot) return;
     // let dt catch up before animating the cue
     await delay(100);
@@ -226,7 +231,6 @@ export class GameManager {
       if (result.collisions.length < 2) {
         result.collisions.forEach((collision) => {
           if (collision.type === 'ball-ball') {
-            console.log(vec.len(collision.impulse));
             Game.playAudio(
               'clack',
               vec.toVector3(collision.position),

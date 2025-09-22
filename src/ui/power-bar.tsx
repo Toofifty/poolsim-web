@@ -3,12 +3,28 @@ import './power-bar.scss';
 import { useSnapshot } from 'valtio';
 import { gameStore } from '../game/store/game';
 import { useMouseInputs } from './use-mouse-inputs';
+import { useEffect } from 'react';
+import { constrain } from '../game/math';
 
 export const PowerBar = () => {
   const { cueForce } = useSnapshot(gameStore);
 
   const props = useMouseInputs(({ x }) => {
     gameStore.cueForce = Cue.MAX_FORCE * x;
+  }, []);
+
+  useEffect(() => {
+    const scrollListener = (event: WheelEvent) => {
+      if (!event.shiftKey) return;
+      const force = gameStore.cueForce / Cue.MAX_FORCE - event.deltaY * 0.0002;
+      gameStore.cueForce = Cue.MAX_FORCE * constrain(force, 0, 1);
+    };
+
+    document.addEventListener('wheel', scrollListener, { passive: true });
+
+    return () => {
+      document.removeEventListener('wheel', scrollListener);
+    };
   }, []);
 
   return (

@@ -19,7 +19,7 @@ export const params = {
     /** e_p */
     restitutionPocket: 0.5,
     /** e_c */
-    restitutionCushion: 0.85,
+    restitutionCushion: 0.6,
     /** e_s */
     restitutionSlate: 0.5,
     /** f_c */
@@ -32,3 +32,5 @@ export const params = {
     height: 0.028575 * 1.2,
   },
 };
+
+if (typeof window !== 'undefined') (window as any).params = params;

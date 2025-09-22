@@ -197,6 +197,7 @@ export class Game {
 
     el.addEventListener('mousemove', this.onMouseMove);
     el.addEventListener('mousedown', this.onMouseDown);
+    document.addEventListener('keydown', this.onKeyDown);
     document.addEventListener('keyup', this.onKeyUp);
   }
 
@@ -209,6 +210,7 @@ export class Game {
 
     el.removeEventListener('mousemove', this.onMouseMove);
     el.removeEventListener('mousedown', this.onMouseDown);
+    document.removeEventListener('keydown', this.onKeyDown);
     document.removeEventListener('keyup', this.onKeyUp);
   }
 
@@ -225,10 +227,21 @@ export class Game {
     this.manager.mousedown(e);
   };
 
+  private onKeyDown = (e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'Shift':
+        this.controls.enableZoom = false;
+        return;
+    }
+  };
+
   private onKeyUp = (e: KeyboardEvent) => {
     switch (e.key) {
       case 'l':
         settings.lockCue = !settings.lockCue;
+        return;
+      case 'Shift':
+        this.controls.enableZoom = true;
         return;
     }
 

@@ -55,7 +55,7 @@ $point-size: $size * 0.2;
 
 $la-pad: 4px;
 .spin-control__lift-area {
-  width: $size / 2;
+  width: $size * 0.5;
   position: relative;
   padding: $la-pad;
   box-sizing: border-box;

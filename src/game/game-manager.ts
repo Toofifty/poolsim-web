@@ -41,7 +41,7 @@ export class GameManager {
     this.aimAssist = new AimAssist();
 
     this.resetSimulationResult();
-    this.setupDebugGame();
+    this.setup9Ball();
     this.startGame();
 
     // immediately make AI shoot if setting changes to AIvAI

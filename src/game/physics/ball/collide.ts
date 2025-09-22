@@ -9,7 +9,13 @@ import { vec, type Vec } from '../math';
 import { params } from '../params';
 import type { PhysicsPocket } from '../pocket';
 
-const { restitutionBall: eb, restitutionPocket: ep } = params.ball;
+const {
+  mass: m,
+  restitutionBall: eb,
+  restitutionPocket: ep,
+  restitutionCushion: ec,
+  frictionCushion: fc,
+} = params.ball;
 
 export const collideBallBall = (
   b1: PhysicsBall,
@@ -142,20 +148,17 @@ export const collideBallCushion = (
       return undefined;
     }
 
-    const j = -(1 + params.ball.restitutionCushion) * rv;
+    const j = -(1 + ec) * rv;
     const impulse = vec.mult(normal, j);
     vec.madd(b.v, impulse);
 
-    const spinAlongNormal = vec.dot(b.w, normal);
-    const correction = vec.mult(normal, spinAlongNormal * 0.9);
-
     const wz = b.w[2];
-    vec.msub(b.w, correction);
+    vec.mcopy(b.w, b.getIdealAngularVelocity());
     b.w[2] = wz;
 
     // english
     const tangent = vec.perp(normal);
-    const vs = b.w[2] * b.radius;
+    const vs = b.w[2] * b.radius * fc;
     vec.madd(b.v, vec.mult(tangent, vs));
     b.w[2] *= 0.7;
 

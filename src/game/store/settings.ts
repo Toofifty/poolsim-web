@@ -13,7 +13,7 @@ export enum Players {
 }
 
 export const settings = proxy({
-  aimAssistMode: AimAssistMode.Off,
+  aimAssistMode: AimAssistMode.Full,
 
   highDetail: false,
   ortho: false,

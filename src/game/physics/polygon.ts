@@ -1,5 +1,6 @@
 import { constrain } from '../math';
 import { vec, type Vec } from './math';
+import { params } from './params';
 import { properties } from './properties';
 
 export class Polygon {
@@ -54,7 +55,7 @@ export class Polygon {
       }
     }
 
-    return closest;
+    return vec.setZ(closest, params.cushion.height - params.ball.radius);
   }
 
   private findClosestPointOnLine(point: Vec, start: Vec, end: Vec) {

@@ -231,8 +231,10 @@ export class PhysicsBall {
     this.state = this.resolveState();
 
     if (this.pocket) {
-      if (simulated) return;
+      // if (simulated) return;
       evolvePocket(this, this.pocket, dt);
+      evolveBallOrientation(this, dt);
+      this.minimize();
       return;
     }
 

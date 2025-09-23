@@ -3,17 +3,13 @@ import {
   Color,
   Material,
   Mesh,
-  MeshBasicMaterial,
   Object3D,
   Quaternion,
-  TorusGeometry,
   Vector3,
 } from 'three';
 import { BallState, PhysicsBall } from '../physics/ball';
 import type { Shot } from '../physics/shot';
-import { properties } from '../physics/properties';
 import { Game } from '../game';
-import { settings } from '../store/settings';
 import { createBallMesh } from '../models/ball/create-ball-mesh';
 import { Arrow } from './arrow';
 import {
@@ -23,6 +19,14 @@ import {
 import type { Line2 } from 'three/examples/jsm/Addons.js';
 import { quat, vec, type Quat, type Vec } from '../physics/math';
 import { BallDebug } from './ball-debug';
+import { createMaterial } from '../rendering/create-material';
+import { properties } from '../physics/properties';
+
+const INVALID_PROJECTION_MATERIAL = createMaterial({
+  color: 0xff0000,
+  transparent: true,
+  opacity: properties.projectionOpacity,
+});
 
 export class Ball {
   public physics: PhysicsBall;
@@ -34,6 +38,8 @@ export class Ball {
   private collisionPoints: Vector3[] = [];
   private collisionOrientations: Quaternion[] = [];
   private trackingPoints: TrackingPoint[] = [];
+  /** Signifies the final collision is invalid */
+  public invalidCollision = false;
   private impactVelocity?: Vector3;
 
   public parent!: Object3D;
@@ -130,13 +136,10 @@ export class Ball {
     const o = quat.toQuaternion(orientation);
     this.collisionPoints.push(p);
     this.collisionOrientations.push(o);
-    // this.addTrackingPoint(p);
   }
 
   public addTrackingPoint(position: Vec, state: BallState) {
-    if (state !== BallState.Pocketed) {
-      this.trackingPoints.push({ position: vec.toVector3(position), state });
-    }
+    this.trackingPoints.push({ position: vec.toVector3(position), state });
   }
 
   public updateImpactArrow(position: Vec, velocity: Vec) {
@@ -175,7 +178,12 @@ export class Ball {
         continue;
       }
 
-      const mesh = new Mesh(this.geometry, this.projectionMaterial);
+      const material =
+        this.invalidCollision && i === this.collisionPoints.length - 1
+          ? INVALID_PROJECTION_MATERIAL
+          : this.projectionMaterial;
+
+      const mesh = new Mesh(this.geometry, material);
       mesh.position.copy(position);
       mesh.rotation.setFromQuaternion(orientation);
       this.projectionMeshes.push(mesh);
@@ -195,7 +203,7 @@ export class Ball {
     }
 
     // impact arrow
-    if (this.impactVelocity) {
+    if (this.impactVelocity && !this.invalidCollision) {
       this.impactArrow.setVector(this.impactVelocity);
     } else {
       this.impactArrow.visible = false;

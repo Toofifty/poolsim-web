@@ -1,7 +1,7 @@
 import { Color } from 'three';
 
 export const properties = {
-  useWorkerForAimAssist: true,
+  useWorkerForAimAssist: false,
   useWorkerForAI: true,
 
   // physics - cm/s

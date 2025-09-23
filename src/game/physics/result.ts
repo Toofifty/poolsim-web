@@ -8,6 +8,8 @@ export class Result {
   ballsPotted = 0;
   pottedCueBall = false;
   hitFoulBall = false;
+  /** e.g. shot backwards on break */
+  invalidShot = false;
   firstStruck = -1;
 
   cueBallCollisions = 0;
@@ -36,6 +38,7 @@ export class Result {
     this.ballsPotted += other.ballsPotted;
     this.pottedCueBall ||= other.pottedCueBall;
     this.hitFoulBall ||= other.hitFoulBall;
+    this.invalidShot ||= other.invalidShot;
     this.firstStruck =
       this.firstStruck === -1 ? other.firstStruck : this.firstStruck;
     this.cueBallCollisions += other.cueBallCollisions;
@@ -49,7 +52,10 @@ export class Result {
 
   public hasFoul() {
     return (
-      this.cueBallCollisions === 0 || this.pottedCueBall || this.hitFoulBall
+      this.cueBallCollisions === 0 ||
+      this.pottedCueBall ||
+      this.hitFoulBall ||
+      this.invalidShot
     );
   }
 
@@ -61,12 +67,5 @@ export class Result {
   }
 }
 
-export class StepResult extends Result {
-  public hasBallCollision() {
-    return this.cueBallCollisions > 0 || this.ballBallCollisions > 0;
-  }
-
-  public hasCushionCollision() {
-    return this.cueBallCushionCollisions > 0 || this.ballCushionCollisions > 0;
-  }
-}
+/** @deprecated */
+export class StepResult extends Result {}

@@ -57,8 +57,8 @@ const getTableTheme = (): ThemeObject['table'] => {
     case 'purple':
       return {
         ...base,
-        colorCloth: new Color(0x227722),
-        colorRail: new Color(0x683104),
+        colorCloth: new Color(0x671277),
+        colorRail: new Color(0x252525),
       };
     case 'red':
       return {

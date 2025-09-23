@@ -1,4 +1,5 @@
 import { BallState, type PhysicsBall } from '../ball';
+import { Debug } from '../debug';
 import { quat, vec } from '../math';
 import { params } from '../params';
 import type { PhysicsPocket } from '../pocket';
@@ -165,34 +166,33 @@ const collideWithSlate = (ball: PhysicsBall) => {
   }
 };
 
-export const evolvePocket = (
-  ball: PhysicsBall,
-  pocket: PhysicsPocket,
-  dt: number
-) => {
-  ball.v[2] -= params.ball.gravity * dt;
-  vec.madd(ball.r, vec.mult(ball.v, dt));
+export const evolvePocket = (b: PhysicsBall, p: PhysicsPocket, dt: number) => {
+  const pr = vec.from(p.position);
+  // xy dist from pocket centre -> ball centre
+  const delta = vec.sub(vec.setZ(b.r, 0), vec.setZ(pr, 0));
+  const dist = vec.len(delta);
 
-  collidePocketInternal(ball, pocket);
-};
+  b.v[2] -= g * dt;
 
-const collidePocketInternal = (b: PhysicsBall, p: PhysicsPocket) => {
-  // xy dist
-  const dist = vec.dist(vec.setZ(b.r, 0), vec.setZ(vec.from(p.position), 0));
-
-  if (b.r[2] <= 0 && b.r[2] > -2 * b.radius) {
-    // tipping over pocket edge
-    // return;
+  // pocket edge rolling
+  if (dist >= p.radius - b.radius && b.r[2] <= 0 && b.r[2] > -2 * b.radius) {
+    const delta = vec.sub(vec.setZ(b.r, 0), vec.setZ(pr, 0));
+    const contactPoint = vec.add(
+      vec.setZ(pr, -b.radius),
+      vec.mult(vec.norm(delta), p.radius)
+    );
+    const normal = vec.norm(vec.sub(b.r, contactPoint));
+    const accelGravity = vec.new(0, 0, -g);
+    const accelNormal = vec.mult(normal, vec.dot(accelGravity, normal));
+    vec.msub(b.v, vec.mult(accelNormal, dt));
   }
 
+  vec.madd(b.r, vec.mult(b.v, dt));
+
+  // internal cylinder collision
   if (dist > p.radius - b.radius) {
     // edge of pocket
     const normal = vec.norm(vec.sub(b.r, vec.setZ(vec.from(p.position), 0)));
-
-    // todo: skipping overlap fix for now since it applies
-    // as soon as the ball touches the pocket
-    // const overlap = dist - (pocket.radius - ball.radius);
-    // vec.msub(ball.r, vec.mult(normal, overlap));
 
     const vn = vec.dot(b.v, normal);
     if (vn > 0) {
@@ -206,6 +206,7 @@ const collidePocketInternal = (b: PhysicsBall, p: PhysicsPocket) => {
     }
   }
 
+  // cylinder base collision
   const bottomZ = p.position.z - p.depth / 2;
   if (b.r[2] - b.radius < bottomZ) {
     const overlap = bottomZ - b.r[2] + b.radius;

@@ -124,6 +124,10 @@ export class Simulation implements ISimulation {
     const end = profiler.start('run');
     const result = new Result(shot, copiedState);
 
+    const isInvalidBreak =
+      copiedState.isBreak &&
+      (shot.angle < -Math.PI / 2 || shot.angle > Math.PI / 2);
+
     for (let i = 0; i < properties.maxIterations; i++) {
       const stepResult = profiler.profile('step', () =>
         this.step({
@@ -138,6 +142,11 @@ export class Simulation implements ISimulation {
       });
 
       if (result.hitFoulBall) {
+        break;
+      }
+
+      if (isInvalidBreak && result.cueBallCushionCollisions > 0) {
+        result.invalidShot = true;
         break;
       }
 

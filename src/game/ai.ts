@@ -22,7 +22,7 @@ export class AI {
     topSpin?: number,
     lift?: number
   ) {
-    const angleSteps = this.precision * 6;
+    let angleSteps = this.precision * 6;
     const angleStep = (Math.PI * 2) / angleSteps;
 
     const minForce = properties.cueMaxForce / 10;
@@ -40,11 +40,15 @@ export class AI {
     gameStore.analysisProgress = 0;
     console.time('ai-shot');
 
-    for (
-      let angle = -Math.PI / 2;
-      angle < (Math.PI * 3) / 2;
-      angle += angleStep
-    ) {
+    const startAngle = -Math.PI / 2;
+    let maxAngle = (Math.PI * 3) / 2;
+
+    if (state.isBreak) {
+      angleSteps /= 2;
+      maxAngle = Math.PI / 2;
+    }
+
+    for (let angle = startAngle; angle < maxAngle; angle += angleStep) {
       anglesChecked++;
       gameStore.analysisProgress = (100 * anglesChecked) / angleSteps;
       for (let force = minForce; force < maxForce; force += forceStep) {

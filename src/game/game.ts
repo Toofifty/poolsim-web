@@ -43,6 +43,7 @@ import { subscribe } from 'valtio';
 import { properties } from './physics/properties';
 import { makeTheme } from './store/theme';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
+import { Debug } from './physics/debug';
 
 type AudioBuffers = Partial<Record<'clack' | 'break', AudioBuffer>>;
 
@@ -68,6 +69,7 @@ export class Game {
   private audioBuffers: AudioBuffers = {};
 
   public static instance: Game;
+  public static debug: Debug;
   public static profiler = new Profiler();
 
   public static reflectives: Mesh[] = [];
@@ -162,6 +164,8 @@ export class Game {
     });
 
     this.mouseRaycaster = new Raycaster();
+    Game.debug = new Debug();
+    this.scene.add(Game.debug);
 
     this.setupRectLights();
     this.setupAmbientLight();

@@ -20,17 +20,20 @@ export class TableState {
   public cushions: PhysicsCushion[] = [];
   public pockets: PhysicsPocket[] = [];
   public ruleSet: RuleSet = RuleSet._9Ball;
+  public isBreak: boolean;
 
   constructor(
     balls: PhysicsBall[],
     cushions: PhysicsCushion[],
     pockets: PhysicsPocket[],
-    ruleSet: RuleSet
+    ruleSet: RuleSet,
+    isBreak = true
   ) {
     this.balls = balls;
     this.cushions = cushions;
     this.pockets = pockets;
     this.ruleSet = ruleSet;
+    this.isBreak = isBreak;
   }
 
   public clone() {
@@ -38,7 +41,8 @@ export class TableState {
       this.balls.map((ball) => ball.clone()),
       this.cushions,
       this.pockets,
-      this.ruleSet
+      this.ruleSet,
+      this.isBreak
     );
   }
 

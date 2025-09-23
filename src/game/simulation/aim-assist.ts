@@ -30,6 +30,7 @@ export class AimAssist {
     this.balls.forEach((ball) => {
       ball.clearCollisionPoints();
       ball.clearImpactArrow();
+      ball.invalidCollision = false;
     });
   }
 
@@ -59,6 +60,9 @@ export class AimAssist {
           collision.snapshots.initiator.position,
           collision.snapshots.initiator.orientation
         );
+        if (hasFoul) {
+          initiator.invalidCollision = true;
+        }
         if (
           firstContact &&
           i === 0 &&

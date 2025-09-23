@@ -31,15 +31,15 @@ export const createTableClothMesh = (pockets: Pocket[], theme: ThemeObject) => {
     cylinder.translate(pocket.position.x, pocket.position.y, -height / 2);
     geometry = subtract(geometry, cylinder);
     // slight bevel around pockets
-    const sr = pocket.radius * 2;
-    const sphere = new SphereGeometry(sr);
-    const z = Math.sqrt(sr * sr - pocket.radius * pocket.radius);
-    sphere.translate(
-      pocket.position.x,
-      pocket.position.y,
-      z - height - properties.pocketBevel
-    );
-    geometry = subtract(geometry, sphere);
+    // const sr = pocket.radius * 2;
+    // const sphere = new SphereGeometry(sr);
+    // const z = Math.sqrt(sr * sr - pocket.radius * pocket.radius);
+    // sphere.translate(
+    //   pocket.position.x,
+    //   pocket.position.y,
+    //   z - height - properties.pocketBevel
+    // );
+    // geometry = subtract(geometry, sphere);
   });
 
   const cloth = new Mesh(

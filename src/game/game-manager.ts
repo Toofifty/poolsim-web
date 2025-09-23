@@ -105,6 +105,7 @@ export class GameManager {
         Math.random() > 0.5 ? GameState.PlayerShoot : GameState.AIShoot
       );
     }
+    this.table.state.isBreak = true;
   }
 
   public mousedown(event: MouseEvent) {
@@ -173,7 +174,10 @@ export class GameManager {
       return;
     }
 
-    if (this.table.state.cueBall.isPocketedStationary) {
+    if (
+      this.table.state.cueBall.isPocketedStationary ||
+      this.table.state.cueBall.isOutOfBounds
+    ) {
       this.placeCueBall();
     }
 
@@ -193,6 +197,7 @@ export class GameManager {
 
     switch (this.state) {
       case GameState.PlayerInPlay:
+        this.table.state.isBreak = false;
         if (settings.players === Players.PlayerVsPlayer) {
           this.setState(GameState.PlayerShoot);
         } else if (settings.players === Players.AIVsAI) {
@@ -204,6 +209,7 @@ export class GameManager {
         }
         break;
       case GameState.AIInPlay:
+        this.table.state.isBreak = false;
         if (settings.players === Players.PlayerVsPlayer) {
           this.setState(GameState.PlayerShoot);
         } else if (settings.players === Players.AIVsAI) {
@@ -225,6 +231,7 @@ export class GameManager {
     if (this.isInPlay && !settings.pauseSimulation) {
       const result = this.simulation.step({
         simulated: false,
+        trackPath: false,
         dt,
         state: this.table.state,
       });

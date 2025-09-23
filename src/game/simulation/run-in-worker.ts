@@ -12,7 +12,7 @@ export const runInWorker = <TFn extends SimulationWorkerFn>(
   return new Promise((res) => {
     worker.onmessage = ({
       data: { fn: returnedFn, key: returnedKey, result },
-    }: ReturnedMessage<TFn>) => {
+    }: ReturnedMessage) => {
       if (returnedFn === fn && key === returnedKey) res(result);
     };
   });

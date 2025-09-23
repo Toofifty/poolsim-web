@@ -128,6 +128,17 @@ export class PhysicsBall {
     return this.isPocketed && vec.lenSq(this.v) < 1e-2;
   }
 
+  get isOutOfBounds() {
+    const { tableWidth, tableLength } = properties;
+    return (
+      !this.isPocketed &&
+      (this.r[0] > tableLength / 2 ||
+        this.r[0] < -tableLength / 2 ||
+        this.r[1] > tableWidth / 2 ||
+        this.r[1] < -tableWidth / 2)
+    );
+  }
+
   getContactVelocity() {
     if (this.isPocketed) {
       return vec.zero;

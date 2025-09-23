@@ -86,4 +86,8 @@ export class TableState {
   public get is9Ball() {
     return this.ruleSet === RuleSet._9Ball;
   }
+
+  public hasOutOfBoundsBall() {
+    return this.balls.some((ball) => ball.isOutOfBounds);
+  }
 }

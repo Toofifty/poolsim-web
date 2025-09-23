@@ -185,6 +185,9 @@ export const evolvePocket = (b: PhysicsBall, p: PhysicsPocket, dt: number) => {
     const accelGravity = vec.new(0, 0, -g);
     const accelNormal = vec.mult(normal, vec.dot(accelGravity, normal));
     vec.msub(b.v, vec.mult(accelNormal, dt));
+  } else {
+    // slow spin
+    vec.mmult(b.w, 0.5);
   }
 
   vec.madd(b.r, vec.mult(b.v, dt));

@@ -50,12 +50,17 @@ export class Result {
     return this;
   }
 
+  public hasOutOfBoundsBall() {
+    return !!this.state?.hasOutOfBoundsBall();
+  }
+
   public hasFoul() {
     return (
       this.cueBallCollisions === 0 ||
       this.pottedCueBall ||
       this.hitFoulBall ||
-      this.invalidShot
+      this.invalidShot ||
+      this.hasOutOfBoundsBall()
     );
   }
 

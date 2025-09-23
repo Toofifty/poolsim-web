@@ -48,6 +48,7 @@ export class AimAssist {
       const result = await this.simulation.run({
         shot,
         state,
+        trackPath: true,
         profiler: this.profiler,
         stopAtFirstContact: firstContact,
       });

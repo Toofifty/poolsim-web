@@ -1,3 +1,5 @@
+import { assert } from './assert';
+import { Game } from './game';
 import { properties } from './physics/properties';
 import type { Result } from './physics/result';
 import { Shot } from './physics/shot';
@@ -5,40 +7,39 @@ import { Simulation, type ISimulation } from './simulation/simulation';
 import type { TableState } from './simulation/table-state';
 import { ThreadedSimulation } from './simulation/threaded-simulation';
 import { gameStore } from './store/game';
+import { chunk } from './util/chunk';
+
+const createSimulationPool = () =>
+  new Array(navigator.hardwareConcurrency)
+    .fill(0)
+    .map(() => new ThreadedSimulation());
 
 export class AI {
-  private precision = 20;
+  /** # of angles to check */
+  private precision = 120;
   private accuracy = 100;
   private prefTrickshot = 100;
   private prefMultishot = 100;
 
-  private simulation: ISimulation = properties.useWorkerForAI
-    ? new ThreadedSimulation()
-    : new Simulation();
+  private simulation: ISimulation = new Simulation();
+  private simulationPool: ISimulation[] = properties.useWorkerForAI
+    ? createSimulationPool()
+    : [];
 
-  public async findShot(
+  private generateShots(
     state: TableState,
     sideSpin?: number,
     topSpin?: number,
     lift?: number
   ) {
-    let angleSteps = this.precision * 6;
+    const shots: Shot[] = [];
+
+    let angleSteps = this.precision;
     const angleStep = (Math.PI * 2) / angleSteps;
 
     const minForce = properties.cueMaxForce / 10;
     const maxForce = properties.cueMaxForce;
     const forceStep = (maxForce - minForce) / 10;
-
-    let bestScore = -Infinity;
-    let bestResult: Result | undefined = undefined;
-    let bestShot: Shot | undefined = undefined;
-
-    let iterations = 0;
-    let stepIterations = 0;
-    let anglesChecked = 0;
-
-    gameStore.analysisProgress = 0;
-    console.time('ai-shot');
 
     const startAngle = -Math.PI / 2;
     let maxAngle = (Math.PI * 3) / 2;
@@ -49,33 +50,100 @@ export class AI {
     }
 
     for (let angle = startAngle; angle < maxAngle; angle += angleStep) {
-      anglesChecked++;
-      gameStore.analysisProgress = (100 * anglesChecked) / angleSteps;
       for (let force = minForce; force < maxForce; force += forceStep) {
-        const shot = new Shot(angle, force, sideSpin, topSpin, lift);
-        const result = await this.simulation.run({
-          shot,
-          state,
-        });
-        const score = this.score(result);
-
-        if (score > bestScore || !bestShot) {
-          bestScore = score;
-          bestResult = result;
-          bestShot = shot;
-        }
-
-        iterations++;
-        stepIterations += result.stepIterations;
+        shots.push(new Shot(angle, force, sideSpin, topSpin, lift));
       }
     }
 
-    console.timeEnd('ai-shot');
+    return shots;
+  }
+
+  private async runSearch(shots: Shot[], state: TableState) {
+    const results: Result[] = [];
+    const shotsLength = shots.length;
+    for (let i = 0; i < shotsLength; i++) {
+      const shot = shots[i];
+      gameStore.analysisProgress = (100 * i) / shotsLength;
+      results.push(
+        await this.simulation.run({ shot, state, trackPath: false })
+      );
+    }
+
+    return results;
+  }
+
+  private async runPooledSearch(shots: Shot[], state: TableState) {
+    const batchPromises: Promise<Result[]>[] = [];
+    const chunks = chunk(shots, this.simulationPool.length);
+    assert(
+      chunks.length === this.simulationPool.length,
+      `invalid chunk length ${chunks.length}, expected ${this.simulationPool.length}`
+    );
+
+    for (let i = 0; i < this.simulationPool.length; i++) {
+      const simulation = this.simulationPool[i];
+      const chunk = chunks[i];
+
+      batchPromises.push(
+        simulation
+          .runBatch(
+            chunk.map((shot) => ({ shot, trackPath: false })),
+            state
+          )
+          .then((results) => {
+            gameStore.analysisProgress += (100 * results.length) / shots.length;
+            return results;
+          })
+      );
+    }
+
+    return (await Promise.all(batchPromises)).flat();
+  }
+
+  public async findShot(
+    state: TableState,
+    sideSpin?: number,
+    topSpin?: number,
+    lift?: number
+  ) {
+    let bestScore = -Infinity;
+    let bestResult: Result | undefined = undefined;
+    let bestShot: Shot | undefined = undefined;
+
+    let iterations = 0;
+    let stepIterations = 0;
+
+    gameStore.analysisProgress = 0;
+
+    const endProfile = Game.profiler.start('ai-shot');
+    const startTime = performance.now();
+
+    const shots = this.generateShots(state, sideSpin, topSpin, lift);
+
+    const results = properties.useWorkerForAI
+      ? await this.runPooledSearch(shots, state)
+      : await this.runSearch(shots, state);
+
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      const score = this.score(result);
+
+      if (score > bestScore || !bestShot) {
+        bestScore = score;
+        bestResult = result;
+        bestShot = shots[i];
+      }
+
+      iterations++;
+      stepIterations += result.stepIterations;
+    }
+
+    endProfile();
 
     console.log({
+      time: performance.now() - startTime,
       iterations,
       stepIterations,
-      anglesChecked,
       bestScore,
       bestShot,
     });

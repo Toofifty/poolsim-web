@@ -1,7 +1,7 @@
 import { Color } from 'three';
 
 export const properties = {
-  useWorkerForAimAssist: false,
+  useWorkerForAimAssist: true,
   useWorkerForAI: true,
 
   // physics - cm/s
@@ -15,7 +15,7 @@ export const properties = {
   gravity: 0.01,
   epsilon: 1e-6,
   cueDefaultForce: 0.75,
-  cueMaxForce: 4,
+  cueMaxForce: 3,
 
   // objects (m)
   ballRadius: 0.028575,

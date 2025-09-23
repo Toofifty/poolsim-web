@@ -7,7 +7,7 @@ import { Profiler } from '../profiler';
 import { type RunSimulationOptions } from './simulation';
 import { TableState } from './table-state';
 
-const hydrateTableState = (state: TableState) => {
+export const hydrateTableState = (state: TableState) => {
   Object.setPrototypeOf(state, TableState.prototype);
 
   state.balls.forEach((ball) => {
@@ -31,9 +31,24 @@ export const hydrateRunSimulationOptions = (params: RunSimulationOptions) => {
   return params;
 };
 
+export const hydrateRunBatchSimulationOptions = (
+  batchParams: Omit<RunSimulationOptions, 'state'>[]
+) => {
+  return batchParams.map((params) => {
+    Object.setPrototypeOf(params.shot, Shot.prototype);
+    // todo
+    params.profiler = Profiler.none;
+    return params;
+  });
+};
+
 export const hydrateResult = (result: Result) => {
   Object.setPrototypeOf(result, Result.prototype);
   if (result.state) hydrateTableState(result.state);
 
   return result;
+};
+
+export const hydrateResults = (results: Result[]) => {
+  return results.map(hydrateResult);
 };

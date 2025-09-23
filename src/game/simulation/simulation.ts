@@ -7,12 +7,14 @@ import type { TableState } from './table-state';
 export type RunSimulationOptions = {
   state: TableState;
   shot: Shot;
+  trackPath: boolean;
   profiler?: IProfiler;
   stopAtFirstContact?: boolean;
 };
 
 export type RunSimulationStepOptions = {
   simulated: boolean;
+  trackPath: boolean;
   dt: number;
   state: TableState;
   stepIndex?: number;
@@ -22,18 +24,23 @@ export type RunSimulationStepOptions = {
 export interface ISimulation {
   // step(params: RunSimulationStepOptions): StepResult;
   run(params: RunSimulationOptions): Promise<Result>;
+  runBatch(
+    params: Omit<RunSimulationOptions, 'state'>[],
+    state: TableState
+  ): Promise<Result[]>;
 }
 
 export class Simulation implements ISimulation {
   public step({
     simulated,
+    trackPath,
     dt,
     state,
     stepIndex = -1,
     profiler = Profiler.none,
   }: RunSimulationStepOptions) {
     const result = new StepResult();
-    const trackPath = stepIndex % properties.trackingPointDist === 0;
+    trackPath &&= stepIndex % properties.trackingPointDist === 0;
 
     const endBallUpdate = profiler.start('ballUpdate');
     state.balls.forEach((ball) => {
@@ -114,6 +121,7 @@ export class Simulation implements ISimulation {
   public async run({
     shot,
     state,
+    trackPath,
     profiler = Profiler.none,
     stopAtFirstContact = false,
   }: RunSimulationOptions) {
@@ -132,6 +140,7 @@ export class Simulation implements ISimulation {
       const stepResult = profiler.profile('step', () =>
         this.step({
           simulated: true,
+          trackPath,
           dt: 1 / properties.updatesPerSecond,
           state: copiedState,
           stepIndex: i,
@@ -141,7 +150,7 @@ export class Simulation implements ISimulation {
         result.add(stepResult);
       });
 
-      if (result.hitFoulBall) {
+      if (result.hitFoulBall || result.hasOutOfBoundsBall()) {
         break;
       }
 
@@ -164,5 +173,14 @@ export class Simulation implements ISimulation {
 
     end();
     return result;
+  }
+
+  public async runBatch(
+    batchParams: Omit<RunSimulationOptions, 'state'>[],
+    state: TableState
+  ) {
+    return Promise.all(
+      batchParams.map((params) => this.run({ state, ...params }))
+    );
   }
 }

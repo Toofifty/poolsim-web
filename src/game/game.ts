@@ -203,6 +203,7 @@ export class Game {
     el.addEventListener('mousedown', this.onMouseDown);
     document.addEventListener('keydown', this.onKeyDown);
     document.addEventListener('keyup', this.onKeyUp);
+    window.addEventListener('resize', this.onResize);
   }
 
   private teardownListeners() {
@@ -216,6 +217,7 @@ export class Game {
     el.removeEventListener('mousedown', this.onMouseDown);
     document.removeEventListener('keydown', this.onKeyDown);
     document.removeEventListener('keyup', this.onKeyUp);
+    window.removeEventListener('resize', this.onResize);
   }
 
   private onMouseMove = (e: MouseEvent) => {
@@ -250,6 +252,20 @@ export class Game {
     }
 
     this.manager.keyup(e);
+  };
+
+  private onResize = () => {
+    console.log('onresize');
+    const container = this.renderer.domElement.parentElement;
+    if (container) {
+      const w = container.offsetWidth;
+      const h = container.offsetHeight;
+      this.renderer.setSize(w, h);
+      if (this.camera instanceof PerspectiveCamera) {
+        this.camera.aspect = w / h;
+        this.camera.updateProjectionMatrix();
+      }
+    }
   };
 
   private setupRectLights() {

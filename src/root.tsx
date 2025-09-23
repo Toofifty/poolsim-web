@@ -12,12 +12,12 @@ export const Root = () => {
   const { canvasEnabled } = useSnapshot(settings);
 
   return (
-    <div className="root-container">
+    <>
       {canvasEnabled && <Canvas game={game} />}
       <UIContainer>
         <Controls />
         <SpinControl />
       </UIContainer>
-    </div>
+    </>
   );
 };

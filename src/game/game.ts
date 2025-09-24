@@ -1,8 +1,6 @@
 import {
   ACESFilmicToneMapping,
   AmbientLight,
-  AudioListener,
-  AudioLoader,
   Camera,
   Clock,
   MathUtils,
@@ -12,7 +10,6 @@ import {
   OrthographicCamera,
   PCFSoftShadowMap,
   PerspectiveCamera,
-  PositionalAudio,
   Raycaster,
   RectAreaLight,
   Scene,
@@ -34,8 +31,6 @@ import {
   SSAOPass,
   SSRPass,
 } from 'three/examples/jsm/Addons.js';
-import clackUrl from '../assets/clack.wav';
-import breakUrl from '../assets/break.wav';
 import { GameManager } from './game-manager';
 import { Profiler } from './profiler';
 import { settings } from './store/settings';
@@ -44,8 +39,7 @@ import { properties } from './physics/properties';
 import { makeTheme } from './store/theme';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import { Debug } from './physics/debug';
-
-type AudioBuffers = Partial<Record<'clack' | 'break', AudioBuffer>>;
+import { Audio } from './audio';
 
 export class Game {
   // rendering
@@ -65,11 +59,9 @@ export class Game {
   private timestep = 1 / properties.updatesPerSecond;
   public lerps: Set<(dt: number) => void> = new Set();
 
-  private audioListener!: AudioListener;
-  private audioBuffers: AudioBuffers = {};
-
   public static instance: Game;
   public static debug: Debug;
+  public static audio: Audio;
   public static profiler = new Profiler();
 
   public static reflectives: Mesh[] = [];
@@ -153,19 +145,11 @@ export class Game {
     }
     this.composer.addPass(new OutputPass());
 
-    this.audioListener = new AudioListener();
-    this.camera.add(this.audioListener);
-
-    new AudioLoader().load(clackUrl, (buffer) => {
-      this.audioBuffers.clack = buffer;
-    });
-    new AudioLoader().load(breakUrl, (buffer) => {
-      this.audioBuffers.break = buffer;
-    });
-
     this.mouseRaycaster = new Raycaster();
     Game.debug = new Debug();
     this.scene.add(Game.debug);
+    Game.audio = new Audio(this.scene);
+    this.camera.add(Game.audio.listener);
 
     this.setupRectLights();
     this.setupAmbientLight();
@@ -255,7 +239,6 @@ export class Game {
   };
 
   private onResize = () => {
-    console.log('onresize');
     const container = this.renderer.domElement.parentElement;
     if (container) {
       const w = container.offsetWidth;
@@ -381,36 +364,6 @@ export class Game {
 
   public static get manager() {
     return this.instance.manager;
-  }
-
-  public playAudio(
-    audioName: keyof AudioBuffers,
-    position: Vector3,
-    volume: number = 0.5
-  ) {
-    const buffer = this.audioBuffers[audioName];
-    if (!buffer) return;
-
-    const audio = new PositionalAudio(this.audioListener);
-    audio.setBuffer(buffer);
-    audio.setRefDistance(20);
-    audio.position.copy(position);
-    audio.setVolume(volume);
-    this.scene.add(audio);
-    audio.play();
-
-    audio.source!.onended = () => {
-      this.scene.remove(audio);
-      audio.disconnect();
-    };
-  }
-
-  public static playAudio(
-    audioName: keyof AudioBuffers,
-    position: Vector3,
-    volume: number = 0.5
-  ) {
-    return this.instance.playAudio(audioName, position, volume);
   }
 
   public getMouseRaycaster() {

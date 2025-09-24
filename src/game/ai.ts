@@ -15,8 +15,12 @@ const createSimulationPool = () =>
     .map(() => new ThreadedSimulation());
 
 export class AI {
-  /** # of angles to check */
-  private precision = 120;
+  private angleSteps = 120;
+  private forceSteps = 10;
+  // todo: only vary lift, sideSpin, topSpin if other shots fail
+  private liftSteps = 7;
+  /** must be odd */
+  private sideSpinSteps = 1;
   private accuracy = 100;
   private prefTrickshot = 100;
   private prefMultishot = 100;
@@ -26,22 +30,12 @@ export class AI {
     ? createSimulationPool()
     : [];
 
-  private generateShots(
-    state: TableState,
-    sideSpin?: number,
-    topSpin?: number,
-    lift?: number
-  ) {
+  private generateShots(state: TableState, topSpin?: number) {
     const shots: Shot[] = [];
 
-    let angleSteps = this.precision;
+    let angleSteps = this.angleSteps;
     const angleStep = (Math.PI * 2) / angleSteps;
-
-    const minForce = properties.cueMaxForce / 10;
-    const maxForce = properties.cueMaxForce;
-    const forceStep = (maxForce - minForce) / 10;
-
-    const startAngle = -Math.PI / 2;
+    const minAngle = -Math.PI / 2;
     let maxAngle = (Math.PI * 3) / 2;
 
     if (state.isBreak) {
@@ -49,9 +43,32 @@ export class AI {
       maxAngle = Math.PI / 2;
     }
 
-    for (let angle = startAngle; angle < maxAngle; angle += angleStep) {
+    const minForce = properties.cueMaxForce / this.forceSteps;
+    const maxForce = properties.cueMaxForce;
+    const forceStep = (maxForce - minForce) / this.forceSteps;
+
+    const minLift = 0;
+    const maxLift = Math.PI / 2;
+    const liftStep = maxLift / this.liftSteps;
+
+    let minSideSpin = 0;
+    const maxSideSpin = 1;
+    const sideSpinStep = 2 / this.sideSpinSteps;
+    if (this.sideSpinSteps > 1) {
+      minSideSpin = -1;
+    }
+
+    for (let angle = minAngle; angle < maxAngle; angle += angleStep) {
       for (let force = minForce; force < maxForce; force += forceStep) {
-        shots.push(new Shot(angle, force, sideSpin, topSpin, lift));
+        for (let lift = minLift; lift < maxLift; lift += liftStep) {
+          for (
+            let sideSpin = minSideSpin;
+            sideSpin < maxSideSpin;
+            sideSpin += sideSpinStep
+          ) {
+            shots.push(new Shot(angle, force, sideSpin, topSpin, lift));
+          }
+        }
       }
     }
 
@@ -100,12 +117,7 @@ export class AI {
     return (await Promise.all(batchPromises)).flat();
   }
 
-  public async findShot(
-    state: TableState,
-    sideSpin?: number,
-    topSpin?: number,
-    lift?: number
-  ) {
+  public async findShot(state: TableState, topSpin?: number) {
     let bestScore = -Infinity;
     let bestResult: Result | undefined = undefined;
     let bestShot: Shot | undefined = undefined;
@@ -118,7 +130,7 @@ export class AI {
     const endProfile = Game.profiler.start('ai-shot');
     const startTime = performance.now();
 
-    const shots = this.generateShots(state, sideSpin, topSpin, lift);
+    const shots = this.generateShots(state, topSpin);
 
     const results = properties.useWorkerForAI
       ? await this.runPooledSearch(shots, state)

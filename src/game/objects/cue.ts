@@ -103,7 +103,7 @@ export class Cue {
       this.restingPositionY - this.force / 2,
       properties.cuePullBackTime
     );
-    Game.playAudio('break', this.object.position, this.force / 2);
+    Game.audio.play('hit_centre', this.object.position, this.force / 2);
     await dlerp(
       (v) => (this.object.position.y = v),
       this.object.position.y,
@@ -139,6 +139,9 @@ export class Cue {
       250
     );
     dlerp((v) => (this.force = v), this.force, shot.force, 250);
+    dlerp((v) => (this.sideSpin = v), this.sideSpin, shot.sideSpin, 250);
+    dlerp((v) => (this.topSpin = v), this.topSpin, shot.topSpin, 250);
+    dlerp((v) => (this.lift = v), this.lift, shot.lift, 250);
   }
 
   public update(dt: number = 1 / 60, settled?: boolean) {

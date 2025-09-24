@@ -144,9 +144,7 @@ export class GameManager {
     await delay(100);
     const shot = await this.ai.findShot(
       this.table.state,
-      this.table.cue.sideSpin,
-      this.table.cue.topSpin,
-      this.table.cue.lift
+      this.table.cue.topSpin
     );
     if (!shot) return;
     // let dt catch up before animating the cue
@@ -238,11 +236,14 @@ export class GameManager {
       if (result.collisions.length < 2) {
         result.collisions.forEach((collision) => {
           if (collision.type === 'ball-ball') {
-            Game.playAudio(
-              'clack',
+            Game.audio.play(
+              'clack_mid',
               vec.toVector3(collision.position),
-              Math.min(vec.len(collision.impulse) / 10, 10)
+              Math.min(vec.len(collision.impulse) * 2, 5)
             );
+          }
+          if (collision.type === 'ball-pocket') {
+            Game.audio.play('pocket_drop', vec.toVector3(collision.position));
           }
         });
       }

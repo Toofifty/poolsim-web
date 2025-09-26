@@ -1,29 +1,16 @@
-import {
-  CylinderGeometry,
-  ExtrudeGeometry,
-  Mesh,
-  Path,
-  SphereGeometry,
-} from 'three';
+import { ExtrudeGeometry, Mesh, Path } from 'three';
 import type { Pocket } from '../../objects/pocket';
-import { properties } from '../../physics/properties';
+import { properties } from '../../../../common/simulation/physics/properties';
 import { createMaterial } from '../../rendering/create-material';
-import {
-  createRoundedRect,
-  createRoundedRectShape,
-  fixUVs,
-  generateBoundingBoxUVs,
-  subtract,
-} from '../util';
+import { createRoundedRectShape, fixUVs } from '../util';
 import {
   createTableClothNormalTexture,
   createTableClothTexture,
 } from './create-table-cloth-texture';
 import type { ThemeObject } from '../../store/theme';
-import { params } from '../../physics/params';
+import { params } from '../../../../common/simulation/physics/params';
 import { settings } from '../../store/settings';
 
-// todo: use Shape & ExtrudeGeometry to round pocket edges
 export const createTableClothMesh = (pockets: Pocket[], theme: ThemeObject) => {
   const shape = createRoundedRectShape(
     properties.tableLength + properties.pocketCornerRadius * 2,
@@ -34,8 +21,8 @@ export const createTableClothMesh = (pockets: Pocket[], theme: ThemeObject) => {
   for (const pocket of pockets) {
     const path = new Path();
     path.absellipse(
-      pocket.position.x,
-      pocket.position.y,
+      pocket.position[0],
+      pocket.position[1],
       pocket.radius,
       pocket.radius,
       0,

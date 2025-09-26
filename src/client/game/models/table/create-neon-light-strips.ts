@@ -1,5 +1,5 @@
 import { PointLight } from 'three';
-import { properties } from '../../physics/properties';
+import { properties } from '../../../../common/simulation/physics/properties';
 
 const createPointLight = (x: number, y: number) => {
   const light = new PointLight(0xffffff, 0.01);

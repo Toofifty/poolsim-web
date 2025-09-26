@@ -1,5 +1,5 @@
 import { CylinderGeometry, Mesh, Object3D, SphereGeometry } from 'three';
-import { properties } from '../../physics/properties';
+import { properties } from '../../../../common/simulation/physics/properties';
 import { createMaterial } from '../../rendering/create-material';
 
 export const createCueMeshes = () => {

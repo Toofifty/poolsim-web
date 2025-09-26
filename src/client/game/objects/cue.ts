@@ -1,12 +1,12 @@
 import { Mesh, Object3D, Vector3 } from 'three';
-import { properties } from '../physics/properties';
+import { properties } from '../../../common/simulation/physics/properties';
 import type { Ball } from './ball';
-import { Shot } from '../physics/shot';
+import { Shot } from '../../../common/simulation/shot';
 import { Game } from '../game';
 import { gameStore } from '../store/game';
 import { dlerp } from '../dlerp';
 import { createCueMeshes } from '../models/cue/create-cue-meshes';
-import { params } from '../physics/params';
+import { params } from '../../../common/simulation/physics/params';
 
 export class Cue {
   private targetBall?: Ball;

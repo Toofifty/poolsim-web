@@ -1,15 +1,15 @@
 import { properties } from './properties';
-import type { Shot } from './shot';
+import type { Shot } from '../shot';
 import { PhysicsCushion } from './cushion';
 import type {
   BallBallCollision,
   BallCushionCollision,
   BallPocketCollision,
-} from './collision';
+} from '../collision';
 import type { PhysicsPocket } from './pocket';
 import { params } from './params';
-import { assert } from '../assert';
-import { vec, quat, type Quat, type Vec } from './math';
+import { assert } from '../../util';
+import { vec, quat, type Quat, type Vec } from '../../math';
 import {
   evolveBallMotion,
   evolveBallOrientation,
@@ -92,7 +92,7 @@ export class PhysicsBall {
   }
 
   public hit(shot: Shot) {
-    let direction = vec.norm(vec.from(shot.velocity));
+    let direction = vec.norm(shot.velocity);
     if (shot.lift > 0) {
       // apply vertical angle
       const right = vec.norm(vec.cross(vec.UP, direction));
@@ -116,7 +116,7 @@ export class PhysicsBall {
       vec.madd(this.w, dw);
     }
 
-    const dv = vec.mult(direction, shot.velocity.length());
+    const dv = vec.mult(direction, vec.len(shot.velocity));
     vec.madd(this.v, dv);
   }
 

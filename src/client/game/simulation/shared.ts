@@ -1,6 +1,6 @@
-import type { Result } from '../physics/result';
-import type { RunSimulationOptions } from './simulation';
-import type { TableState } from './table-state';
+import type { Result } from '../../../common/simulation/result';
+import type { RunSimulationOptions } from '../../../common/simulation/simulation';
+import type { TableState } from '../../../common/simulation/table-state';
 
 export type RunSimulationFn = {
   fn: 'run';

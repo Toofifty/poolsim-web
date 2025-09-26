@@ -1,8 +1,8 @@
 import { Mesh, PlaneGeometry } from 'three';
-import { properties } from '../../physics/properties';
+import { properties } from '../../../../common/simulation/physics/properties';
 import { combine } from '../util';
 import { createMaterial } from '../../rendering/create-material';
-import { params } from '../../physics/params';
+import { params } from '../../../../common/simulation/physics/params';
 import type { ThemeObject } from '../../store/theme';
 
 const createDiamond = (x: number, y: number) => {

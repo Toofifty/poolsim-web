@@ -7,8 +7,11 @@ import {
   Quaternion,
   Vector3,
 } from 'three';
-import { BallState, PhysicsBall } from '../physics/ball';
-import type { Shot } from '../physics/shot';
+import {
+  BallState,
+  PhysicsBall,
+} from '../../../common/simulation/physics/ball';
+import type { Shot } from '../../../common/simulation/shot';
 import { Game } from '../game';
 import { createBallMesh } from '../models/ball/create-ball-mesh';
 import { Arrow } from './arrow';
@@ -17,10 +20,10 @@ import {
   type TrackingPoint,
 } from '../models/ball/create-path-mesh';
 import type { Line2 } from 'three/examples/jsm/Addons.js';
-import { quat, vec, type Quat, type Vec } from '../physics/math';
+import { quat, vec, type Quat, type Vec } from '../../../common/math';
 import { BallDebug } from './ball-debug';
 import { createMaterial } from '../rendering/create-material';
-import { properties } from '../physics/properties';
+import { properties } from '../../../common/simulation/physics/properties';
 
 const INVALID_PROJECTION_MATERIAL = createMaterial({
   color: 0xff0000,

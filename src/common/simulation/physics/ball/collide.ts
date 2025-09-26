@@ -3,9 +3,9 @@ import type {
   BallBallCollision,
   BallCushionCollision,
   BallPocketCollision,
-} from '../collision';
+} from '../../collision';
 import type { PhysicsCushion } from '../cushion';
-import { vec, type Vec } from '../math';
+import { vec, type Vec } from '../../../math';
 import { params } from '../params';
 import type { PhysicsPocket } from '../pocket';
 
@@ -186,7 +186,7 @@ export const collideBallPocket = (
     return undefined;
   }
 
-  const dist = vec.dist(vec.setZ(b.r, 0), vec.setZ(vec.from(p.position), 0));
+  const dist = vec.dist(vec.setZ(b.r, 0), vec.setZ(p.position, 0));
 
   // only considered in the pocket if within it's radius,
   // and the ball is below rail height

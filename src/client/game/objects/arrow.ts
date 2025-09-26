@@ -1,5 +1,4 @@
 import {
-  Color,
   ConeGeometry,
   CylinderGeometry,
   Mesh,

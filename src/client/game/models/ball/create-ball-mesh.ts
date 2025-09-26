@@ -7,7 +7,7 @@ import {
 } from 'three';
 import { createBallTexture } from './create-ball-texture';
 import { createMaterial } from '../../rendering/create-material';
-import { properties } from '../../physics/properties';
+import { properties } from '../../../../common/simulation/physics/properties';
 
 import normalMapUrl from '../../../assets/scratch_normal.png';
 

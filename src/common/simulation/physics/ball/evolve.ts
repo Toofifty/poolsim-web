@@ -1,6 +1,5 @@
 import { BallState, type PhysicsBall } from '../ball';
-import { Debug } from '../debug';
-import { quat, vec } from '../math';
+import { quat, vec } from '../../../math';
 import { params } from '../params';
 import type { PhysicsPocket } from '../pocket';
 
@@ -167,18 +166,17 @@ const collideWithSlate = (ball: PhysicsBall) => {
 };
 
 export const evolvePocket = (b: PhysicsBall, p: PhysicsPocket, dt: number) => {
-  const pr = vec.from(p.position);
   // xy dist from pocket centre -> ball centre
-  const delta = vec.sub(vec.setZ(b.r, 0), vec.setZ(pr, 0));
+  const delta = vec.sub(vec.setZ(b.r, 0), vec.setZ(p.position, 0));
   const dist = vec.len(delta);
 
   b.v[2] -= g * dt;
 
   // pocket edge rolling
   if (dist >= p.radius - b.radius && b.r[2] <= 0 && b.r[2] > -2 * b.radius) {
-    const delta = vec.sub(vec.setZ(b.r, 0), vec.setZ(pr, 0));
+    const delta = vec.sub(vec.setZ(b.r, 0), vec.setZ(p.position, 0));
     const contactPoint = vec.add(
-      vec.setZ(pr, -b.radius),
+      vec.setZ(p.position, -b.radius),
       vec.mult(vec.norm(delta), p.radius)
     );
     const normal = vec.norm(vec.sub(b.r, contactPoint));
@@ -195,7 +193,7 @@ export const evolvePocket = (b: PhysicsBall, p: PhysicsPocket, dt: number) => {
   // internal cylinder collision
   if (dist > p.radius - b.radius) {
     // edge of pocket
-    const normal = vec.norm(vec.sub(b.r, vec.setZ(vec.from(p.position), 0)));
+    const normal = vec.norm(vec.sub(b.r, vec.setZ(p.position, 0)));
 
     const vn = vec.dot(b.v, normal);
     if (vn > 0) {
@@ -210,7 +208,7 @@ export const evolvePocket = (b: PhysicsBall, p: PhysicsPocket, dt: number) => {
   }
 
   // cylinder base collision
-  const bottomZ = p.position.z - p.depth / 2;
+  const bottomZ = p.position[2] - p.depth / 2;
   if (b.r[2] - b.radius < bottomZ) {
     const overlap = bottomZ - b.r[2] + b.radius;
     b.r[2] += overlap;

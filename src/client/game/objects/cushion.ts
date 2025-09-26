@@ -5,18 +5,17 @@ import {
   Object3D,
   PlaneGeometry,
 } from 'three';
-import { PhysicsCushion } from '../physics/cushion';
-import { properties } from '../physics/properties';
+import { PhysicsCushion } from '../../../common/simulation/physics/cushion';
+import { properties } from '../../../common/simulation/physics/properties';
 import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
 import { subscribe } from 'valtio';
 import { settings } from '../store/settings';
 import { createMaterial } from '../rendering/create-material';
 import { createTableClothNormalTexture } from '../models/table/create-table-cloth-texture';
-import { vec, type Vec } from '../physics/math';
+import { vec, type Vec } from '../../../common/math';
 import { themed } from '../store/theme';
 import { Game } from '../game';
-import { params } from '../physics/params';
-import { createUVDebugTexture } from '../models/debug/create-debug-texture';
+import { params } from '../../../common/simulation/physics/params';
 
 export class Cushion extends Object3D {
   public physics: PhysicsCushion;

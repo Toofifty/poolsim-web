@@ -1,5 +1,5 @@
 import { Color, type Vector3 } from 'three';
-import { BallState } from '../../physics/ball';
+import { BallState } from '../../../../common/simulation/physics/ball';
 import {
   Line2,
   LineGeometry,

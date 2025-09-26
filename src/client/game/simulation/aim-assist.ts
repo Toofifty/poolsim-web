@@ -1,10 +1,13 @@
 import { Game } from '../game';
 import type { Ball } from '../objects/ball';
-import { properties } from '../physics/properties';
-import type { Shot } from '../physics/shot';
+import { properties } from '../../../common/simulation/physics/properties';
+import type { Shot } from '../../../common/simulation/shot';
 import { AimAssistMode, settings } from '../store/settings';
-import { Simulation, type ISimulation } from './simulation';
-import type { TableState } from './table-state';
+import {
+  Simulation,
+  type ISimulation,
+} from '../../../common/simulation/simulation';
+import type { TableState } from '../../../common/simulation/table-state';
 import { ThreadedSimulation } from './threaded-simulation';
 
 export class AimAssist {

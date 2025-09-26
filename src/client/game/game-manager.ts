@@ -1,18 +1,18 @@
 import { Table } from './objects/table';
 import { Ball } from './objects/ball';
 import { Rack } from './rack';
-import { Simulation } from './simulation/simulation';
+import { Simulation } from '../../common/simulation/simulation';
 import { Game } from './game';
 import { AimAssistMode, Players, settings } from './store/settings';
-import { properties } from './physics/properties';
+import { properties } from '../../common/simulation/physics/properties';
 import { gameStore } from './store/game';
 import { AI } from './ai';
 import { delay } from './util/delay';
-import { RuleSet } from './simulation/table-state';
+import { RuleSet } from '../../common/simulation/table-state';
 import { AimAssist } from './simulation/aim-assist';
 import { subscribe } from 'valtio';
-import { Result } from './physics/result';
-import { vec } from './physics/math';
+import { vec } from '../../common/math';
+import { Result } from '../../common/simulation/result';
 
 export enum GameState {
   PlayerShoot,
@@ -237,20 +237,18 @@ export class GameManager {
         dt,
         state: this.table.state,
       });
-      if (result.collisions.length < 2) {
-        result.collisions.forEach((collision) => {
-          if (collision.type === 'ball-ball') {
-            Game.audio.play(
-              'clack_mid',
-              vec.toVector3(collision.position),
-              Math.min(vec.len(collision.impulse) * 2, 5)
-            );
-          }
-          if (collision.type === 'ball-pocket') {
-            Game.audio.play('pocket_drop', vec.toVector3(collision.position));
-          }
-        });
-      }
+      result.collisions.forEach((collision) => {
+        if (collision.type === 'ball-ball') {
+          Game.audio.play(
+            'clack_mid',
+            vec.toVector3(collision.position),
+            Math.min(vec.len(collision.impulse) * 2, 5)
+          );
+        }
+        if (collision.type === 'ball-pocket') {
+          Game.audio.play('pocket_drop', vec.toVector3(collision.position));
+        }
+      });
     }
 
     if (

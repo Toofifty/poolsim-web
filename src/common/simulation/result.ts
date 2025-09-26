@@ -1,5 +1,5 @@
-import type { TableState } from '../simulation/table-state';
-import type { PhysicsBall, PhysicsBallSnapshot } from './ball';
+import type { TableState } from './table-state';
+import type { PhysicsBall, PhysicsBallSnapshot } from './physics/ball';
 import type { Collision } from './collision';
 import type { Shot } from './shot';
 

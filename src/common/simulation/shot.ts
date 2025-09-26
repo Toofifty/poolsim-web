@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { vec } from '../math';
 
 export class Shot {
   public angle: number;
@@ -23,7 +23,7 @@ export class Shot {
   }
 
   get velocity() {
-    return new Vector3(
+    return vec.new(
       this.force * Math.cos(this.angle),
       this.force * Math.sin(this.angle)
     );

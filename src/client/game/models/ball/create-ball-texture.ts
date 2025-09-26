@@ -1,5 +1,5 @@
 import { CanvasTexture, Color, SRGBColorSpace } from 'three';
-import { properties } from '../../physics/properties';
+import { properties } from '../../../../common/simulation/physics/properties';
 import { settings } from '../../store/settings';
 
 const hex = (color: Color) => '#' + color.getHexString();

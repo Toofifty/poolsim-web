@@ -1,10 +1,13 @@
-import { assert } from './assert';
+import { assert } from '../../common/util/assert';
 import { Game } from './game';
-import { properties } from './physics/properties';
+import { properties } from '../../common/simulation/physics/properties';
 import type { Result } from './physics/result';
-import { Shot } from './physics/shot';
-import { Simulation, type ISimulation } from './simulation/simulation';
-import type { TableState } from './simulation/table-state';
+import { Shot } from '../../common/simulation/shot';
+import {
+  Simulation,
+  type ISimulation,
+} from '../../common/simulation/simulation';
+import type { TableState } from '../../common/simulation/table-state';
 import { ThreadedSimulation } from './simulation/threaded-simulation';
 import { gameStore } from './store/game';
 import { chunk } from './util/chunk';

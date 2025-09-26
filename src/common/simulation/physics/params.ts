@@ -49,6 +49,10 @@ export const params = {
       girth: 0.02,
     },
   },
+  table: {
+    length: 2.24,
+    width: 1.12,
+  },
 };
 
 if (typeof window !== 'undefined') (window as any).params = params;

@@ -6,9 +6,10 @@ import {
   Object3D,
   Vector2,
 } from 'three';
-import { PhysicsPocket } from '../physics/pocket';
+import { PhysicsPocket } from '../../../common/simulation/physics/pocket';
 import { createMaterial } from '../rendering/create-material';
 import { createPocketLinerMesh } from '../models/pocket/create-pocket-liner-mesh';
+import { vec } from '../../../common/math';
 
 export class Pocket {
   public physics: PhysicsPocket;
@@ -36,15 +37,15 @@ export class Pocket {
     const dir = new Vector2(0, 0);
 
     // top or bottom
-    dir.y = this.position.y > 0 ? -1 : 1;
+    dir.y = this.position[1] > 0 ? -1 : 1;
     // left, middle, right
-    dir.x = this.position.x === 0 ? 0 : this.position.x > 0 ? -1 : 1;
+    dir.x = this.position[0] === 0 ? 0 : this.position[0] > 0 ? -1 : 1;
 
     return dir.normalize();
   }
 
   private createMesh() {
-    this.parent.position.copy(this.position);
+    this.parent.position.copy(vec.toVector3(this.position));
     this.mesh = new Mesh(
       new CylinderGeometry(this.radius * 1.01, this.radius * 1.01, this.depth),
       createMaterial({ color: new Color('#222'), side: BackSide })

@@ -1,4 +1,4 @@
-import { properties } from './physics/properties';
+import { properties } from '../../common/simulation/physics/properties';
 import { Ball } from './objects/ball';
 
 const gap = properties.ballRadius / 8;

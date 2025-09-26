@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@types/cors':
+        specifier: ^2.8.19
+        version: 2.8.19
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
       express:
         specifier: ^5.1.0
         version: 5.1.0

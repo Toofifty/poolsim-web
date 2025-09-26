@@ -3,8 +3,8 @@ import {
   hydrateRunSimulationOptions,
   hydrateTableState,
 } from './hydrate';
-import type { SentMessage, SimulationWorkerFn } from './shared';
-import { Simulation } from './simulation';
+import type { SentMessage } from './shared';
+import { Simulation } from '../../../common/simulation/simulation';
 
 const simulation = new Simulation();
 

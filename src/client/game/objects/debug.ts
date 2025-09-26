@@ -1,5 +1,5 @@
 import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry } from 'three';
-import { vec, type Vec } from './math';
+import { vec, type Vec } from '../../../common/math';
 
 /** Note - drawing debug shapes can only be done on the main thread */
 export class Debug extends Object3D {

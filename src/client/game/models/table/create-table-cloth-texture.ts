@@ -5,7 +5,7 @@ import {
   SRGBColorSpace,
   type Color,
 } from 'three';
-import { properties } from '../../physics/properties';
+import { properties } from '../../../../common/simulation/physics/properties';
 import { settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
 import { Game } from '../../game';

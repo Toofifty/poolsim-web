@@ -1,4 +1,4 @@
-import { vec, type Vec } from './math';
+import { vec, type Vec } from '../../math';
 import { Polygon } from './polygon';
 
 export class PhysicsCushion extends Polygon {

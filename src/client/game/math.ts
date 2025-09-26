@@ -1,8 +1,5 @@
 import { Quaternion, type Vector3 } from 'three';
 
-export const constrain = (value: number, min: number, max: number) =>
-  Math.max(min, Math.min(value, max));
-
 export const triangulateConvexPolygon = (vertices: Vector3[]) => {
   if (vertices.length < 3) return [];
   const tris: Vector3[] = [];

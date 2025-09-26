@@ -1,5 +1,5 @@
-import { constrain } from '../math';
-import { vec, type Vec } from './math';
+import { vec, type Vec } from '../../math';
+import { constrain } from '../../util';
 import { params } from './params';
 import { properties } from './properties';
 

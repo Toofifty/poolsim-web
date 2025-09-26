@@ -4,7 +4,7 @@ import { Arrow } from './arrow';
 import { settings } from '../store/settings';
 import { getColor } from '../models/ball/create-path-mesh';
 import { Game } from '../game';
-import { vec } from '../physics/math';
+import { vec } from '../../../common/math';
 import { Text } from 'troika-three-text';
 
 export class BallDebug extends Object3D {

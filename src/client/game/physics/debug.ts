@@ -4,7 +4,7 @@ import { vec, type Vec } from './math';
 /** Note - drawing debug shapes can only be done on the main thread */
 export class Debug extends Object3D {
   private objects: Map<string, Object3D>;
-  private timeouts: Map<string, number>;
+  private timeouts: Map<string, NodeJS.Timeout>;
   private static instance: Debug;
 
   constructor() {

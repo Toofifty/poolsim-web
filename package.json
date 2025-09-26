@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "express": "^5.1.0",
+    "nanoid": "^5.1.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "socket.io": "^4.8.1",
     "stats.js": "^0.17.0",
     "three": "^0.180.0",
     "three-bvh-csg": "^0.0.17",
@@ -22,6 +25,7 @@
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@tabler/icons-react": "^3.35.0",
+    "@types/express": "^5.0.3",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/stats.js": "^0.17.4",

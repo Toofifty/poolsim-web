@@ -2,6 +2,8 @@
   position: fixed;
   inset: 16px;
   pointer-events: none;
+  margin-top: env(safe-area-inset-top);
+  margin-bottom: env(safe-area-inset-bottom);
 }
 
 @media (max-width: 1200px) {

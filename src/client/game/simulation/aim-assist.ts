@@ -43,9 +43,9 @@ export class AimAssist {
     }
 
     const firstContact = settings.aimAssistMode === AimAssistMode.FirstContact;
-    const profiler = settings.enableProfiler ? Game.profiler : Profiler.none;
+    const profiler = settings.enableProfiler ? Game.profiler : undefined;
 
-    await profiler.profile('aim-update', async () => {
+    await (profiler ?? Profiler.none).profile('aim-update', async () => {
       this.clear();
       this.lastShotKey = shot.key;
 
@@ -108,6 +108,6 @@ export class AimAssist {
         this.ballMap.get(ball.id)!.addTrackingPoint(position, state);
       });
     });
-    profiler.dump();
+    profiler?.dump();
   }
 }

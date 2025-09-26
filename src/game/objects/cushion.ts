@@ -1,4 +1,10 @@
-import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from 'three';
+import {
+  BufferGeometry,
+  Mesh,
+  MeshBasicMaterial,
+  Object3D,
+  PlaneGeometry,
+} from 'three';
 import { PhysicsCushion } from '../physics/cushion';
 import { properties } from '../physics/properties';
 import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
@@ -10,6 +16,7 @@ import { vec, type Vec } from '../physics/math';
 import { themed } from '../store/theme';
 import { Game } from '../game';
 import { params } from '../physics/params';
+import { createUVDebugTexture } from '../models/debug/create-debug-texture';
 
 export class Cushion extends Object3D {
   public physics: PhysicsCushion;
@@ -42,12 +49,38 @@ export class Cushion extends Object3D {
     return this;
   }
 
-  private createMesh() {
-    const geometry = createCushionGeometry(this.physics.vertices);
+  private get isVertical() {
+    return this.physics.vertices[0][0] === this.physics.vertices[3][0];
+  }
+
+  private get isLeft() {
+    return (
+      this.isVertical &&
+      this.physics.vertices[0][1] < this.physics.vertices[3][1]
+    );
+  }
+
+  private createNormalTexture(geometry: BufferGeometry) {
     geometry.computeBoundingBox();
     const bbox = geometry.boundingBox!;
-    const width = Math.abs(bbox.max.x - bbox.min.x);
-    const height = Math.abs(bbox.max.y - bbox.min.y);
+    const scale = 2;
+
+    const texture = createTableClothNormalTexture(
+      scale * Math.abs(bbox.max.x - bbox.min.x),
+      scale * Math.abs(bbox.max.y - bbox.min.y)
+    );
+
+    if (this.isVertical) {
+      texture.flipY = false;
+      texture.rotation = (Math.PI / 2) * (this.isLeft ? -1 : 1);
+    }
+
+    return texture;
+  }
+
+  private createMesh() {
+    const geometry = createCushionGeometry(this.physics.vertices);
+    const normalMap = this.createNormalTexture(geometry);
     themed((theme) => {
       if (this.mesh) {
         Game.dispose(this.mesh);
@@ -57,10 +90,7 @@ export class Cushion extends Object3D {
       this.mesh = new Mesh(
         geometry,
         createMaterial({
-          normalMap: createTableClothNormalTexture(
-            Math.max(width, height),
-            Math.min(width, height)
-          ),
+          normalMap: settings.highDetail ? normalMap : null,
           color: theme.table.colorCloth,
           roughness: 1,
           metalness: 0,

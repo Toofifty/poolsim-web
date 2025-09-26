@@ -32,12 +32,11 @@ export const combine = (...gs: BufferGeometry[]) => {
   ).geometry;
 };
 
-export const createRoundedRect = (
+export const createRoundedRectShape = (
   width: number,
   height: number,
-  radius: number,
-  extrudeOptions: ExtrudeGeometryOptions
-): BufferGeometry => {
+  radius: number
+) => {
   const shape = new Shape();
 
   const x = -width / 2;
@@ -53,8 +52,19 @@ export const createRoundedRect = (
   shape.lineTo(x, y + radius);
   shape.quadraticCurveTo(x, y, x + radius, y);
 
-  return new ExtrudeGeometry(shape, extrudeOptions);
+  return shape;
 };
+
+export const createRoundedRect = (
+  width: number,
+  height: number,
+  radius: number,
+  extrudeOptions: ExtrudeGeometryOptions
+): BufferGeometry =>
+  new ExtrudeGeometry(
+    createRoundedRectShape(width, height, radius),
+    extrudeOptions
+  );
 
 export const fixUVs = (geometry: BufferGeometry) => {
   geometry.computeBoundingBox();

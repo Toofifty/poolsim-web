@@ -27,10 +27,10 @@ export const createCushionGeometry = ([A, B, C, D]: [Vec, Vec, Vec, Vec]) => {
   shape.lineTo(A[0], A[1]);
 
   let geometry: BufferGeometry = new ExtrudeGeometry(shape, {
-    depth: height,
+    depth: height - rounding,
     bevelSize: rounding,
     bevelThickness: rounding,
-  }).translate(0, 0, -ball.radius);
+  }).translate(0, 0, -ball.radius + rounding);
 
   const dNormal = vec.perp(vec.norm(vec.sub(D, A)));
   const d = width - baseWidth;
@@ -51,8 +51,8 @@ export const createCushionGeometry = ([A, B, C, D]: [Vec, Vec, Vec, Vec]) => {
   }
   position.needsUpdate = true;
 
-  geometry = generateBoundingBoxUVs(geometry);
   geometry.computeVertexNormals();
+  geometry = generateBoundingBoxUVs(geometry);
 
   return geometry;
 };

@@ -267,7 +267,7 @@ export class Game {
       const sl = new SpotLight(0xffffff, 1);
       sl.decay = 2;
       sl.castShadow = true;
-      sl.shadow.bias = -0.0000005;
+      sl.shadow.bias = -0.00000000005;
       sl.shadow.mapSize.set(2048, 2048);
       sl.shadow.camera.near = 0.1;
       sl.shadow.camera.far = 5;

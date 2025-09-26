@@ -1,7 +1,9 @@
 import {
+  BufferAttribute,
   ExtrudeGeometry,
   Float32BufferAttribute,
   Shape,
+  Vector2,
   Vector3,
   type BufferGeometry,
   type ExtrudeGeometryOptions,
@@ -73,22 +75,43 @@ export const fixUVs = (geometry: BufferGeometry) => {
   uv.needsUpdate = true;
 };
 
-export const generateUVs = (
-  geometry: BufferGeometry,
-  positions: Float32Array
-) => {
-  geometry.computeBoundingBox();
-  const box = geometry.boundingBox!;
-  const size = new Vector3();
-  box.getSize(size);
+export function generateBoundingBoxUVs(geometry: BufferGeometry) {
+  // Make a copy if needed
+  const geom = geometry.index ? geometry.toNonIndexed() : geometry;
+  const pos = geom.getAttribute('position');
 
-  const uvs = [];
-  for (let i = 0; i < positions.length; i += 3) {
-    const x = positions[i];
-    const y = positions[i + 1];
-    // pick a projection plane — here XY
-    uvs.push((x - box.min.x) / size.x);
-    uvs.push((y - box.min.y) / size.y);
+  // Compute bounding box
+  geom.computeBoundingBox();
+  const bbox = geom.boundingBox!;
+  const size = new Vector3();
+  bbox.getSize(size);
+
+  const uvArray = new Float32Array(pos.count * 2);
+
+  for (let i = 0; i < pos.count; i++) {
+    const absSize = [size.x, size.y, size.z];
+    const axes = ['x', 'y', 'z'] as const;
+    const sorted = absSize
+      .map((s, idx) => ({ size: s, axis: axes[idx] }))
+      .sort((a, b) => b.size - a.size);
+
+    const uAxis = sorted[0].axis;
+    const vAxis = sorted[1].axis;
+
+    const u =
+      (pos.getComponent(i, axes.indexOf(uAxis)) - bbox.min[uAxis]) /
+      size[uAxis];
+    const v =
+      (pos.getComponent(i, axes.indexOf(vAxis)) - bbox.min[vAxis]) /
+      size[vAxis];
+
+    const uInset = 0.1;
+    const vInset = 0.1;
+
+    uvArray[i * 2] = u * (1 - 2 * uInset) + uInset;
+    uvArray[i * 2 + 1] = v * (1 - 2 * vInset) + vInset;
   }
-  geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
-};
+
+  geom.setAttribute('uv', new BufferAttribute(uvArray, 2));
+  return geom;
+}

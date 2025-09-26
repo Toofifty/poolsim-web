@@ -29,7 +29,25 @@ export const params = {
   },
   cushion: {
     /** h = 1.2R */
+    width: 0.04,
+    baseWidth: 0.01,
     height: 0.028575 * 1.2,
+    backHeight: 0.028575 * 1.3,
+    rounding: 0.005,
+  },
+  pocket: {
+    depth: 0.24,
+    rounding: 0.005,
+    edge: {
+      radius: 0.06,
+      overlap: 0.025,
+      girth: 0.01,
+    },
+    corner: {
+      radius: 0.07,
+      overlap: 0.02,
+      girth: 0.02,
+    },
   },
 };
 

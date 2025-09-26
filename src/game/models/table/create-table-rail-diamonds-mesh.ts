@@ -2,6 +2,8 @@ import { Mesh, PlaneGeometry } from 'three';
 import { properties } from '../../physics/properties';
 import { combine } from '../util';
 import { createMaterial } from '../../rendering/create-material';
+import { params } from '../../physics/params';
+import type { ThemeObject } from '../../store/theme';
 
 const createDiamond = (x: number, y: number) => {
   const diamond = new PlaneGeometry(
@@ -13,7 +15,8 @@ const createDiamond = (x: number, y: number) => {
   return diamond;
 };
 
-export const createTableRailDiamondsMesh = () => {
+export const createTableRailDiamondsMesh = (theme: ThemeObject) => {
+  const { ball, cushion } = params;
   const { tableWidth: tw, tableLength: tl, railPadding } = properties;
 
   const gapX = tl / 8;
@@ -41,11 +44,12 @@ export const createTableRailDiamondsMesh = () => {
   const mesh = new Mesh(
     combine(...diamonds),
     createMaterial({
-      color: properties.colorTableRailDiamond,
+      color: theme.table.colorDiamond,
       roughness: 0,
       metalness: 0.6,
     })
   );
   mesh.receiveShadow = true;
+  mesh.position.z += cushion.height - ball.radius + 0.005;
   return mesh;
 };

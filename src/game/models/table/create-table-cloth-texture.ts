@@ -1,7 +1,14 @@
-import { CanvasTexture, SRGBColorSpace, type Color } from 'three';
+import {
+  CanvasTexture,
+  NearestFilter,
+  RepeatWrapping,
+  SRGBColorSpace,
+  type Color,
+} from 'three';
 import { properties } from '../../physics/properties';
 import { settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
+import { Game } from '../../game';
 
 const hex = (color: Color) => '#' + color.getHexString();
 
@@ -126,7 +133,7 @@ export const createTableClothNormalTexture = (
   width?: number,
   height?: number
 ) => {
-  const scale = settings.highDetail ? 2000 : 500;
+  const scale = settings.highDetail ? 2000 : 1000;
   const tableLength = properties.tableLength * scale;
   const tableWidth = properties.tableWidth * scale;
   const pocketCornerRadius = properties.pocketCornerRadius * scale;
@@ -134,6 +141,9 @@ export const createTableClothNormalTexture = (
   canvas.width = (width ?? 0) * scale || tableLength + pocketCornerRadius * 2;
   canvas.height = (height ?? 0) * scale || tableWidth + pocketCornerRadius * 2;
   const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#f00';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // overlay subtle noise
   const noise = ctx.createImageData(canvas.width, canvas.height);
@@ -182,6 +192,8 @@ export const createTableClothNormalTexture = (
   ctx.putImageData(dst, 0, 0);
 
   const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
   texture.colorSpace = SRGBColorSpace;
   texture.needsUpdate = true;
   return texture;

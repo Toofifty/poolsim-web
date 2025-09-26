@@ -6,9 +6,10 @@ import { subscribe } from 'valtio';
 import { settings } from '../store/settings';
 import { createMaterial } from '../rendering/create-material';
 import { createTableClothNormalTexture } from '../models/table/create-table-cloth-texture';
-import { vec } from '../physics/math';
+import { vec, type Vec } from '../physics/math';
 import { themed } from '../store/theme';
 import { Game } from '../game';
+import { params } from '../physics/params';
 
 export class Cushion extends Object3D {
   public physics: PhysicsCushion;
@@ -26,6 +27,10 @@ export class Cushion extends Object3D {
     return new Cushion(PhysicsCushion.fromRelativeVertices(...verticesXY));
   }
 
+  static fromVertices(...vertices: [tl: Vec, bl: Vec, br: Vec, tr: Vec]) {
+    return new Cushion(PhysicsCushion.fromVertices(...vertices));
+  }
+
   public reverseVertices() {
     this.physics.vertices = [
       this.physics.vertices[1],
@@ -38,12 +43,11 @@ export class Cushion extends Object3D {
   }
 
   private createMesh() {
-    const geometry = createCushionGeometry(
-      vec.toVector3s(this.physics.vertices),
-      this.height
-    );
+    const geometry = createCushionGeometry(this.physics.vertices);
     geometry.computeBoundingBox();
     const bbox = geometry.boundingBox!;
+    const width = Math.abs(bbox.max.x - bbox.min.x);
+    const height = Math.abs(bbox.max.y - bbox.min.y);
     themed((theme) => {
       if (this.mesh) {
         Game.dispose(this.mesh);
@@ -53,14 +57,11 @@ export class Cushion extends Object3D {
       this.mesh = new Mesh(
         geometry,
         createMaterial({
-          normalMap: settings.highDetail
-            ? createTableClothNormalTexture(
-                Math.abs(bbox.max.x - bbox.min.x),
-                Math.abs(bbox.max.y - bbox.min.y)
-              )
-            : null,
+          normalMap: createTableClothNormalTexture(
+            Math.max(width, height),
+            Math.min(width, height)
+          ),
           color: theme.table.colorCloth,
-          flatShading: true,
           roughness: 1,
           metalness: 0,
         })
@@ -89,111 +90,84 @@ export class Cushion extends Object3D {
 }
 
 export const createCushions = () => {
+  const { tableLength, tableWidth } = properties;
   const {
-    tableLength,
-    tableWidth,
-    pocketCornerRadius,
-    pocketEdgeRadius,
-    pocketOverlap,
-    pocketCornerOverlap,
-    pocketCornerGirth,
-    bumperWidth,
-  } = properties;
+    cushion: { width },
+    pocket: { edge, corner },
+  } = params;
 
-  const leftBound = -tableLength / 2;
-  const rightBound = tableLength / 2;
-  const topBound = -tableWidth / 2;
-  const bottomBound = tableWidth / 2;
+  const t = vec.new(0, tableWidth / 2);
+  const b = vec.new(0, -tableWidth / 2);
+  /** top-left */
+  const tl = vec.new(-tableLength / 2, tableWidth / 2);
+  /** bottom-left */
+  const bl = vec.new(-tableLength / 2, -tableWidth / 2);
+  /** bottom-right */
+  const br = vec.new(tableLength / 2, -tableWidth / 2);
+  /** top-right */
+  const tr = vec.new(tableLength / 2, tableWidth / 2);
 
-  const vBumperHeight = tableWidth - pocketCornerRadius * 2;
-  const hBumperWidth = tableLength / 2 - pocketCornerRadius - pocketEdgeRadius;
+  const cushions: Cushion[] = [];
 
-  return [
-    // left
-    Cushion.fromRelativeVertices2D(
-      leftBound,
-      topBound + pocketCornerRadius - pocketCornerOverlap,
-      0,
-      vBumperHeight + pocketCornerOverlap * 2,
-      bumperWidth,
-      -bumperWidth - pocketCornerGirth,
-      0,
-      -vBumperHeight +
-        (bumperWidth + pocketCornerGirth) * 2 -
-        pocketCornerOverlap * 2
-    ).reverseVertices(),
-    // right
-    Cushion.fromRelativeVertices2D(
-      rightBound,
-      topBound + pocketCornerRadius - pocketCornerOverlap,
-      0,
-      vBumperHeight + pocketCornerOverlap * 2,
-      -bumperWidth,
-      -bumperWidth - pocketCornerGirth,
-      0,
-      -vBumperHeight +
-        (bumperWidth + pocketCornerGirth) * 2 -
-        pocketCornerOverlap * 2
-    ),
-    // top-left
-    Cushion.fromRelativeVertices2D(
-      leftBound + pocketCornerRadius - pocketCornerOverlap,
-      bottomBound,
-      hBumperWidth + pocketOverlap + pocketCornerOverlap,
-      0,
-      -bumperWidth / 2,
-      -bumperWidth,
-      -hBumperWidth +
-        (bumperWidth * 3) / 2 -
-        pocketOverlap -
-        pocketCornerOverlap +
-        pocketCornerGirth,
-      0
-    ).reverseVertices(),
-    // top-right
-    Cushion.fromRelativeVertices2D(
-      rightBound - pocketCornerRadius + pocketCornerOverlap,
-      bottomBound,
-      -hBumperWidth - pocketOverlap - pocketCornerOverlap,
-      0,
-      bumperWidth / 2,
-      -bumperWidth,
-      hBumperWidth -
-        (bumperWidth * 3) / 2 +
-        pocketOverlap +
-        pocketCornerOverlap -
-        pocketCornerGirth,
-      0
-    ),
-    // bottom-left
-    Cushion.fromRelativeVertices2D(
-      leftBound + pocketCornerRadius - pocketCornerOverlap,
-      topBound,
-      hBumperWidth + pocketOverlap + pocketCornerOverlap,
-      0,
-      -bumperWidth / 2,
-      bumperWidth,
-      -hBumperWidth +
-        (bumperWidth * 3) / 2 -
-        pocketOverlap -
-        pocketCornerOverlap +
-        pocketCornerGirth,
-      0
-    ),
-    // bottom-right
-    Cushion.fromRelativeVertices2D(
-      rightBound - pocketCornerRadius + pocketCornerOverlap,
-      topBound,
-      -hBumperWidth - pocketOverlap - pocketCornerOverlap,
-      0,
-      bumperWidth / 2,
-      bumperWidth,
-      hBumperWidth -
-        (bumperWidth * 3) / 2 +
-        pocketOverlap +
-        pocketCornerOverlap -
-        pocketCornerGirth,
-      0
-    ).reverseVertices(),
-  ];
+  // left
+  cushions.push(
+    Cushion.fromVertices(
+      vec.addY(bl, corner.radius),
+      vec.addXY(bl, width, width + corner.radius + corner.girth),
+      vec.subXY(tl, -width, width + corner.radius + corner.girth),
+      vec.subY(tl, corner.radius)
+    )
+  );
+
+  // top-left
+  cushions.push(
+    Cushion.fromVertices(
+      vec.addX(tl, corner.radius),
+      vec.addXY(tl, width + corner.radius + corner.girth, -width),
+      vec.subXY(t, edge.radius + edge.girth, width),
+      vec.subX(t, edge.radius)
+    )
+  );
+
+  // top-right
+  cushions.push(
+    Cushion.fromVertices(
+      vec.addX(t, edge.radius),
+      vec.addXY(t, edge.radius + edge.girth, -width),
+      vec.subXY(tr, width + corner.radius + corner.girth, width),
+      vec.subX(tr, corner.radius)
+    )
+  );
+
+  // right
+  cushions.push(
+    Cushion.fromVertices(
+      vec.subY(tr, corner.radius),
+      vec.subXY(tr, width, width + corner.radius + corner.girth),
+      vec.addXY(br, -width, width + corner.radius + corner.girth),
+      vec.addY(br, corner.radius)
+    )
+  );
+
+  // bottom-right
+  cushions.push(
+    Cushion.fromVertices(
+      vec.subX(br, corner.radius),
+      vec.subXY(br, width + corner.radius + corner.girth, -width),
+      vec.addXY(b, edge.radius + edge.girth, width),
+      vec.addX(b, edge.radius)
+    )
+  );
+
+  // bottom-left
+  cushions.push(
+    Cushion.fromVertices(
+      vec.subX(b, edge.radius),
+      vec.subXY(b, edge.radius + edge.girth, -width),
+      vec.addXY(bl, width + corner.radius + corner.girth, width),
+      vec.addX(bl, corner.radius)
+    )
+  );
+
+  return cushions;
 };

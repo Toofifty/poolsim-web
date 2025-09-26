@@ -10,6 +10,7 @@ import {
 import { settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
 
+// todo: use Shape & ExtrudeGeometry to round pocket edges
 export const createTableClothMesh = (pockets: Pocket[], theme: ThemeObject) => {
   const height = properties.ballRadius;
   let geometry = createRoundedRect(
@@ -46,7 +47,7 @@ export const createTableClothMesh = (pockets: Pocket[], theme: ThemeObject) => {
     geometry,
     createMaterial({
       map: createTableClothTexture(theme),
-      normalMap: settings.highDetail ? createTableClothNormalTexture() : null,
+      normalMap: createTableClothNormalTexture(),
       roughness: 1,
       metalness: 0,
       sheen: 1,

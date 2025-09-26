@@ -4,11 +4,11 @@ import { params } from './params';
 import { properties } from './properties';
 
 export class Polygon {
-  public vertices: Vec[];
+  public vertices: [Vec, Vec, Vec, Vec];
   public collisionBox: [Vec, Vec];
 
   constructor(vertices: Vec[]) {
-    this.vertices = vertices;
+    this.vertices = vertices as [Vec, Vec, Vec, Vec];
 
     let minX = 0;
     let minY = 0;

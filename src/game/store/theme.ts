@@ -1,7 +1,7 @@
 import { Color } from 'three';
 import { proxy, subscribe } from 'valtio';
 
-export type TableTheme = 'green' | 'blue' | 'red' | 'purple';
+export type TableTheme = 'green' | 'blue' | 'red' | 'pink';
 export type LightingTheme = 'normal' | 'neon';
 
 export type ThemeObject = {
@@ -54,11 +54,12 @@ const getTableTheme = (): ThemeObject['table'] => {
         colorCloth: new Color(0x227722),
         colorRail: new Color(0x683104),
       };
-    case 'purple':
+    case 'pink':
       return {
         ...base,
-        colorCloth: new Color(0x671277),
-        colorRail: new Color(0x252525),
+        colorDiamond: new Color(0xff64b3),
+        colorCloth: new Color(0xff64b3),
+        colorRail: new Color(0xf0afaf),
       };
     case 'red':
       return {

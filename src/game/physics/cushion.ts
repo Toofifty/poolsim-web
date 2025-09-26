@@ -15,4 +15,15 @@ export class PhysicsCushion extends Polygon {
 
     return new PhysicsCushion(vertices);
   }
+
+  /**
+   * Vertices _must_ be in this order (regardless of orientation):
+   *
+   *  tl - - - - - - - - - - tr
+   *    \                  /      tl -> bl -> br -> tr
+   *     bl ->-------->- br
+   */
+  static fromVertices(...vertices: [tl: Vec, bl: Vec, br: Vec, tr: Vec]) {
+    return new PhysicsCushion(vertices);
+  }
 }

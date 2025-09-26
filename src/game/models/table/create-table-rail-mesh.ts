@@ -4,20 +4,19 @@ import { properties } from '../../physics/properties';
 import { createMaterial } from '../../rendering/create-material';
 import { createRoundedRect, subtract } from '../util';
 import type { ThemeObject } from '../../store/theme';
+import { params } from '../../physics/params';
 
 export const createTableRailMesh = (pockets: Pocket[], theme: ThemeObject) => {
-  const height = properties.ballRadius * 2;
+  const { ball, cushion, pocket } = params;
+
+  const height = cushion.height * 2;
 
   const railBase = createRoundedRect(
-    properties.tableLength +
-      properties.pocketCornerRadius * 2 +
-      properties.railPadding,
-    properties.tableWidth +
-      properties.pocketCornerRadius * 2 +
-      properties.railPadding,
-    properties.pocketCornerRadius + properties.railPadding,
+    properties.tableLength + pocket.corner.radius * 2 + properties.railPadding,
+    properties.tableWidth + pocket.corner.radius * 2 + properties.railPadding,
+    pocket.corner.radius + properties.railPadding,
     { depth: height - 0.01, bevelThickness: 0.01, bevelSize: 0.01 }
-  ).translate(0, 0, -height);
+  ).translate(0, 0, -ball.radius * 2);
 
   const tableInner = createRoundedRect(
     properties.tableLength,
@@ -46,7 +45,7 @@ export const createTableRailMesh = (pockets: Pocket[], theme: ThemeObject) => {
     createMaterial({
       color: theme.table.colorRail,
       roughness: 0.2,
-      metalness: 0.1,
+      metalness: 0.4,
     })
   );
   mesh.receiveShadow = true;

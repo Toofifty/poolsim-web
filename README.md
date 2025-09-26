@@ -12,11 +12,11 @@ Play pool in your browser
 
 ### Physics
 
-- Implement spin (side & top)
-- Implement masse
-- Event-based evolution
-- Revisit physics values
-- Fix ball entering pocket physics
+- ~~Implement spin (side & top)~~
+- ~~Implement masse~~
+- ~~Event-based evolution~~ not worth
+- ~~Revisit physics values~~
+- ~~Fix ball entering pocket physics~~
 
 ### Graphics
 
@@ -24,7 +24,7 @@ Play pool in your browser
   - Body / legs
   - Pocket graphics
 - Background / skybox
-- Redo cushion geometries
+- ~~Redo cushion geometries~~
   - Maybe round cushion physics corners
 - Fix pocket liners/openings
 

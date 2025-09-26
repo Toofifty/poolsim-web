@@ -269,7 +269,7 @@ const ThemeControls = () => {
     <div className="group lower">
       <span>Theme</span>
       <div className="group">
-        {(['green', 'blue', 'red', 'purple'] as const).map((v) => (
+        {(['green', 'blue', 'red', 'pink'] as const).map((v) => (
           <Button
             key={v}
             active={table === v}

@@ -74,7 +74,7 @@ export class Table {
         this.object3D.remove(this.diamonds);
       }
 
-      this.diamonds = createTableRailDiamondsMesh();
+      this.diamonds = createTableRailDiamondsMesh(theme);
       this.object3D.add(this.diamonds);
     });
 

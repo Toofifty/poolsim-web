@@ -105,6 +105,15 @@ export const vec = {
     return v1;
   },
 
+  addX: (v: Vec, x: number): Vec => [v[0] + x, v[1], v[2]],
+  addY: (v: Vec, y: number): Vec => [v[0], v[1] + y, v[2]],
+  addZ: (v: Vec, z: number): Vec => [v[0], v[1], v[2] + z],
+  subX: (v: Vec, x: number): Vec => [v[0] - x, v[1], v[2]],
+  subY: (v: Vec, y: number): Vec => [v[0], v[1] - y, v[2]],
+  subZ: (v: Vec, z: number): Vec => [v[0], v[1], v[2] - z],
+  addXY: (v: Vec, x: number, y: number): Vec => [v[0] + x, v[1] + y, v[2]],
+  subXY: (v: Vec, x: number, y: number): Vec => [v[0] - x, v[1] - y, v[2]],
+
   /** Set components to 0 if near 0 */
   minimise: (v: Vec, epsilon = 1e-8): Vec => [
     Math.abs(v[0]) < epsilon ? 0 : v[0],

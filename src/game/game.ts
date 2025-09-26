@@ -122,15 +122,15 @@ export class Game {
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
 
+    const ssao = new SSAOPass(this.scene, this.camera);
+    ssao.kernelRadius = 1;
+    ssao.minDistance = 0.001;
+    ssao.maxDistance = 0.1;
+
+    // ssao.output = SSAOPass.OUTPUT.Blur;
+    this.composer.addPass(ssao);
+
     if (settings.highDetail) {
-      const ssao = new SSAOPass(this.scene, this.camera);
-      ssao.kernelRadius = 1;
-      ssao.minDistance = 0.001;
-      ssao.maxDistance = 0.1;
-
-      // ssao.output = SSAOPass.OUTPUT.Blur;
-      this.composer.addPass(ssao);
-
       const ssr = new SSRPass({
         renderer: this.renderer,
         scene: this.scene,
@@ -267,7 +267,7 @@ export class Game {
       const sl = new SpotLight(0xffffff, 1);
       sl.decay = 2;
       sl.castShadow = true;
-      sl.shadow.bias = -0.000005;
+      sl.shadow.bias = -0.0000005;
       sl.shadow.mapSize.set(2048, 2048);
       sl.shadow.camera.near = 0.1;
       sl.shadow.camera.far = 5;

@@ -9,6 +9,7 @@ import { gameStore } from '../game/store/game';
 import { GameState } from '../game/game-manager';
 import { useState } from 'react';
 import { theme } from '../game/store/theme';
+import { IconChevronUp, IconSettings } from '@tabler/icons-react';
 
 const getStateName = (state: GameState | undefined) => {
   switch (state) {
@@ -27,11 +28,14 @@ const getStateName = (state: GameState | undefined) => {
 export const Controls = () => {
   const { state, analysisProgress } = useSnapshot(gameStore);
 
-  const [showUI, setShotUI] = useState(true);
+  const [showUI, setShowUI] = useState(false);
 
   return (
     <div className="controls">
       <div className="group">
+        <Button surface circle onClick={() => setShowUI((v) => !v)}>
+          {showUI ? <IconChevronUp size={16} /> : <IconSettings size={16} />}
+        </Button>
         <Surface>
           <div className="group lower">
             <span>Status: </span>
@@ -43,9 +47,6 @@ export const Controls = () => {
             </span>
           </div>
         </Surface>
-        <Button surface onClick={() => setShotUI((v) => !v)}>
-          Toggle UI
-        </Button>
         <Surface className="grow">
           <PowerBar />
         </Surface>

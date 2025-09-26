@@ -5,6 +5,7 @@ import { Controls } from './ui/controls';
 import { useSnapshot } from 'valtio';
 import { settings } from './game/store/settings';
 import { SpinControl } from './ui/spin-control';
+import { MobileControls } from './ui/mobile-controls';
 
 const game = new Game();
 
@@ -16,6 +17,7 @@ export const Root = () => {
       {canvasEnabled && <Canvas game={game} />}
       <UIContainer>
         <Controls />
+        <MobileControls />
         <SpinControl />
       </UIContainer>
     </>

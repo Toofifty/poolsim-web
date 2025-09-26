@@ -108,11 +108,15 @@ export class GameManager {
     this.table.state.isBreak = true;
   }
 
+  public shoot() {
+    this.table.cue.shoot(() => {
+      this.setState(GameState.PlayerInPlay);
+    });
+  }
+
   public mousedown(event: MouseEvent) {
     if (event.button === 0 && this.state === GameState.PlayerShoot) {
-      this.table.cue.shoot(() => {
-        this.setState(GameState.PlayerInPlay);
-      });
+      this.shoot();
     }
   }
 

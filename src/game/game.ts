@@ -118,6 +118,11 @@ export class Game {
       MIDDLE: MOUSE.ROTATE,
       RIGHT: MOUSE.PAN,
     };
+    this.controls.enabled = settings.enableZoomPan;
+
+    subscribe(settings, () => {
+      this.controls.enabled = settings.enableZoomPan;
+    });
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
@@ -184,6 +189,7 @@ export class Game {
     }
 
     el.addEventListener('mousemove', this.onMouseMove);
+    el.addEventListener('touchmove', this.onTouchMove);
     el.addEventListener('mousedown', this.onMouseDown);
     document.addEventListener('keydown', this.onKeyDown);
     document.addEventListener('keyup', this.onKeyUp);
@@ -198,6 +204,7 @@ export class Game {
     }
 
     el.removeEventListener('mousemove', this.onMouseMove);
+    el.removeEventListener('touchmove', this.onTouchMove);
     el.removeEventListener('mousedown', this.onMouseDown);
     document.removeEventListener('keydown', this.onKeyDown);
     document.removeEventListener('keyup', this.onKeyUp);
@@ -205,10 +212,25 @@ export class Game {
   }
 
   private onMouseMove = (e: MouseEvent) => {
+    if (settings.enableZoomPan) return;
+
     const { left, top, width, height } =
       this.renderer.domElement.getBoundingClientRect();
     const x = e.clientX - left;
     const y = e.clientY - top;
+    this.mousePosition.x = (x / width) * 2 - 1;
+    this.mousePosition.y = -(y / height) * 2 + 1;
+  };
+
+  private onTouchMove = (e: TouchEvent) => {
+    if (settings.enableZoomPan) return;
+
+    const { left, top, width, height } =
+      this.renderer.domElement.getBoundingClientRect();
+    const [touch] = e.touches;
+
+    const x = touch.clientX - left;
+    const y = touch.clientY - top;
     this.mousePosition.x = (x / width) * 2 - 1;
     this.mousePosition.y = -(y / height) * 2 + 1;
   };

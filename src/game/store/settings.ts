@@ -1,4 +1,5 @@
 import { proxy } from 'valtio';
+import { getIsMobile } from '../../ui/use-media-query';
 
 export enum AimAssistMode {
   Off,
@@ -13,11 +14,12 @@ export enum Players {
 }
 
 export const settings = proxy({
-  aimAssistMode: AimAssistMode.Full,
+  aimAssistMode: AimAssistMode.Off,
 
   highDetail: false,
   ortho: false,
   players: Players.PlayerVsPlayer,
+  enableZoomPan: typeof window !== 'undefined' && !getIsMobile(),
 
   canvasEnabled: true,
   pauseSimulation: false,

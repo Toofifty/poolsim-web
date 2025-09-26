@@ -4,14 +4,19 @@ import { Button } from './button';
 import {
   IconArrowsHorizontal,
   IconArrowsVertical,
+  IconChevronRight,
   IconRefresh,
+  IconRotate360,
 } from '@tabler/icons-react';
 import { useSnapshot } from 'valtio';
 import { gameStore } from '../game/store/game';
 import { useMemo, useState } from 'react';
 import { useMouseInputs } from './use-mouse-inputs';
+import { useIsMobile } from './use-media-query';
 
 export const SpinControl = () => {
+  const isMobile = useIsMobile();
+  const [visible, setVisible] = useState(!isMobile);
   const { cueSpinX, cueSpinY, cueLift } = useSnapshot(gameStore);
 
   const [lockTopSpin, setLockTopSpin] = useState(false);
@@ -46,81 +51,100 @@ export const SpinControl = () => {
   }, []);
 
   return (
-    <Surface className="spin-control">
-      <div className="spin-control__buttons">
-        <Button
-          className="spin-control__button"
-          active={!lockTopSpin}
-          onClick={() => setLockTopSpin((v) => !v)}
-        >
-          <IconArrowsVertical size={16} />
-        </Button>
-        <Button
-          className="spin-control__button"
-          active={!lockSideSpin}
-          onClick={() => setLockSideSpin((v) => !v)}
-        >
-          <IconArrowsHorizontal size={16} />
-        </Button>
-        <Button
-          className="spin-control__button"
-          onClick={() => {
-            gameStore.cueSpinX = 0;
-            gameStore.cueSpinY = 0;
-            gameStore.cueLift = 0;
-          }}
-        >
-          <IconRefresh size={16} />
-        </Button>
-      </div>
-      <div ref={setClickArea} className="spin-control__ball-area">
-        <div className="spin-control__ball" {...ballAreaProps} />
-        <div
-          className="spin-control__point"
-          style={{
-            transform: `translate(${cueSpinX * width}px, ${
-              cueSpinY * height
-            }px)`,
-          }}
-        />
-      </div>
-      <div className="spin-control__lift-area" {...liftAreaProps}>
-        <div className="spin-control__lift-container">
-          <div className="spin-control__lift-mark">
-            <span className="spin-control__lift-mark-line" />
-            <span className="spin-control__lift-mark-value">90°</span>
+    <div className="spin-control__container">
+      <Button surface circle onClick={() => setVisible((v) => !v)}>
+        {visible ? <IconChevronRight size={16} /> : <IconRotate360 size={16} />}
+      </Button>
+      {visible && (
+        <Surface className="spin-control">
+          <div className="spin-control__buttons">
+            <Button
+              className="spin-control__button"
+              active={!lockTopSpin}
+              onClick={() => setLockTopSpin((v) => !v)}
+            >
+              <IconArrowsVertical size={16} />
+            </Button>
+            <Button
+              className="spin-control__button"
+              active={!lockSideSpin}
+              onClick={() => setLockSideSpin((v) => !v)}
+            >
+              <IconArrowsHorizontal size={16} />
+            </Button>
+            <Button
+              className="spin-control__button"
+              onClick={() => {
+                gameStore.cueSpinX = 0;
+                gameStore.cueSpinY = 0;
+                gameStore.cueLift = 0;
+              }}
+            >
+              <IconRefresh size={16} />
+            </Button>
           </div>
-          <div className="spin-control__lift-mark" style={{ top: '16.666%' }}>
-            <span className="spin-control__lift-mark-line subtle" />
+          <div ref={setClickArea} className="spin-control__ball-area">
+            <div className="spin-control__ball" {...ballAreaProps} />
+            <div
+              className="spin-control__point"
+              style={{
+                transform: `translate(${cueSpinX * width}px, ${
+                  cueSpinY * height
+                }px)`,
+              }}
+            />
           </div>
-          <div className="spin-control__lift-mark" style={{ top: '33.333%' }}>
-            <span className="spin-control__lift-mark-line subtle" />
+          <div className="spin-control__lift-area" {...liftAreaProps}>
+            <div className="spin-control__lift-container">
+              <div className="spin-control__lift-mark">
+                <span className="spin-control__lift-mark-line" />
+                <span className="spin-control__lift-mark-value">90°</span>
+              </div>
+              <div
+                className="spin-control__lift-mark"
+                style={{ top: '16.666%' }}
+              >
+                <span className="spin-control__lift-mark-line subtle" />
+              </div>
+              <div
+                className="spin-control__lift-mark"
+                style={{ top: '33.333%' }}
+              >
+                <span className="spin-control__lift-mark-line subtle" />
+              </div>
+              <div className="spin-control__lift-mark" style={{ top: '50%' }}>
+                <span className="spin-control__lift-mark-line" />
+                <span className="spin-control__lift-mark-value">45°</span>
+              </div>
+              <div
+                className="spin-control__lift-mark"
+                style={{ top: '66.666%' }}
+              >
+                <span className="spin-control__lift-mark-line subtle" />
+              </div>
+              <div
+                className="spin-control__lift-mark"
+                style={{ top: '83.333%' }}
+              >
+                <span className="spin-control__lift-mark-line subtle" />
+              </div>
+              <div className="spin-control__lift-mark" style={{ bottom: 0 }}>
+                <span className="spin-control__lift-mark-line" />
+                <span className="spin-control__lift-mark-value">0°</span>
+              </div>
+              <div
+                className="spin-control__lift-mark"
+                style={{ bottom: `${(200 * cueLift) / Math.PI}%` }}
+              >
+                <span className="spin-control__lift-mark-line is-indicator" />
+                <span className="spin-control__lift-mark-value is-indicator">
+                  {((cueLift / Math.PI) * 180).toFixed(0)}°
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="spin-control__lift-mark" style={{ top: '50%' }}>
-            <span className="spin-control__lift-mark-line" />
-            <span className="spin-control__lift-mark-value">45°</span>
-          </div>
-          <div className="spin-control__lift-mark" style={{ top: '66.666%' }}>
-            <span className="spin-control__lift-mark-line subtle" />
-          </div>
-          <div className="spin-control__lift-mark" style={{ top: '83.333%' }}>
-            <span className="spin-control__lift-mark-line subtle" />
-          </div>
-          <div className="spin-control__lift-mark" style={{ bottom: 0 }}>
-            <span className="spin-control__lift-mark-line" />
-            <span className="spin-control__lift-mark-value">0°</span>
-          </div>
-          <div
-            className="spin-control__lift-mark"
-            style={{ bottom: `${(200 * cueLift) / Math.PI}%` }}
-          >
-            <span className="spin-control__lift-mark-line is-indicator" />
-            <span className="spin-control__lift-mark-value is-indicator">
-              {((cueLift / Math.PI) * 180).toFixed(0)}°
-            </span>
-          </div>
-        </div>
-      </div>
-    </Surface>
+        </Surface>
+      )}
+    </div>
   );
 };

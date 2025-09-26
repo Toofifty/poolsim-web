@@ -7,9 +7,9 @@ import {
   Vector2,
 } from 'three';
 import { PhysicsPocket } from '../../../common/simulation/physics/pocket';
-import { createMaterial } from '../rendering/create-material';
 import { createPocketLinerMesh } from '../models/pocket/create-pocket-liner-mesh';
-import { vec } from '../../../common/math';
+import { createMaterial } from '../rendering/create-material';
+import { toVector3 } from '../util/three-interop';
 
 export class Pocket {
   public physics: PhysicsPocket;
@@ -45,7 +45,7 @@ export class Pocket {
   }
 
   private createMesh() {
-    this.parent.position.copy(vec.toVector3(this.position));
+    this.parent.position.copy(toVector3(this.position));
     this.mesh = new Mesh(
       new CylinderGeometry(this.radius * 1.01, this.radius * 1.01, this.depth),
       createMaterial({ color: new Color('#222'), side: BackSide })

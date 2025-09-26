@@ -1,8 +1,8 @@
 import { BufferGeometry, ExtrudeGeometry, Shape } from 'three';
-import { generateBoundingBoxUVs } from '../util';
 import { vec, type Vec } from '../../../../common/math';
 import { params } from '../../../../common/simulation/physics/params';
 import { constrain } from '../../../../common/util';
+import { generateBoundingBoxUVs } from '../util';
 
 export const createCushionGeometry = ([A, B, C, D]: [Vec, Vec, Vec, Vec]) => {
   const {

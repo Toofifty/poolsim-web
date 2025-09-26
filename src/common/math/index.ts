@@ -1,2 +1,2 @@
-export * from './vec';
 export * from './quat';
+export * from './vec';

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { constrain } from '../game/math';
+import { constrain } from '../../common/util';
 
 export const useMouseInputs = (
   fn: (mouse: { x: number; y: number; rect: DOMRect }) => void,

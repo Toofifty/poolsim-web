@@ -1,25 +1,25 @@
-import { properties } from './properties';
-import type { Shot } from '../shot';
-import { PhysicsCushion } from './cushion';
+import { quat, vec, type Quat, type Vec } from '../../math';
+import { assert } from '../../util';
 import type {
   BallBallCollision,
   BallCushionCollision,
   BallPocketCollision,
 } from '../collision';
-import type { PhysicsPocket } from './pocket';
-import { params } from './params';
-import { assert } from '../../util';
-import { vec, quat, type Quat, type Vec } from '../../math';
-import {
-  evolveBallMotion,
-  evolveBallOrientation,
-  evolvePocket,
-} from './ball/evolve';
+import type { Shot } from '../shot';
 import {
   collideBallBall,
   collideBallCushion,
   collideBallPocket,
 } from './ball/collide';
+import {
+  evolveBallMotion,
+  evolveBallOrientation,
+  evolvePocket,
+} from './ball/evolve';
+import { PhysicsCushion } from './cushion';
+import { params } from './params';
+import type { PhysicsPocket } from './pocket';
+import { properties } from './properties';
 
 export type PhysicsBallSnapshot = {
   position: Vec;

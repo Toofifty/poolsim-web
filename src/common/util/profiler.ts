@@ -1,5 +1,3 @@
-import { settings } from './store/settings';
-
 const sum = (n: number[]) => n.reduce((s, c) => s + c, 0);
 const avg = (n: number[]) => sum(n) / n.length;
 
@@ -22,10 +20,6 @@ export class Profiler implements IProfiler {
   };
 
   public dump() {
-    if (!settings.enableProfiler) {
-      return;
-    }
-
     const profiles = Object.fromEntries(
       Object.entries(this.profiles).map(([key, timings]) => {
         const path = key.split('.');
@@ -60,10 +54,6 @@ export class Profiler implements IProfiler {
   }
 
   public start(key: string) {
-    if (!settings.enableProfiler) {
-      return () => {};
-    }
-
     const fullkey = [...this.activeProfileStack, key].join('.');
     const start = performance.now();
     this.activeProfiles[fullkey] = start;

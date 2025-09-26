@@ -1,6 +1,3 @@
-import { Surface } from './surface';
-import './spin-control.scss';
-import { Button } from './button';
 import {
   IconArrowsHorizontal,
   IconArrowsVertical,
@@ -8,11 +5,14 @@ import {
   IconRefresh,
   IconRotate360,
 } from '@tabler/icons-react';
+import { useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { gameStore } from '../game/store/game';
-import { useMemo, useState } from 'react';
-import { useMouseInputs } from './use-mouse-inputs';
+import { Button } from './button';
+import './spin-control.scss';
+import { Surface } from './surface';
 import { useIsMobile } from './use-media-query';
+import { useMouseInputs } from './use-mouse-inputs';
 
 export const SpinControl = () => {
   const isMobile = useIsMobile();

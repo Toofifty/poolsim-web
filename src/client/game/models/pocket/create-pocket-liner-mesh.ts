@@ -1,9 +1,9 @@
 import { BufferGeometry, Mesh, TorusGeometry } from 'three';
+import { params } from '../../../../common/simulation/physics';
 import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
-import { createRoundedRect, subtract } from '../util';
 import { makeTheme } from '../../store/theme';
-import { params } from '../../../../common/simulation/physics';
+import { createRoundedRect, subtract } from '../util';
 
 export const createPocketLinerMesh = (pocket: Pocket) => {
   const mouthDirection = pocket.mouthDirection;

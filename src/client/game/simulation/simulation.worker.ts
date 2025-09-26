@@ -1,10 +1,10 @@
+import { Simulation } from '../../../common/simulation/simulation';
 import {
   hydrateRunBatchSimulationOptions,
   hydrateRunSimulationOptions,
   hydrateTableState,
 } from './hydrate';
 import type { SentMessage } from './shared';
-import { Simulation } from '../../../common/simulation/simulation';
 
 const simulation = new Simulation();
 

@@ -1,6 +1,6 @@
+import { vec, type Vec } from '../../math';
 import type { PhysicsBall } from './ball';
 import { properties } from './properties';
-import { vec, type Vec } from '../../math';
 
 export class PhysicsPocket {
   public position: Vec;

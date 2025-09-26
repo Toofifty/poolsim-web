@@ -1,7 +1,7 @@
+import { Profiler, type IProfiler } from '../util/profiler';
 import { properties } from './physics/properties';
 import { Result, StepResult } from './result';
 import type { Shot } from './shot';
-import { Profiler, type IProfiler } from '../../client/game/profiler';
 import type { TableState } from './table-state';
 
 export type RunSimulationOptions = {

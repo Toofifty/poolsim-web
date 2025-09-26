@@ -1,12 +1,12 @@
-import { hydrateResult, hydrateResults } from './hydrate';
-import { runInWorker } from './run-in-worker';
-import { type RunSimulationFn, type RunBatchSimulationFn } from './shared';
 import {
   type ISimulation,
   type RunSimulationOptions,
 } from '../../../common/simulation/simulation';
-import SimulationWorker from './simulation.worker?worker';
 import type { TableState } from '../../../common/simulation/table-state';
+import { hydrateResult, hydrateResults } from './hydrate';
+import { runInWorker } from './run-in-worker';
+import { type RunBatchSimulationFn, type RunSimulationFn } from './shared';
+import SimulationWorker from './simulation.worker?worker';
 
 /**
  * Uses a web worker to run a simulation

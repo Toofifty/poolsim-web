@@ -1,4 +1,3 @@
-// SkyZ.js
 import {
   BackSide,
   BoxGeometry,

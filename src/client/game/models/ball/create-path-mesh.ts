@@ -1,10 +1,10 @@
 import { Color, type Vector3 } from 'three';
-import { BallState } from '../../../../common/simulation/physics/ball';
 import {
   Line2,
   LineGeometry,
   LineMaterial,
 } from 'three/examples/jsm/Addons.js';
+import { BallState } from '../../../../common/simulation/physics/ball';
 
 export const getColor = (state: BallState) => {
   switch (state) {

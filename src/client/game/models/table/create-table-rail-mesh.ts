@@ -1,10 +1,10 @@
 import { CylinderGeometry, Mesh } from 'three';
-import type { Pocket } from '../../objects/pocket';
-import { properties } from '../../../../common/simulation/physics/properties';
-import { createMaterial } from '../../rendering/create-material';
-import { createRoundedRect, subtract } from '../util';
-import type { ThemeObject } from '../../store/theme';
 import { params } from '../../../../common/simulation/physics/params';
+import { properties } from '../../../../common/simulation/physics/properties';
+import type { Pocket } from '../../objects/pocket';
+import { createMaterial } from '../../rendering/create-material';
+import type { ThemeObject } from '../../store/theme';
+import { createRoundedRect, subtract } from '../util';
 
 export const createTableRailMesh = (pockets: Pocket[], theme: ThemeObject) => {
   const { ball, cushion, pocket } = params;

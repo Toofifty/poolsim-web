@@ -1,11 +1,12 @@
 import { Mesh, MeshBasicMaterial, Object3D, TorusGeometry } from 'three';
-import type { Ball } from './ball';
-import { Arrow } from './arrow';
-import { settings } from '../store/settings';
-import { getColor } from '../models/ball/create-path-mesh';
-import { Game } from '../game';
-import { vec } from '../../../common/math';
 import { Text } from 'troika-three-text';
+import { vec } from '../../../common/math';
+import { Game } from '../game';
+import { getColor } from '../models/ball/create-path-mesh';
+import { settings } from '../store/settings';
+import { toVector3 } from '../util/three-interop';
+import { Arrow } from './arrow';
+import type { Ball } from './ball';
 
 export class BallDebug extends Object3D {
   private billboard: Object3D;
@@ -68,9 +69,9 @@ export class BallDebug extends Object3D {
     const v = this.ball.physics.velocity;
     const w = this.ball.physics.angularVelocity;
 
-    this.arrowU.setVector(vec.toVector3(u));
-    this.arrowV.setVector(vec.toVector3(v));
-    this.arrowW.setVector(vec.toVector3(w));
+    this.arrowU.setVector(toVector3(u));
+    this.arrowV.setVector(toVector3(v));
+    this.arrowW.setVector(toVector3(w));
 
     this.textU.text = 'u ' + vec.toString(u);
     this.textU.sync();

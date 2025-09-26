@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import './surface.scss';
 import './button.scss';
+import './surface.scss';
 
 export const Button = ({
   surface = false,

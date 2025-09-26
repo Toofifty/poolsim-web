@@ -5,17 +5,17 @@ import {
   Object3D,
   PlaneGeometry,
 } from 'three';
-import { PhysicsCushion } from '../../../common/simulation/physics/cushion';
-import { properties } from '../../../common/simulation/physics/properties';
-import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
 import { subscribe } from 'valtio';
-import { settings } from '../store/settings';
-import { createMaterial } from '../rendering/create-material';
-import { createTableClothNormalTexture } from '../models/table/create-table-cloth-texture';
 import { vec, type Vec } from '../../../common/math';
-import { themed } from '../store/theme';
-import { Game } from '../game';
+import { PhysicsCushion } from '../../../common/simulation/physics/cushion';
 import { params } from '../../../common/simulation/physics/params';
+import { properties } from '../../../common/simulation/physics/properties';
+import { Game } from '../game';
+import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
+import { createTableClothNormalTexture } from '../models/table/create-table-cloth-texture';
+import { createMaterial } from '../rendering/create-material';
+import { settings } from '../store/settings';
+import { themed } from '../store/theme';
 
 export class Cushion extends Object3D {
   public physics: PhysicsCushion;

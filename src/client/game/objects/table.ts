@@ -5,18 +5,18 @@ import {
   PlaneGeometry,
   Vector3,
 } from 'three';
-import { Ball } from './ball';
 import { properties } from '../../../common/simulation/physics/properties';
-import { Cue } from './cue';
-import { Game } from '../game';
-import { createCushions, Cushion } from './cushion';
-import { Pocket } from './pocket';
 import { RuleSet, TableState } from '../../../common/simulation/table-state';
+import { Game } from '../game';
 import { createTableClothMesh } from '../models/table/create-table-cloth-mesh';
-import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
 import { createTableRailDiamondsMesh } from '../models/table/create-table-rail-diamonds-mesh';
+import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
 import { settings } from '../store/settings';
 import { themed } from '../store/theme';
+import { Ball } from './ball';
+import { Cue } from './cue';
+import { createCushions, Cushion } from './cushion';
+import { Pocket } from './pocket';
 
 export class Table {
   public cue: Cue;

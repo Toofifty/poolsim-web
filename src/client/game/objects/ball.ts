@@ -7,23 +7,24 @@ import {
   Quaternion,
   Vector3,
 } from 'three';
+import type { Line2 } from 'three/examples/jsm/Addons.js';
+import { vec, type Quat, type Vec } from '../../../common/math';
 import {
   BallState,
   PhysicsBall,
 } from '../../../common/simulation/physics/ball';
+import { properties } from '../../../common/simulation/physics/properties';
 import type { Shot } from '../../../common/simulation/shot';
 import { Game } from '../game';
 import { createBallMesh } from '../models/ball/create-ball-mesh';
-import { Arrow } from './arrow';
 import {
   createPathMesh,
   type TrackingPoint,
 } from '../models/ball/create-path-mesh';
-import type { Line2 } from 'three/examples/jsm/Addons.js';
-import { quat, vec, type Quat, type Vec } from '../../../common/math';
-import { BallDebug } from './ball-debug';
 import { createMaterial } from '../rendering/create-material';
-import { properties } from '../../../common/simulation/physics/properties';
+import { toQuaternion, toVector3 } from '../util/three-interop';
+import { Arrow } from './arrow';
+import { BallDebug } from './ball-debug';
 
 const INVALID_PROJECTION_MATERIAL = createMaterial({
   color: 0xff0000,
@@ -94,7 +95,7 @@ export class Ball {
   }
 
   get position() {
-    return vec.toVector3(this.physics.position);
+    return toVector3(this.physics.position);
   }
 
   get radius() {
@@ -135,21 +136,21 @@ export class Ball {
   }
 
   public addCollisionPoint(position: Vec, orientation: Quat) {
-    const p = vec.toVector3(position);
-    const o = quat.toQuaternion(orientation);
+    const p = toVector3(position);
+    const o = toQuaternion(orientation);
     this.collisionPoints.push(p);
     this.collisionOrientations.push(o);
   }
 
   public addTrackingPoint(position: Vec, state: BallState) {
-    this.trackingPoints.push({ position: vec.toVector3(position), state });
+    this.trackingPoints.push({ position: toVector3(position), state });
   }
 
   public updateImpactArrow(position: Vec, velocity: Vec) {
     this.impactArrow.position.copy(
-      vec.toVector3(vec.sub(position, this.physics.position))
+      toVector3(vec.sub(position, this.physics.position))
     );
-    this.impactVelocity = vec.toVector3(velocity);
+    this.impactVelocity = toVector3(velocity);
   }
 
   public clearImpactArrow() {
@@ -163,7 +164,7 @@ export class Ball {
 
   private updateMesh() {
     this.mesh.rotation.setFromQuaternion(
-      quat.toQuaternion(this.physics.orientation)
+      toQuaternion(this.physics.orientation)
     );
     this.parent.position.copy(this.position);
   }

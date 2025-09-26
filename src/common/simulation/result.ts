@@ -1,7 +1,7 @@
-import type { TableState } from './table-state';
-import type { PhysicsBall, PhysicsBallSnapshot } from './physics/ball';
 import type { Collision } from './collision';
+import type { PhysicsBall, PhysicsBallSnapshot } from './physics';
 import type { Shot } from './shot';
+import type { TableState } from './table-state';
 
 export class Result {
   stepIterations = 1;

@@ -1,6 +1,6 @@
+import type { Vector3 } from 'three';
 import { lerp } from 'three/src/math/MathUtils.js';
 import { Game } from './game';
-import type { Vector3 } from 'three';
 
 class Deferred<T = void> {
   public promise: Promise<T>;

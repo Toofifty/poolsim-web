@@ -1,15 +1,15 @@
 import { ExtrudeGeometry, Mesh, Path } from 'three';
-import type { Pocket } from '../../objects/pocket';
+import { params } from '../../../../common/simulation/physics/params';
 import { properties } from '../../../../common/simulation/physics/properties';
+import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
+import { settings } from '../../store/settings';
+import type { ThemeObject } from '../../store/theme';
 import { createRoundedRectShape, fixUVs } from '../util';
 import {
   createTableClothNormalTexture,
   createTableClothTexture,
 } from './create-table-cloth-texture';
-import type { ThemeObject } from '../../store/theme';
-import { params } from '../../../../common/simulation/physics/params';
-import { settings } from '../../store/settings';
 
 export const createTableClothMesh = (pockets: Pocket[], theme: ThemeObject) => {
   const shape = createRoundedRectShape(

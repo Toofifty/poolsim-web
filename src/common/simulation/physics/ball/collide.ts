@@ -1,11 +1,11 @@
-import type { PhysicsBall } from '../ball';
+import { vec, type Vec } from '../../../math';
 import type {
   BallBallCollision,
   BallCushionCollision,
   BallPocketCollision,
 } from '../../collision';
+import type { PhysicsBall } from '../ball';
 import type { PhysicsCushion } from '../cushion';
-import { vec, type Vec } from '../../../math';
 import { params } from '../params';
 import type { PhysicsPocket } from '../pocket';
 

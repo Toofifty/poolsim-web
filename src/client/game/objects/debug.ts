@@ -1,5 +1,6 @@
 import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry } from 'three';
-import { vec, type Vec } from '../../../common/math';
+import { type Vec } from '../../../common/math';
+import { toVector3 } from '../util/three-interop';
 
 /** Note - drawing debug shapes can only be done on the main thread */
 export class Debug extends Object3D {
@@ -36,7 +37,7 @@ export class Debug extends Object3D {
       );
       this.add(this.objects.get(key)!);
     }
-    this.objects.get(key)?.position.copy(vec.toVector3(position));
+    this.objects.get(key)?.position.copy(toVector3(position));
     if (this.timeouts.has(key)) {
       clearTimeout(this.timeouts.get(key));
     }

@@ -1,4 +1,3 @@
-import { Quaternion } from 'three';
 import type { Vec } from './vec';
 
 export type Quat = [number, number, number, number];
@@ -16,8 +15,6 @@ export const quat = {
     z ?? 0,
   ],
   clone: (q: Quat): Quat => [q[0], q[1], q[2], q[3]],
-  from: (q: Quaternion): Quat => [q.w, q.x, q.y, q.z],
-  toQuaternion: (q: Quat) => new Quaternion(q[x], q[y], q[z], q[w]),
   fromAxisAngle: (axis: Vec, angle: number): Quat => {
     const sha = Math.sin(angle / 2);
     const cha = Math.cos(angle / 2);

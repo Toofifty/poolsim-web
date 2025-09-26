@@ -1,6 +1,4 @@
-import type { PhysicsBall } from './physics/ball';
-import type { PhysicsCushion } from './physics/cushion';
-import type { PhysicsPocket } from './physics/pocket';
+import type { PhysicsBall, PhysicsCushion, PhysicsPocket } from './physics';
 
 export enum RuleSet {
   _8Ball,

@@ -1,10 +1,10 @@
-import { useIsMobile } from './use-media-query';
-import './mobile-controls.scss';
-import { Button } from './button';
 import { IconArrowsMove, IconPlayerPlay } from '@tabler/icons-react';
-import { Game } from '../game/game';
 import { useSnapshot } from 'valtio';
+import { Game } from '../game/game';
 import { settings } from '../game/store/settings';
+import { Button } from './button';
+import './mobile-controls.scss';
+import { useIsMobile } from './use-media-query';
 
 export const MobileControls = () => {
   const isMobile = useIsMobile();

@@ -1,6 +1,5 @@
 import {
   CanvasTexture,
-  NearestFilter,
   RepeatWrapping,
   SRGBColorSpace,
   type Color,
@@ -8,7 +7,6 @@ import {
 import { properties } from '../../../../common/simulation/physics/properties';
 import { settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
-import { Game } from '../../game';
 
 const hex = (color: Color) => '#' + color.getHexString();
 

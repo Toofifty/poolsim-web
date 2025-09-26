@@ -1,20 +1,20 @@
-import { Game } from '../game';
-import type { Ball } from '../objects/ball';
 import { properties } from '../../../common/simulation/physics/properties';
 import type { Shot } from '../../../common/simulation/shot';
-import { AimAssistMode, settings } from '../store/settings';
 import {
   Simulation,
   type ISimulation,
 } from '../../../common/simulation/simulation';
 import type { TableState } from '../../../common/simulation/table-state';
+import { Profiler } from '../../../common/util/profiler';
+import { Game } from '../game';
+import type { Ball } from '../objects/ball';
+import { AimAssistMode, settings } from '../store/settings';
 import { ThreadedSimulation } from './threaded-simulation';
 
 export class AimAssist {
   private simulation: ISimulation = properties.useWorkerForAimAssist
     ? new ThreadedSimulation()
     : new Simulation();
-  private profiler = Game.profiler;
   private lastShotKey: bigint = 0n;
   private balls: Ball[] = [];
   private ballMap: Map<number, Ball> = new Map();
@@ -43,8 +43,9 @@ export class AimAssist {
     }
 
     const firstContact = settings.aimAssistMode === AimAssistMode.FirstContact;
+    const profiler = settings.enableProfiler ? Game.profiler : Profiler.none;
 
-    await this.profiler.profile('aim-update', async () => {
+    await profiler.profile('aim-update', async () => {
       this.clear();
       this.lastShotKey = shot.key;
 
@@ -52,7 +53,7 @@ export class AimAssist {
         shot,
         state,
         trackPath: true,
-        profiler: this.profiler,
+        profiler,
         stopAtFirstContact: firstContact,
       });
 
@@ -107,6 +108,6 @@ export class AimAssist {
         this.ballMap.get(ball.id)!.addTrackingPoint(position, state);
       });
     });
-    this.profiler.dump();
+    profiler.dump();
   }
 }

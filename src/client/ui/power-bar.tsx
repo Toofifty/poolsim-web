@@ -1,10 +1,10 @@
-import { Cue } from '../game/objects/cue';
-import './power-bar.scss';
-import { useSnapshot } from 'valtio';
-import { gameStore } from '../game/store/game';
-import { useMouseInputs } from './use-mouse-inputs';
 import { useEffect } from 'react';
-import { constrain } from '../game/math';
+import { useSnapshot } from 'valtio';
+import { constrain } from '../../common/util';
+import { Cue } from '../game/objects/cue';
+import { gameStore } from '../game/store/game';
+import './power-bar.scss';
+import { useMouseInputs } from './use-mouse-inputs';
 
 export const PowerBar = () => {
   const { cueForce } = useSnapshot(gameStore);

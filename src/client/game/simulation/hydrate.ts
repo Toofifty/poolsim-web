@@ -1,11 +1,11 @@
 import { PhysicsBall } from '../../../common/simulation/physics/ball';
 import { PhysicsCushion } from '../../../common/simulation/physics/cushion';
 import { PhysicsPocket } from '../../../common/simulation/physics/pocket';
+import { Result } from '../../../common/simulation/result';
 import { Shot } from '../../../common/simulation/shot';
-import { Profiler } from '../profiler';
 import { type RunSimulationOptions } from '../../../common/simulation/simulation';
 import { TableState } from '../../../common/simulation/table-state';
-import { Result } from '../../../common/simulation/result';
+import { Profiler } from '../../../common/util/profiler';
 
 export const hydrateTableState = (state: TableState) => {
   Object.setPrototypeOf(state, TableState.prototype);

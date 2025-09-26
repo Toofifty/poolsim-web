@@ -5,9 +5,9 @@ import {
   Vector2,
   type Color,
 } from 'three';
-import { createBallTexture } from './create-ball-texture';
-import { createMaterial } from '../../rendering/create-material';
 import { properties } from '../../../../common/simulation/physics/properties';
+import { createMaterial } from '../../rendering/create-material';
+import { createBallTexture } from './create-ball-texture';
 
 import normalMapUrl from '../../../assets/scratch_normal.png';
 

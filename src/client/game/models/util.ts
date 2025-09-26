@@ -1,14 +1,12 @@
 import {
   BufferAttribute,
   ExtrudeGeometry,
-  Float32BufferAttribute,
   Shape,
-  Vector2,
   Vector3,
   type BufferGeometry,
   type ExtrudeGeometryOptions,
 } from 'three';
-import { SUBTRACTION, Brush, Evaluator, ADDITION } from 'three-bvh-csg';
+import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
 export const subtract = (g1: BufferGeometry, g2: BufferGeometry) => {
   return new Evaluator().evaluate(new Brush(g1), new Brush(g2), SUBTRACTION)

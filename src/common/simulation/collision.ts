@@ -1,7 +1,10 @@
-import type { PhysicsBall, PhysicsBallSnapshot } from './ball';
-import type { PhysicsCushion } from './cushion';
-import type { Vec } from '../../../common/math';
-import type { PhysicsPocket } from './pocket';
+import type { Vec } from '../math';
+import type {
+  PhysicsBall,
+  PhysicsBallSnapshot,
+  PhysicsCushion,
+  PhysicsPocket,
+} from './physics';
 
 export type Collision =
   | BallBallCollision

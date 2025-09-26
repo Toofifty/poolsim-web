@@ -1,5 +1,5 @@
-import { BallState, type PhysicsBall } from '../ball';
 import { quat, vec } from '../../../math';
+import { BallState, type PhysicsBall } from '../ball';
 import { params } from '../params';
 import type { PhysicsPocket } from '../pocket';
 

@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef } from 'react';
-import './index.scss';
-import { Game } from '../game/game';
 import { useSnapshot } from 'valtio';
+import { Game } from '../game/game';
 import { settings } from '../game/store/settings';
+import './index.scss';
 
 export const Canvas = ({ game }: { game: Game }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);

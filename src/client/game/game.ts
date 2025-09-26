@@ -1,3 +1,4 @@
+import Stats from 'stats.js';
 import {
   ACESFilmicToneMapping,
   AmbientLight,
@@ -19,7 +20,6 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three';
-import Stats from 'stats.js';
 import {
   EffectComposer,
   OrbitControls,
@@ -31,15 +31,15 @@ import {
   SSAOPass,
   SSRPass,
 } from 'three/examples/jsm/Addons.js';
-import { GameManager } from './game-manager';
-import { Profiler } from './profiler';
-import { settings } from './store/settings';
 import { subscribe } from 'valtio';
 import { properties } from '../../common/simulation/physics/properties';
-import { makeTheme } from './store/theme';
+import { Profiler } from '../../common/util/profiler';
+import { Audio } from './audio';
+import { GameManager } from './game-manager';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import { Debug } from './objects/debug';
-import { Audio } from './audio';
+import { settings } from './store/settings';
+import { makeTheme } from './store/theme';
 
 export class Game {
   // rendering

@@ -1,18 +1,19 @@
-import { Table } from './objects/table';
-import { Ball } from './objects/ball';
-import { Rack } from './rack';
-import { Simulation } from '../../common/simulation/simulation';
-import { Game } from './game';
-import { AimAssistMode, Players, settings } from './store/settings';
-import { properties } from '../../common/simulation/physics/properties';
-import { gameStore } from './store/game';
-import { AI } from './ai';
-import { delay } from './util/delay';
-import { RuleSet } from '../../common/simulation/table-state';
-import { AimAssist } from './simulation/aim-assist';
 import { subscribe } from 'valtio';
 import { vec } from '../../common/math';
+import { properties } from '../../common/simulation/physics/properties';
 import { Result } from '../../common/simulation/result';
+import { Simulation } from '../../common/simulation/simulation';
+import { RuleSet } from '../../common/simulation/table-state';
+import { AI } from './ai';
+import { Game } from './game';
+import { Ball } from './objects/ball';
+import { Table } from './objects/table';
+import { Rack } from './rack';
+import { AimAssist } from './simulation/aim-assist';
+import { gameStore } from './store/game';
+import { AimAssistMode, Players, settings } from './store/settings';
+import { delay } from './util/delay';
+import { toVector3 } from './util/three-interop';
 
 export enum GameState {
   PlayerShoot,
@@ -241,12 +242,12 @@ export class GameManager {
         if (collision.type === 'ball-ball') {
           Game.audio.play(
             'clack_mid',
-            vec.toVector3(collision.position),
+            toVector3(collision.position),
             Math.min(vec.len(collision.impulse) * 2, 5)
           );
         }
         if (collision.type === 'ball-pocket') {
-          Game.audio.play('pocket_drop', vec.toVector3(collision.position));
+          Game.audio.play('pocket_drop', toVector3(collision.position));
         }
       });
     }

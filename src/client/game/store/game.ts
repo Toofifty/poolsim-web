@@ -1,6 +1,6 @@
 import { proxy } from 'valtio';
-import { GameState } from '../game-manager';
 import { properties } from '../../../common/simulation/physics/properties';
+import { GameState } from '../game-manager';
 
 export const gameStore = proxy({
   state: undefined as GameState | undefined,

@@ -1,15 +1,15 @@
-import { Button } from './button';
-import { Surface } from './surface';
-import { PowerBar } from './power-bar';
-import './controls.scss';
-import { useSnapshot } from 'valtio';
-import { AimAssistMode, Players, settings } from '../game/store/settings';
-import { Game } from '../game/game';
-import { gameStore } from '../game/store/game';
-import { GameState } from '../game/game-manager';
-import { useState } from 'react';
-import { theme } from '../game/store/theme';
 import { IconChevronUp, IconSettings } from '@tabler/icons-react';
+import { useState } from 'react';
+import { useSnapshot } from 'valtio';
+import { Game } from '../game/game';
+import { GameState } from '../game/game-manager';
+import { gameStore } from '../game/store/game';
+import { AimAssistMode, Players, settings } from '../game/store/settings';
+import { theme } from '../game/store/theme';
+import { Button } from './button';
+import './controls.scss';
+import { PowerBar } from './power-bar';
+import { Surface } from './surface';
 
 const getStateName = (state: GameState | undefined) => {
   switch (state) {

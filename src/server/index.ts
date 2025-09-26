@@ -1,10 +1,10 @@
-import express from 'express';
-import { Server } from 'socket.io';
-import http from 'http';
 import cors from 'cors';
+import express from 'express';
+import http from 'http';
 import { customAlphabet } from 'nanoid';
-import { Lobby } from './lobby';
 import path from 'path';
+import { Server } from 'socket.io';
+import { Lobby } from './lobby';
 
 const app = express();
 const server = http.createServer(app);

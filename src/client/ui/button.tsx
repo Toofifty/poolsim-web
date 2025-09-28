@@ -5,6 +5,7 @@ import './surface.scss';
 export const Button = ({
   surface = false,
   circle = false,
+  disabled = false,
   children,
   className,
   onClick,
@@ -12,15 +13,17 @@ export const Button = ({
 }: {
   surface?: boolean;
   circle?: boolean;
+  disabled?: boolean;
   children: ReactNode;
   className?: string;
   onClick?: () => void;
   active?: boolean;
 }) => (
   <button
-    className={`button${surface ? ' surface' : ''}${circle ? ' circle' : ''}${
-      active ? ' active' : ''
-    } ${className ?? ''}`}
+    disabled={disabled}
+    className={`button${surface ? ' surface' : ''}${
+      disabled ? ' disabled' : ''
+    }${circle ? ' circle' : ''}${active ? ' active' : ''} ${className ?? ''}`}
     onClick={onClick}
   >
     {children}

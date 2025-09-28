@@ -1,0 +1,11 @@
+.page-container {
+  background: linear-gradient(#646cff, #266);
+  height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
+  padding: 32px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

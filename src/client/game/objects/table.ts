@@ -103,12 +103,12 @@ export class Table {
     const edgeOffset = cr - er;
 
     this.pockets.push(
-      new Pocket(leftBound, topBound, -ballRadius, cr),
-      new Pocket(rightBound, topBound, -ballRadius, cr),
-      new Pocket(leftBound, bottomBound, -ballRadius, cr),
-      new Pocket(rightBound, bottomBound, -ballRadius, cr),
-      new Pocket(0, topBound - edgeOffset, -ballRadius, er),
-      new Pocket(0, bottomBound + edgeOffset, -ballRadius, er)
+      new Pocket(0, leftBound, topBound, -ballRadius, cr),
+      new Pocket(1, rightBound, topBound, -ballRadius, cr),
+      new Pocket(2, leftBound, bottomBound, -ballRadius, cr),
+      new Pocket(3, rightBound, bottomBound, -ballRadius, cr),
+      new Pocket(4, 0, topBound - edgeOffset, -ballRadius, er),
+      new Pocket(5, 0, bottomBound + edgeOffset, -ballRadius, er)
     );
 
     this.object3D.add(...this.pockets.map((pocket) => pocket.parent));

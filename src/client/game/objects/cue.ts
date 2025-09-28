@@ -8,6 +8,15 @@ import { createCueMeshes } from '../models/cue/create-cue-meshes';
 import { gameStore } from '../store/game';
 import type { Ball } from './ball';
 
+export type SerializedCue = {
+  targetBallId?: number;
+  force: number;
+  topSpin: number;
+  sideSpin: number;
+  lift: number;
+  isShooting: boolean;
+};
+
 export class Cue {
   private targetBall?: Ball;
   public anchor!: Object3D;
@@ -157,5 +166,25 @@ export class Cue {
     if (!this.isShooting && this.targetBall && settled) {
       this.anchor.position.copy(this.targetBall.position);
     }
+  }
+
+  public serialize() {
+    return {
+      targetBallId: this.targetBall?.id,
+      force: this.force,
+      topSpin: this.topSpin,
+      sideSpin: this.sideSpin,
+      lift: this.lift,
+      isShooting: this.isShooting,
+    } satisfies SerializedCue;
+  }
+
+  public sync(cue: SerializedCue, balls: Ball[]) {
+    this.targetBall = balls.find((ball) => ball.id === cue.targetBallId);
+    this.force = cue.force;
+    this.topSpin = cue.topSpin;
+    this.sideSpin = cue.sideSpin;
+    this.lift = cue.lift;
+    this.isShooting = cue.isShooting;
   }
 }

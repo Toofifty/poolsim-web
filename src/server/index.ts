@@ -44,9 +44,9 @@ io.on('connection', (socket) => {
     withErrorHandling(() => {
       io.emit(
         'query-lobbies-response',
-        Object.entries(lobbies)
-          .filter(([, lobby]) => !lobby.isGameStarted())
-          .map(([key]) => key)
+        Object.values(lobbies)
+          .filter((lobby) => !lobby.isGameStarted())
+          .map((lobby) => lobby.getData())
       );
     });
   });
@@ -72,4 +72,45 @@ io.on('connection', (socket) => {
       socket.join(id);
     });
   });
+
+  socket.on('start-game', (id) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      if (!lobby.isHost(socket.id)) {
+        throw new Error('Only the lobby host can start the game');
+      }
+      lobby.start();
+      io.to(id).emit('game-starting');
+    });
+  });
+
+  socket.on('sync-cue', ([id, cue]) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      io.to(id).emit('sync-cue', cue);
+    });
+  });
+
+  socket.on('disconnect', () => {
+    Object.entries(lobbies).forEach(([lobbyId, lobby]) => {
+      if (lobby.hasPlayer(socket.id)) {
+        if (lobby.leave(socket.id)) {
+          console.log('destroy lobby', lobbyId);
+          delete lobbies[lobbyId];
+        } else {
+          io.to(lobbyId).emit('lobby-update', lobby.getData());
+        }
+      }
+    });
+  });
+});
+
+server.listen(3004, () => {
+  console.log('listening on :3004');
 });

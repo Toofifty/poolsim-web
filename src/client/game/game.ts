@@ -37,6 +37,7 @@ import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
 import { GameManager } from './game-manager';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
+import type { INetwork } from './network';
 import { Debug } from './objects/debug';
 import { settings } from './store/settings';
 import { makeTheme } from './store/theme';
@@ -68,7 +69,7 @@ export class Game {
 
   private mounted: boolean = false;
 
-  constructor() {
+  constructor(private network: INetwork) {
     this.init();
   }
 

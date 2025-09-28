@@ -21,6 +21,16 @@ import { params } from './params';
 import type { PhysicsPocket } from './pocket';
 import { properties } from './properties';
 
+export type SerializedPhysicsBall = {
+  position: Vec;
+  velocity: Vec;
+  angularVelocity: Vec;
+  radius: number;
+  orientation: Quat;
+  state: BallState;
+  pocketId?: number;
+};
+
 export type PhysicsBallSnapshot = {
   position: Vec;
   velocity: Vec;
@@ -283,5 +293,27 @@ export class PhysicsBall {
     this.pocket.removeBall(this);
     this.pocket = undefined;
     this.state = BallState.Stationary;
+  }
+
+  public serialize() {
+    return {
+      position: this.position,
+      velocity: this.velocity,
+      angularVelocity: this.angularVelocity,
+      orientation: this.orientation,
+      radius: this.radius,
+      state: this.state,
+      pocketId: this.pocket?.id,
+    } satisfies SerializedPhysicsBall;
+  }
+
+  public sync(ball: SerializedPhysicsBall, pockets: PhysicsPocket[]) {
+    this.position = ball.position;
+    this.velocity = ball.velocity;
+    this.angularVelocity = ball.angularVelocity;
+    this.orientation = ball.orientation;
+    this.radius = ball.radius;
+    this.state = ball.state;
+    this.pocket = pockets.find((pocket) => pocket.id === ball.pocketId);
   }
 }

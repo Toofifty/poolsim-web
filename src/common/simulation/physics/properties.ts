@@ -43,7 +43,7 @@ export const properties = {
   // simulation
   maxIterations: 1_000,
   trackingPointDist: 2,
-  updatesPerSecond: 100,
+  updatesPerSecond: 300,
 
   // visuals
   projectionOpacity: 0.25,

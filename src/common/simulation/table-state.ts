@@ -1,4 +1,21 @@
-import type { PhysicsBall, PhysicsCushion, PhysicsPocket } from './physics';
+import type {
+  PhysicsBall,
+  PhysicsCushion,
+  PhysicsPocket,
+  SerializedPhysicsBall,
+  SerializedPhysicsCushion,
+  SerializedPhysicsPocket,
+} from './physics';
+
+export type SerializedTableState = {
+  balls: SerializedPhysicsBall[];
+  ruleSet: RuleSet;
+  isBreak: boolean;
+};
+export type FullSerializedTableState = SerializedTableState & {
+  cushions: SerializedPhysicsCushion[];
+  pockets: SerializedPhysicsPocket[];
+};
 
 export enum RuleSet {
   _8Ball,
@@ -87,5 +104,39 @@ export class TableState {
 
   public hasOutOfBoundsBall() {
     return this.balls.some((ball) => ball.isOutOfBounds);
+  }
+
+  public serialize() {
+    return {
+      ruleSet: this.ruleSet,
+      isBreak: this.isBreak,
+      balls: this.balls.map((b) => b.serialize()),
+    } satisfies SerializedTableState;
+  }
+
+  public serializeFull() {
+    return {
+      ...this.serialize(),
+      cushions: this.cushions.map((c) => c.serialize()),
+      pockets: this.pockets.map((p) => p.serialize()),
+    } satisfies FullSerializedTableState;
+  }
+
+  public sync(state: SerializedTableState) {
+    this.ruleSet = state.ruleSet;
+    this.isBreak = state.isBreak;
+    this.balls.forEach((ball, i) => {
+      ball.sync(state.balls[i], this.pockets);
+    });
+  }
+
+  public syncFull(state: FullSerializedTableState) {
+    this.cushions.forEach((cushion, i) => {
+      cushion.sync(state.cushions[i]);
+    });
+    this.pockets.forEach((pocket, i) => {
+      pocket.sync(state.pockets[i]);
+    });
+    this.sync(state);
   }
 }

@@ -4,6 +4,7 @@ const MAX_PLAYERS = 2;
 
 export class Lobby {
   private players: PlayerData[] = [];
+  private active = false;
 
   constructor(private id: string, private hostId: string) {}
 
@@ -44,7 +45,16 @@ export class Lobby {
   }
 
   public isGameStarted() {
-    return false;
+    return this.active;
+  }
+
+  public isHost(playerId: string) {
+    return playerId === this.hostId;
+  }
+
+  public start() {
+    // todo: server-side game controller
+    this.active = true;
   }
 
   public getData(): LobbyData {

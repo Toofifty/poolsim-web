@@ -18,8 +18,8 @@ export class Pocket {
 
   public radius: number;
 
-  constructor(x: number, y: number, z: number, radius: number) {
-    this.physics = new PhysicsPocket(x, y, z, radius);
+  constructor(id: number, x: number, y: number, z: number, radius: number) {
+    this.physics = new PhysicsPocket(id, x, y, z, radius);
     this.radius = radius;
     this.parent = new Object3D();
     this.createMesh();

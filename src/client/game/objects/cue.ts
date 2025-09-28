@@ -10,11 +10,11 @@ import type { Ball } from './ball';
 
 export type SerializedCue = {
   targetBallId?: number;
+  angle: number;
   force: number;
   topSpin: number;
   sideSpin: number;
   lift: number;
-  isShooting: boolean;
 };
 
 export class Cue {
@@ -22,6 +22,10 @@ export class Cue {
   public anchor!: Object3D;
   private object!: Object3D;
   private liftAnchor!: Object3D;
+
+  set angle(angle: number) {
+    this.anchor.rotation.z = angle - Math.PI / 2;
+  }
 
   get force() {
     return gameStore.cueForce;
@@ -88,7 +92,7 @@ export class Cue {
 
   public setTarget(point: Vector3) {
     if (this.isShooting || !this.targetBall || !this.targetBall.isStationary) {
-      return;
+      return false;
     }
     const position = this.targetBall.position.clone();
     const angle = Math.atan2(point.y - position.y, point.x - position.x);
@@ -101,7 +105,7 @@ export class Cue {
   }
 
   public async shoot(onShotMade?: () => void) {
-    if (!this.targetBall || !this.targetBall.isStationary) {
+    if (!this.targetBall || !this.targetBall.isStationary || this.isShooting) {
       return;
     }
 
@@ -171,20 +175,20 @@ export class Cue {
   public serialize() {
     return {
       targetBallId: this.targetBall?.id,
+      angle: this.angle,
       force: this.force,
       topSpin: this.topSpin,
       sideSpin: this.sideSpin,
       lift: this.lift,
-      isShooting: this.isShooting,
     } satisfies SerializedCue;
   }
 
   public sync(cue: SerializedCue, balls: Ball[]) {
     this.targetBall = balls.find((ball) => ball.id === cue.targetBallId);
+    this.angle = cue.angle;
     this.force = cue.force;
     this.topSpin = cue.topSpin;
     this.sideSpin = cue.sideSpin;
     this.lift = cue.lift;
-    this.isShooting = cue.isShooting;
   }
 }

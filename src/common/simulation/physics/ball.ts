@@ -58,13 +58,13 @@ export class PhysicsBall {
 
   public pocket?: PhysicsPocket;
 
-  constructor(public id: number, x: number, y: number) {
-    this.position = vec.new(x, y, 0);
+  constructor(public id: number, position: Vec, orientation: Quat) {
+    this.position = position;
     this.velocity = vec.new(0, 0, 0);
     this.angularVelocity = vec.new(0, 0, 0);
 
     this.radius = properties.ballRadius;
-    this.orientation = quat.random();
+    this.orientation = orientation;
     this.state = BallState.Stationary;
   }
 
@@ -81,11 +81,13 @@ export class PhysicsBall {
   }
 
   public clone() {
-    const newBall = new PhysicsBall(this.id, this.r[0], this.r[1]);
-    vec.mcopy(newBall.r, this.r);
+    const newBall = new PhysicsBall(
+      this.id,
+      vec.clone(this.r),
+      quat.clone(this.orientation)
+    );
     vec.mcopy(newBall.v, this.v);
     vec.mcopy(newBall.w, this.w);
-    quat.mcopy(newBall.orientation, this.orientation);
     newBall.pocket = this.pocket;
     return newBall;
   }

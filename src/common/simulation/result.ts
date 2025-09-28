@@ -10,7 +10,7 @@ export class Result {
   hitFoulBall = false;
   /** e.g. shot backwards on break */
   invalidShot = false;
-  firstStruck = -1;
+  firstStruck: number | undefined = undefined;
 
   cueBallCollisions = 0;
   cueBallCushionCollisions = 0;
@@ -27,8 +27,8 @@ export class Result {
     if (
       this.state &&
       this.state.is9Ball &&
-      this.firstStruck === -1 &&
-      other.firstStruck !== -1
+      this.firstStruck === undefined &&
+      other.firstStruck !== undefined
     ) {
       // adding a strike - if it's not the lowest ball, it is a foul
       this.hitFoulBall = this.state.lowestActiveBallId !== other.firstStruck;

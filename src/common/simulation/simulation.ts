@@ -63,8 +63,8 @@ export class Simulation implements ISimulation {
         // dont fix overlap with evolution physics enabled
         const collision = ball.collideBall(other);
         if (collision) {
-          if (collision.initiator.id === -1) {
-            if (result.firstStruck === -1) {
+          if (collision.initiator.id === 0) {
+            if (result.firstStruck === undefined) {
               result.firstStruck = collision.other.id;
             }
             result.cueBallCollisions++;
@@ -85,7 +85,7 @@ export class Simulation implements ISimulation {
         const cushion = state.cushions[j];
         const collision = ball.collideCushion(cushion);
         if (collision) {
-          if (collision.initiator.id === -1) {
+          if (collision.initiator.id === 0) {
             result.cueBallCushionCollisions++;
           } else {
             result.ballCushionCollisions++;
@@ -104,7 +104,7 @@ export class Simulation implements ISimulation {
         const pocket = state.pockets[j];
         const collision = ball.collidePocket(pocket);
         if (collision) {
-          if (collision.initiator.id === -1) {
+          if (collision.initiator.id === 0) {
             result.pottedCueBall = true;
           } else {
             result.ballsPotted++;

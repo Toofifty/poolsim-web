@@ -163,7 +163,7 @@ export class Game {
     this.setupListeners();
     // this.setupLights();
 
-    this.manager = new GameManager();
+    this.manager = new GameManager(this.network);
     this.scene.add(this.manager.table.object3D);
     this.clock = new Clock();
 
@@ -257,8 +257,6 @@ export class Game {
         this.controls.enableZoom = true;
         return;
     }
-
-    this.manager.keyup(e);
   };
 
   private onResize = () => {

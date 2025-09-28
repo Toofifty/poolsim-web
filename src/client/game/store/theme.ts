@@ -10,7 +10,7 @@ export type ThemeObject = {
     colorCueBallAccent: Color;
     colorBallCircle: Color;
     colorBallNumber: Color;
-    colors: Color[];
+    colors: number[];
   };
   table: {
     theme: TableTheme;
@@ -57,9 +57,8 @@ const getTableTheme = (): ThemeObject['table'] => {
     case 'pink':
       return {
         ...base,
-        colorDiamond: new Color(0xff64b3),
-        colorCloth: new Color(0xff64b3),
-        colorRail: new Color(0xf0afaf),
+        colorCloth: new Color(0xa73060),
+        colorRail: new Color(0x304657),
       };
     case 'red':
       return {
@@ -76,7 +75,24 @@ export const makeTheme = (): ThemeObject => ({
     colorCueBallAccent: new Color(0xff0000),
     colorBallCircle: new Color(0xffffff),
     colorBallNumber: new Color(0x000000),
-    colors: [new Color(0xffffff)],
+    colors: [
+      0xffffff, // cue ball
+      0xffb200,
+      0x002564,
+      0x990100,
+      0x60067f,
+      0xeb5300,
+      0x005900,
+      0x500003,
+      0x010101,
+      0xffb200,
+      0x002564,
+      0x990100,
+      0x60067f,
+      0xeb5300,
+      0x005900,
+      0x500003,
+    ],
   },
   cue: {
     colorTip: new Color(0x8888ff),

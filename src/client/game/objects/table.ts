@@ -11,6 +11,7 @@ import { Game } from '../game';
 import { createTableClothMesh } from '../models/table/create-table-cloth-mesh';
 import { createTableRailDiamondsMesh } from '../models/table/create-table-rail-diamonds-mesh';
 import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
+import type { INetwork } from '../network';
 import { settings } from '../store/settings';
 import { themed } from '../store/theme';
 import { Ball } from './ball';
@@ -33,7 +34,7 @@ export class Table {
 
   private cursorPosition?: Vector3;
 
-  constructor() {
+  constructor(private network: INetwork) {
     this.object3D = new Object3D();
     this.cue = new Cue();
     this.object3D.add(this.cue.anchor);
@@ -122,13 +123,11 @@ export class Table {
   public addBalls(...balls: Ball[]) {
     balls.forEach((ball) => {
       this.object3D.add(ball.parent);
-      if (ball instanceof Ball) {
-        if (ball.number === -1) {
-          // cue ball
-          this.cue.attachTo(ball);
-        }
-        this.balls.push(ball);
+      if (ball.number === 0) {
+        // cue ball
+        this.cue.attachTo(ball);
       }
+      this.balls.push(ball);
     });
     this.state.balls = this.balls.map((b) => b.physics);
   }
@@ -158,6 +157,7 @@ export class Table {
       this.cursorPosition = Game.getFirstMouseIntersection(this.plane);
       if (this.cursorPosition) {
         this.cue.setTarget(this.cursorPosition);
+        this.network.syncCue(this.cue.serialize());
       }
     }
     this.cue.update(dt, this.settled);

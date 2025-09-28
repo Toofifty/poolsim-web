@@ -26,6 +26,14 @@ import { toQuaternion, toVector3 } from '../util/three-interop';
 import { Arrow } from './arrow';
 import { BallDebug } from './ball-debug';
 
+export type BallProto = {
+  id: number;
+  number: number;
+  color: number;
+  position: Vec;
+  orientation: Quat;
+};
+
 const INVALID_PROJECTION_MATERIAL = createMaterial({
   color: 0xff0000,
   transparent: true,
@@ -57,9 +65,9 @@ export class Ball {
 
   private debug: BallDebug;
 
-  constructor(x: number, y: number, color: Color, number: number = -1) {
-    this.physics = new PhysicsBall(number, x, y);
-    this.color = color;
+  constructor({ id, number, color, position, orientation }: BallProto) {
+    this.physics = new PhysicsBall(id, position, orientation);
+    this.color = new Color(color);
     this.number = number;
     this.parent = new Object3D();
     this.parent.position.add(this.position);

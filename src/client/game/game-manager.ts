@@ -6,7 +6,8 @@ import { Simulation } from '../../common/simulation/simulation';
 import { RuleSet } from '../../common/simulation/table-state';
 import { AI } from './ai';
 import { Game } from './game';
-import { Ball } from './objects/ball';
+import type { INetwork } from './network';
+import { Ball, type BallProto } from './objects/ball';
 import { Table } from './objects/table';
 import { Rack } from './rack';
 import { AimAssist } from './simulation/aim-assist';
@@ -15,11 +16,17 @@ import { AimAssistMode, Players, settings } from './store/settings';
 import { delay } from './util/delay';
 import { toVector3 } from './util/three-interop';
 
+export type SerializedGameState = {
+  /** Always relative to player 1 */
+  state: GameState;
+};
+
 export enum GameState {
   PlayerShoot,
+  PlayerOtherShoot,
   AIShoot,
-  AIReady,
   PlayerInPlay,
+  PlayerOtherInPlay,
   AIInPlay,
 }
 
@@ -35,84 +42,120 @@ export class GameManager {
   private aimAssist: AimAssist;
   private currentSimulationResult!: Result;
 
-  constructor() {
-    this.table = new Table();
+  constructor(private network: INetwork) {
+    this.table = new Table(network);
     this.simulation = new Simulation();
     this.ai = new AI();
     this.aimAssist = new AimAssist();
 
     this.resetSimulationResult();
-    this.setupDebugGame();
+    this.setupNetwork();
+    this.setup9Ball();
     this.startGame();
 
-    // immediately make AI shoot if setting changes to AIvAI
-    subscribe(settings, ([[op, [path], value]]) => {
-      if (op === 'set' && path === 'players' && value === Players.AIVsAI) {
-        if (this.state === GameState.PlayerShoot) {
-          this.setState(GameState.AIShoot);
+    if (!network.isMultiplayer) {
+      // immediately make AI shoot if setting changes to AIvAI
+      subscribe(settings, ([[op, [path], value]]) => {
+        if (op === 'set' && path === 'players' && value === Players.AIVsAI) {
+          if (this.state === GameState.PlayerShoot) {
+            this.setState(GameState.AIShoot);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   private resetSimulationResult() {
     this.currentSimulationResult = new Result(undefined, this.table.state);
   }
 
+  private setupNetwork() {
+    this.network.onSyncGameState((state) => this.sync(state));
+    this.network.onSyncCue((cue) => this.table.cue.sync(cue, this.table.balls));
+    this.network.onShootCue((cue) => {
+      console.log('shoot-cue');
+      this.table.cue.sync(cue, this.table.balls);
+      // if local, cue would have already shot and this
+      // won't run
+      this.table.cue.shoot(() => {
+        this.setState(GameState.PlayerOtherInPlay);
+      });
+    });
+    this.network.onSyncTableState((tableState) => {
+      this.table.state.sync(tableState);
+    });
+    this.network.onSetupTable((data) => this.setupTable(data));
+  }
+
   public placeCueBall() {
-    if (!this.table.cueBall) {
-      this.table.addBalls(new Ball(0, 0, properties.colorCueBall));
-    }
     this.table.cueBall.place(-properties.tableLength / 4, 0);
   }
 
   public setup8Ball() {
-    this.table.clearBalls();
-    this.placeCueBall();
-    this.table.addBalls(...Rack.generate8Ball(properties.tableLength / 4, 0));
-    this.ruleSet = RuleSet._8Ball;
-    this.table.state.ruleSet = RuleSet._8Ball;
-    this.aimAssist.setBalls([...this.table.balls]);
+    this.setupTable({
+      rack: Rack.generate8Ball(),
+      ruleSet: RuleSet._8Ball,
+    });
   }
 
   public setup9Ball() {
-    this.table.clearBalls();
-    this.placeCueBall();
-    this.table.addBalls(...Rack.generate9Ball(properties.tableLength / 4, 0));
-    this.ruleSet = RuleSet._9Ball;
-    this.table.state.ruleSet = RuleSet._9Ball;
-    this.aimAssist.setBalls([...this.table.balls]);
+    this.setupTable({
+      rack: Rack.generate9Ball(),
+      ruleSet: RuleSet._9Ball,
+    });
   }
 
   public setupDebugGame() {
+    this.setupTable({
+      rack: Rack.generateDebugGame(),
+      ruleSet: RuleSet._9Ball,
+    });
+  }
+
+  public setupTable({
+    rack,
+    ruleSet,
+  }: {
+    rack: BallProto[];
+    ruleSet: RuleSet;
+  }) {
     this.table.clearBalls();
-    this.placeCueBall();
-    this.table.addBalls(
-      ...Rack.generateDebugGame(properties.tableLength / 4, 0)
-    );
-    this.ruleSet = RuleSet.Debug;
-    this.table.state.ruleSet = RuleSet.Debug;
+    this.table.addBalls(...rack.map((proto) => new Ball(proto)));
+    this.ruleSet = ruleSet;
+    this.table.state.ruleSet = ruleSet;
     this.aimAssist.setBalls([...this.table.balls]);
+    if (this.network.isHost) {
+      this.network.setupTable({ rack, ruleSet });
+    }
   }
 
   public startGame() {
     this.resetSimulationResult();
-    if (settings.players === Players.AIVsAI) {
-      this.setState(GameState.AIShoot);
-    } else if (settings.players === Players.PlayerVsPlayer) {
-      this.setState(GameState.PlayerShoot);
-    } else {
+    if (!this.network.isHost) return;
+    if (this.network.isMultiplayer) {
       this.setState(
-        Math.random() > 0.5 ? GameState.PlayerShoot : GameState.AIShoot
+        Math.random() > 0.5 ? GameState.PlayerShoot : GameState.PlayerOtherShoot
       );
+    } else {
+      if (settings.players === Players.AIVsAI) {
+        this.setState(GameState.AIShoot);
+      } else if (settings.players === Players.PlayerVsPlayer) {
+        this.setState(GameState.PlayerShoot);
+      } else {
+        this.setState(
+          Math.random() > 0.5 ? GameState.PlayerShoot : GameState.AIShoot
+        );
+      }
     }
     this.table.state.isBreak = true;
+    this.network.syncTableState(this.table.state.serialize());
   }
 
   public shoot() {
     this.table.cue.shoot(() => {
       this.setState(GameState.PlayerInPlay);
     });
+    this.network.shootCue(this.table.cue.serialize());
   }
 
   public mousedown(event: MouseEvent) {
@@ -121,24 +164,22 @@ export class GameManager {
     }
   }
 
-  public keyup(event: KeyboardEvent) {
-    if (event.key === 's') {
-      this.aimAssist.update(this.table.cue.getShot(), this.table.state);
-    } else {
-      console.log(event.key);
-    }
-  }
-
   get isInPlay() {
     return (
-      this.state === GameState.AIInPlay || this.state === GameState.PlayerInPlay
+      this.state === GameState.AIInPlay ||
+      this.state === GameState.PlayerInPlay ||
+      this.state === GameState.PlayerOtherInPlay
     );
   }
 
   private shouldSwitchTurn(result?: Result) {
     result ??= this.currentSimulationResult;
-    // todo
-    return false;
+    console.log({
+      hasFoul: result.hasFoul(),
+      potted: result.ballsPotted,
+      result,
+    });
+    return result.hasFoul() || result.ballsPotted === 0;
   }
 
   private async playAIShot() {
@@ -170,9 +211,59 @@ export class GameManager {
     this.resetSimulationResult();
     this.state = state;
     gameStore.state = state;
+    this.network.syncGameState(this.serialize());
+    this.network.syncTableState(this.table.state.serialize());
   }
 
-  private updateState() {
+  private updateMultiplayerState() {
+    if (!this.network.isHost) return;
+    if (!this.table.settled) return;
+
+    if (
+      this.table.state.cueBall.isPocketedStationary ||
+      this.table.state.cueBall.isOutOfBounds
+    ) {
+      this.placeCueBall();
+    }
+
+    if (this.table.state.isGameOver) {
+      this.resetSimulationResult();
+      if (!this.network.isHost) return;
+
+      switch (this.ruleSet) {
+        case RuleSet._8Ball:
+          this.setup8Ball();
+          break;
+        default:
+          this.setup9Ball();
+          break;
+      }
+      this.startGame();
+      return;
+    }
+
+    switch (this.state) {
+      case GameState.PlayerInPlay:
+        this.table.state.isBreak = false;
+        this.setState(
+          this.shouldSwitchTurn()
+            ? GameState.PlayerOtherShoot
+            : GameState.PlayerShoot
+        );
+        break;
+      case GameState.PlayerOtherInPlay:
+        this.table.state.isBreak = false;
+        this.setState(
+          this.shouldSwitchTurn()
+            ? GameState.PlayerShoot
+            : GameState.PlayerOtherShoot
+        );
+        break;
+      default:
+    }
+  }
+
+  private updateLocalState() {
     if (!this.table.settled) {
       return;
     }
@@ -238,6 +329,7 @@ export class GameManager {
         dt,
         state: this.table.state,
       });
+      this.currentSimulationResult.add(result);
       result.collisions.forEach((collision) => {
         if (collision.type === 'ball-ball') {
           Game.audio.play(
@@ -254,6 +346,7 @@ export class GameManager {
 
     if (
       (this.state === GameState.PlayerShoot ||
+        this.state === GameState.PlayerOtherShoot ||
         this.state === GameState.AIShoot) &&
       !this.table.cue.isShooting &&
       settings.aimAssistMode !== AimAssistMode.Off
@@ -268,7 +361,36 @@ export class GameManager {
       this.table.balls.forEach((ball) => ball.updateProjection());
     }
 
-    this.updateState();
+    if (this.network.isMultiplayer) {
+      this.updateMultiplayerState();
+    } else {
+      this.updateLocalState();
+    }
     this.table.update(dt, this.state === GameState.PlayerShoot);
+  }
+
+  public serialize() {
+    return {
+      state: this.state,
+    } satisfies SerializedGameState;
+  }
+
+  private invertState(state: GameState) {
+    switch (state) {
+      case GameState.PlayerShoot:
+        return GameState.PlayerOtherShoot;
+      case GameState.PlayerInPlay:
+        return GameState.PlayerOtherInPlay;
+      case GameState.PlayerOtherShoot:
+        return GameState.PlayerShoot;
+      case GameState.PlayerOtherInPlay:
+        return GameState.PlayerInPlay;
+      default:
+        return state;
+    }
+  }
+
+  public sync(state: SerializedGameState) {
+    this.setState(this.invertState(state.state));
   }
 }

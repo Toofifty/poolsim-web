@@ -103,7 +103,7 @@ export class TableState {
   }
 
   public hasOutOfBoundsBall() {
-    return this.balls.some((ball) => ball.isOutOfBounds);
+    return this.balls.some((ball) => ball.isOutOfBounds && !ball.isPocketed);
   }
 
   public serialize() {

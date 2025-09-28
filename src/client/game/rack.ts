@@ -1,37 +1,30 @@
+import { quat, vec } from '../../common/math';
 import { properties } from '../../common/simulation/physics/properties';
-import { Ball } from './objects/ball';
+import type { BallProto } from './objects/ball';
+import { makeTheme } from './store/theme';
 
 const gap = properties.ballRadius / 8;
-const colors = [
-  properties.colorCueBall,
-  properties.color1Ball,
-  properties.color2Ball,
-  properties.color3Ball,
-  properties.color4Ball,
-  properties.color5Ball,
-  properties.color6Ball,
-  properties.color7Ball,
-  properties.color8Ball,
-  properties.color1Ball,
-  properties.color2Ball,
-  properties.color3Ball,
-  properties.color4Ball,
-  properties.color5Ball,
-  properties.color6Ball,
-  properties.color7Ball,
-];
+const tipX = properties.tableLength / 4;
+const tipY = 0;
 
 const randomGap = () => ((Math.random() * 2 - 1) * gap) / 2;
 
 export class Rack {
-  private static generateFromLayout(
-    tipX: number,
-    tipY: number,
-    layout: number[][]
-  ) {
-    const balls: Ball[] = [];
+  private static generateFromLayout(layout: number[][]) {
+    const theme = makeTheme();
+
+    const balls: BallProto[] = [];
     const step = properties.ballRadius * 2 + gap;
     const rowOffset = (step * Math.sqrt(3)) / 2;
+
+    // cue ball
+    balls.push({
+      id: 0,
+      number: 0,
+      color: theme.balls.colors[0],
+      position: vec.new(-tipX, tipY),
+      orientation: quat.random(),
+    });
 
     for (let row = 0; row < layout.length; row++) {
       const ballsInRow = layout[row].length;
@@ -41,17 +34,22 @@ export class Rack {
         const x = tipX + row * rowOffset;
         const y = yStart + col * step;
         const number = layout[row][col];
-        const color = colors[number];
 
-        balls.push(new Ball(x + randomGap(), y + randomGap(), color, number));
+        balls.push({
+          id: number,
+          number,
+          color: theme.balls.colors[number],
+          position: vec.new(x + randomGap(), y + randomGap()),
+          orientation: quat.random(),
+        });
       }
     }
 
     return balls;
   }
 
-  static generate8Ball(tipX: number, tipY: number) {
-    return this.generateFromLayout(tipX, tipY, [
+  static generate8Ball() {
+    return this.generateFromLayout([
       [1],
       [2, 3],
       [4, 8, 5],
@@ -60,17 +58,11 @@ export class Rack {
     ]);
   }
 
-  static generate9Ball(tipX: number, tipY: number) {
-    return this.generateFromLayout(tipX, tipY, [
-      [1],
-      [2, 3],
-      [4, 9, 5],
-      [6, 7],
-      [8],
-    ]);
+  static generate9Ball() {
+    return this.generateFromLayout([[1], [2, 3], [4, 9, 5], [6, 7], [8]]);
   }
 
-  static generateDebugGame(tipX: number, tipY: number) {
-    return this.generateFromLayout(tipX, tipY, [[9]]);
+  static generateDebugGame() {
+    return this.generateFromLayout([[9]]);
   }
 }

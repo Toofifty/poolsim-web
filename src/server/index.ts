@@ -87,6 +87,16 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('setup-table', ([id, data]) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      io.to(id).emit('setup-table', data);
+    });
+  });
+
   socket.on('sync-cue', ([id, cue]) => {
     withErrorHandling(() => {
       const lobby = lobbies[id];
@@ -94,6 +104,36 @@ io.on('connection', (socket) => {
         throw new Error('Lobby does not exist!');
       }
       io.to(id).emit('sync-cue', cue);
+    });
+  });
+
+  socket.on('shoot-cue', ([id, cue]) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      io.to(id).emit('shoot-cue', cue);
+    });
+  });
+
+  socket.on('sync-game-state', ([id, gameState]) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      io.to(id).emit('sync-game-state', gameState);
+    });
+  });
+
+  socket.on('sync-table-state', ([id, tableState]) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      io.to(id).emit('sync-table-state', tableState);
     });
   });
 

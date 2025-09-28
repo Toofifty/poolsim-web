@@ -6,11 +6,10 @@ const hex = (color: Color) => '#' + color.getHexString();
 
 export function createBallTexture({
   color,
-  number = 1,
+  number,
 }: {
   color: Color;
-  number?: number;
-  ballVariety?: number;
+  number: number;
 }): CanvasTexture {
   const tsize = settings.highDetail ? 256 : 64;
 
@@ -25,7 +24,7 @@ export function createBallTexture({
 
   // todo: noise/variance
 
-  if (number === -1) {
+  if (number === 0) {
     const dotSize = tsize / 16;
 
     // Red dots and stripes for cue ball

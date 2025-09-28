@@ -6,6 +6,8 @@ import { GameState } from '../game/game-manager';
 import { gameStore } from '../game/store/game';
 import { AimAssistMode, Players, settings } from '../game/store/settings';
 import { theme } from '../game/store/theme';
+import { socket } from '../socket';
+import { useLobby } from '../util/use-lobby';
 import { Button } from './button';
 import './controls.scss';
 import { PowerBar } from './power-bar';
@@ -20,13 +22,19 @@ const getStateName = (state: GameState | undefined) => {
     case GameState.PlayerInPlay:
     case GameState.PlayerShoot:
       return 'Your turn';
+    case GameState.PlayerOtherInPlay:
+    case GameState.PlayerOtherShoot:
+      return "Opponent's turn";
     default:
-      return 'Unknown';
+      return `Unknown ${state}`;
   }
 };
 
 export const Controls = () => {
   const { state, analysisProgress } = useSnapshot(gameStore);
+  const { lobby } = useLobby();
+  const isHost = lobby?.hostId === socket.id;
+  const isMultiplayer = !!lobby;
 
   const [showUI, setShowUI] = useState(false);
 
@@ -38,7 +46,8 @@ export const Controls = () => {
         </Button>
         <Surface>
           <div className="group lower">
-            <span>Status: </span>
+            {lobby && <span>{lobby.id}</span>}
+            <span>Status:</span>
             <span>
               {getStateName(state)}
               {state === GameState.AIShoot && (
@@ -63,7 +72,7 @@ export const Controls = () => {
             <Surface>
               <div className="group">
                 <AimAssistControls />
-                <PlayerControls />
+                {!isMultiplayer && <PlayerControls />}
               </div>
             </Surface>
           </div>
@@ -74,15 +83,19 @@ export const Controls = () => {
                 <Button onClick={() => Game.focusCueBall()}>
                   Focus cue ball
                 </Button>
-                <Button onClick={() => Game.manager.setup8Ball()}>
-                  8 ball
-                </Button>
-                <Button onClick={() => Game.manager.setup9Ball()}>
-                  9 ball
-                </Button>
-                <Button onClick={() => Game.manager.setupDebugGame()}>
-                  Debug
-                </Button>
+                {isHost && (
+                  <>
+                    <Button onClick={() => Game.manager.setup8Ball()}>
+                      8 ball
+                    </Button>
+                    <Button onClick={() => Game.manager.setup9Ball()}>
+                      9 ball
+                    </Button>
+                    <Button onClick={() => Game.manager.setupDebugGame()}>
+                      Debug
+                    </Button>
+                  </>
+                )}
               </div>
             </Surface>
             <Surface>

@@ -28,4 +28,5 @@ export const settings = proxy({
   debugBalls: false,
   debugCollisionBoxes: false,
   enableProfiler: false,
+  enableBallPickup: false,
 });

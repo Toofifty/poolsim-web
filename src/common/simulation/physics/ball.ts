@@ -22,6 +22,7 @@ import type { PhysicsPocket } from './pocket';
 import { properties } from './properties';
 
 export type SerializedPhysicsBall = {
+  id: number;
   position: Vec;
   velocity: Vec;
   angularVelocity: Vec;
@@ -137,7 +138,7 @@ export class PhysicsBall {
   }
 
   get isPocketedStationary() {
-    return this.isPocketed && vec.lenSq(this.v) < 1e-2;
+    return this.isPocketed && vec.isZero(this.v);
   }
 
   get isOutOfBounds() {
@@ -206,7 +207,7 @@ export class PhysicsBall {
         return BallState.Sliding;
       case vec.len(this.velocity) > 0:
         return BallState.Rolling;
-      case this.angularVelocity[2] > 0:
+      case Math.abs(this.angularVelocity[2]) > 0:
         return BallState.Spinning;
       default:
         return BallState.Stationary;
@@ -299,6 +300,7 @@ export class PhysicsBall {
 
   public serialize() {
     return {
+      id: this.id,
       position: this.position,
       velocity: this.velocity,
       angularVelocity: this.angularVelocity,
@@ -310,6 +312,7 @@ export class PhysicsBall {
   }
 
   public sync(ball: SerializedPhysicsBall, pockets: PhysicsPocket[]) {
+    this.id = ball.id;
     this.position = ball.position;
     this.velocity = ball.velocity;
     this.angularVelocity = ball.angularVelocity;

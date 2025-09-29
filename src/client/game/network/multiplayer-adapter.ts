@@ -1,36 +1,17 @@
 import type { Socket } from 'socket.io-client';
-import type { LobbyData } from '../../common/data';
+import type { LobbyData } from '../../../common/data';
+import type { SerializedPhysicsBall } from '../../../common/simulation/physics';
 import type {
   RuleSet,
   SerializedTableState,
-} from '../../common/simulation/table-state';
-import type { SerializedGameState } from './game-manager';
-import type { BallProto } from './objects/ball';
-import type { SerializedCue } from './objects/cue';
-import { throttle } from './util/throttle';
+} from '../../../common/simulation/table-state';
+import type { SerializedGameState } from '../game-manager';
+import type { BallProto } from '../objects/ball';
+import type { SerializedCue } from '../objects/cue';
+import { throttle } from '../util/throttle';
+import type { NetworkAdapter } from './network-adapter';
 
-export interface INetwork {
-  isHost: boolean;
-  isMultiplayer: boolean;
-  setupTable(data: { rack: BallProto[]; ruleSet: RuleSet }): void;
-  onSetupTable(
-    fn?: (data: { rack: BallProto[]; ruleSet: RuleSet }) => void
-  ): void;
-  /** Only callable on host */
-  syncGameState(gameState: SerializedGameState): void;
-  /** Only called on non-host */
-  onSyncGameState(fn?: (gameState: SerializedGameState) => void): void;
-  /** Only callable on host */
-  syncTableState(tableState: SerializedTableState): void;
-  /** Only called on non-host */
-  onSyncTableState(fn?: (tableState: SerializedTableState) => void): void;
-  shootCue(cue: SerializedCue): void;
-  onShootCue(fn?: (cue: SerializedCue) => void): void;
-  syncCue(cue: SerializedCue): void;
-  onSyncCue(fn?: (cue: SerializedCue) => void): void;
-}
-
-export class Network implements INetwork {
+export class MultiplayerAdapter implements NetworkAdapter {
   public isHost = false;
   public isMultiplayer = true;
 
@@ -75,6 +56,26 @@ export class Network implements INetwork {
     if (fn) this.socket.on('sync-table-state', fn);
   };
 
+  syncSingleBall = throttle((ballState: SerializedPhysicsBall): void => {
+    this.socket.emit('sync-single-ball', [this.lobby.id, ballState]);
+  }, 50);
+
+  onSyncSingleBall(fn?: (ballState: SerializedPhysicsBall) => void): void {
+    this.socket.off('sync-single-ball');
+    if (fn) this.socket.on('sync-single-ball', fn);
+  }
+
+  placeBallInHand(): void {
+    if (this.isHost) return;
+    this.socket.emit('place-ball-in-hand', [this.lobby.id]);
+  }
+
+  onPlaceBallInHand(fn?: () => void): void {
+    if (!this.isHost) return;
+    this.socket.off('place-ball-in-hand');
+    if (fn) this.socket.on('place-ball-in-hand', fn);
+  }
+
   shootCue(cue: SerializedCue): void {
     this.socket.emit('shoot-cue', [this.lobby.id, cue]);
   }
@@ -92,21 +93,4 @@ export class Network implements INetwork {
     this.socket.off('sync-cue');
     if (fn) this.socket.on('sync-cue', fn);
   }
-}
-
-export class LocalNetwork implements INetwork {
-  public isHost = true;
-  public isMultiplayer = false;
-  setupTable(data: { rack: BallProto[]; ruleSet: RuleSet }): void {}
-  onSetupTable(
-    fn?: (data: { rack: BallProto[]; ruleSet: RuleSet }) => void
-  ): void {}
-  syncGameState(gameState: SerializedGameState): void {}
-  onSyncGameState(fn?: (gameState: SerializedGameState) => void): void {}
-  syncTableState(tableState: SerializedTableState): void {}
-  onSyncTableState(fn: (tableState: SerializedTableState) => void): void {}
-  shootCue(cue: SerializedCue): void {}
-  onShootCue(fn?: (cue: SerializedCue) => void): void {}
-  syncCue(cue: SerializedCue): void {}
-  onSyncCue(fn: (cue: SerializedCue) => void): void {}
 }

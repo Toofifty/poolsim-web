@@ -11,5 +11,11 @@ export const Canvas = ({ game }: { game: Game }) => {
     () => (containerRef.current ? game.mount(containerRef.current) : undefined),
     [game, highDetail, ortho]
   );
-  return <div className="canvas-container" ref={containerRef} />;
+  return (
+    <div
+      className="canvas-container"
+      ref={containerRef}
+      onContextMenu={(e) => e.preventDefault()}
+    />
+  );
 };

@@ -39,8 +39,7 @@ export class Result {
     this.pottedCueBall ||= other.pottedCueBall;
     this.hitFoulBall ||= other.hitFoulBall;
     this.invalidShot ||= other.invalidShot;
-    this.firstStruck =
-      this.firstStruck === -1 ? other.firstStruck : this.firstStruck;
+    this.firstStruck ??= other.firstStruck;
     this.cueBallCollisions += other.cueBallCollisions;
     this.cueBallCushionCollisions += other.cueBallCushionCollisions;
     this.ballBallCollisions += other.ballBallCollisions;

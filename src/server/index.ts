@@ -127,6 +127,26 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('sync-single-ball', ([id, ballState]) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      io.to(id).emit('sync-single-ball', ballState);
+    });
+  });
+
+  socket.on('place-ball-in-hand', ([id]) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      io.to(id).emit('place-ball-in-hand');
+    });
+  });
+
   socket.on('sync-table-state', ([id, tableState]) => {
     withErrorHandling(() => {
       const lobby = lobbies[id];

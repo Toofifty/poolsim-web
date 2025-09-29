@@ -22,9 +22,13 @@ const getStateName = (state: GameState | undefined) => {
     case GameState.PlayerInPlay:
     case GameState.PlayerShoot:
       return 'Your turn';
-    case GameState.PlayerOtherInPlay:
-    case GameState.PlayerOtherShoot:
+    case GameState.PlayerBallInHand:
+      return 'You have ball in hand';
+    case GameState.OpponentInPlay:
+    case GameState.OpponentShoot:
       return "Opponent's turn";
+    case GameState.OpponentBallInHand:
+      return 'Opponent has ball in hand';
     default:
       return `Unknown ${state}`;
   }
@@ -33,7 +37,7 @@ const getStateName = (state: GameState | undefined) => {
 export const Controls = () => {
   const { state, analysisProgress } = useSnapshot(gameStore);
   const { lobby } = useLobby();
-  const isHost = lobby?.hostId === socket.id;
+  const isHost = !lobby || lobby?.hostId === socket.id;
   const isMultiplayer = !!lobby;
 
   const [showUI, setShowUI] = useState(false);
@@ -211,18 +215,27 @@ const DebugControls = () => {
     debugBalls,
     debugCollisionBoxes,
     enableProfiler,
+    enableBallPickup,
   } = useSnapshot(settings);
 
   return (
     <div className="group lower">
       <span>Debug</span>
-      <Button
+      {/* <Button
         active={!canvasEnabled}
         onClick={() => {
           settings.canvasEnabled = !canvasEnabled;
         }}
       >
         Disable canvas
+      </Button> */}
+      <Button
+        active={enableBallPickup}
+        onClick={() => {
+          settings.enableBallPickup = !enableBallPickup;
+        }}
+      >
+        Enable pick up
       </Button>
       <Button
         active={pauseSimulation}
@@ -240,14 +253,14 @@ const DebugControls = () => {
       >
         Lock cue <kbd>L</kbd>
       </Button>
-      <Button
+      {/* <Button
         active={debugLights}
         onClick={() => {
           settings.debugLights = !debugLights;
         }}
       >
         Debug lights
-      </Button>
+      </Button> */}
       <Button
         active={debugBalls}
         onClick={() => {
@@ -256,22 +269,22 @@ const DebugControls = () => {
       >
         Debug balls
       </Button>
-      <Button
+      {/* <Button
         active={debugCollisionBoxes}
         onClick={() => {
           settings.debugCollisionBoxes = !debugCollisionBoxes;
         }}
       >
         Debug collision boxes
-      </Button>
-      <Button
+      </Button> */}
+      {/* <Button
         active={enableProfiler}
         onClick={() => {
           settings.enableProfiler = !enableProfiler;
         }}
       >
         {enableProfiler ? 'Disable' : 'Enable'} profiler
-      </Button>
+      </Button> */}
     </div>
   );
 };

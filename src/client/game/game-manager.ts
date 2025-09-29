@@ -6,7 +6,7 @@ import { Simulation } from '../../common/simulation/simulation';
 import { RuleSet } from '../../common/simulation/table-state';
 import { AI } from './ai';
 import { Game } from './game';
-import type { INetwork } from './network';
+import type { NetworkAdapter } from './network/network-adapter';
 import { Ball, type BallProto } from './objects/ball';
 import { Table } from './objects/table';
 import { Rack } from './rack';
@@ -23,11 +23,13 @@ export type SerializedGameState = {
 
 export enum GameState {
   PlayerShoot,
-  PlayerOtherShoot,
+  OpponentShoot,
   AIShoot,
   PlayerInPlay,
-  PlayerOtherInPlay,
+  OpponentInPlay,
   AIInPlay,
+  PlayerBallInHand,
+  OpponentBallInHand,
 }
 
 export class GameManager {
@@ -42,7 +44,7 @@ export class GameManager {
   private aimAssist: AimAssist;
   private currentSimulationResult!: Result;
 
-  constructor(private network: INetwork) {
+  constructor(private network: NetworkAdapter) {
     this.table = new Table(network);
     this.simulation = new Simulation();
     this.ai = new AI();
@@ -73,18 +75,26 @@ export class GameManager {
     this.network.onSyncGameState((state) => this.sync(state));
     this.network.onSyncCue((cue) => this.table.cue.sync(cue, this.table.balls));
     this.network.onShootCue((cue) => {
-      console.log('shoot-cue');
       this.table.cue.sync(cue, this.table.balls);
       // if local, cue would have already shot and this
       // won't run
       this.table.cue.shoot(() => {
-        this.setState(GameState.PlayerOtherInPlay);
+        this.setState(GameState.OpponentInPlay);
       });
     });
     this.network.onSyncTableState((tableState) => {
       this.table.state.sync(tableState);
     });
     this.network.onSetupTable((data) => this.setupTable(data));
+    this.network.onSyncSingleBall((ball) =>
+      this.table.balls
+        .find((b) => b.id === ball.id)
+        ?.physics.sync(ball, this.table.state.pockets)
+    );
+    this.network.onPlaceBallInHand(() => {
+      vec.msetZ(this.table.cueBall.physics.position, 0);
+      this.setState(GameState.OpponentShoot);
+    });
   }
 
   public placeCueBall() {
@@ -134,7 +144,7 @@ export class GameManager {
     if (!this.network.isHost) return;
     if (this.network.isMultiplayer) {
       this.setState(
-        Math.random() > 0.5 ? GameState.PlayerShoot : GameState.PlayerOtherShoot
+        Math.random() > 0.5 ? GameState.PlayerShoot : GameState.OpponentShoot
       );
     } else {
       if (settings.players === Players.AIVsAI) {
@@ -158,28 +168,33 @@ export class GameManager {
     this.network.shootCue(this.table.cue.serialize());
   }
 
-  public mousedown(event: MouseEvent) {
+  public onMouseDown(event: MouseEvent) {
     if (event.button === 0 && this.state === GameState.PlayerShoot) {
       this.shoot();
+      return;
     }
+
+    this.table.onMouseDown(event);
   }
 
   get isInPlay() {
     return (
       this.state === GameState.AIInPlay ||
       this.state === GameState.PlayerInPlay ||
-      this.state === GameState.PlayerOtherInPlay
+      this.state === GameState.OpponentInPlay
     );
   }
 
-  private shouldSwitchTurn(result?: Result) {
-    result ??= this.currentSimulationResult;
-    console.log({
-      hasFoul: result.hasFoul(),
-      potted: result.ballsPotted,
-      result,
-    });
-    return result.hasFoul() || result.ballsPotted === 0;
+  private shouldSwitchTurn() {
+    return (
+      this.currentSimulationResult.hasFoul() ||
+      this.currentSimulationResult.ballsPotted === 0
+    );
+  }
+
+  private playerFouled() {
+    console.log('foul', this.currentSimulationResult);
+    return this.currentSimulationResult.hasFoul();
   }
 
   private async playAIShot() {
@@ -245,19 +260,33 @@ export class GameManager {
     switch (this.state) {
       case GameState.PlayerInPlay:
         this.table.state.isBreak = false;
+        if (this.playerFouled()) {
+          this.setState(GameState.OpponentBallInHand);
+          break;
+        }
         this.setState(
           this.shouldSwitchTurn()
-            ? GameState.PlayerOtherShoot
+            ? GameState.OpponentShoot
             : GameState.PlayerShoot
         );
         break;
-      case GameState.PlayerOtherInPlay:
+      case GameState.OpponentInPlay:
         this.table.state.isBreak = false;
+        if (this.playerFouled()) {
+          this.setState(GameState.PlayerBallInHand);
+          this.table.putBallInHand();
+          break;
+        }
         this.setState(
           this.shouldSwitchTurn()
             ? GameState.PlayerShoot
-            : GameState.PlayerOtherShoot
+            : GameState.OpponentShoot
         );
+        break;
+      case GameState.PlayerBallInHand:
+        if (!this.table.ballInHand) {
+          this.setState(GameState.PlayerShoot);
+        }
         break;
       default:
     }
@@ -346,7 +375,7 @@ export class GameManager {
 
     if (
       (this.state === GameState.PlayerShoot ||
-        this.state === GameState.PlayerOtherShoot ||
+        this.state === GameState.OpponentShoot ||
         this.state === GameState.AIShoot) &&
       !this.table.cue.isShooting &&
       settings.aimAssistMode !== AimAssistMode.Off
@@ -366,7 +395,11 @@ export class GameManager {
     } else {
       this.updateLocalState();
     }
-    this.table.update(dt, this.state === GameState.PlayerShoot);
+    this.table.update(
+      dt,
+      this.state === GameState.PlayerShoot ||
+        this.state === GameState.PlayerBallInHand
+    );
   }
 
   public serialize() {
@@ -378,13 +411,17 @@ export class GameManager {
   private invertState(state: GameState) {
     switch (state) {
       case GameState.PlayerShoot:
-        return GameState.PlayerOtherShoot;
+        return GameState.OpponentShoot;
       case GameState.PlayerInPlay:
-        return GameState.PlayerOtherInPlay;
-      case GameState.PlayerOtherShoot:
+        return GameState.OpponentInPlay;
+      case GameState.PlayerBallInHand:
+        return GameState.OpponentBallInHand;
+      case GameState.OpponentShoot:
         return GameState.PlayerShoot;
-      case GameState.PlayerOtherInPlay:
+      case GameState.OpponentInPlay:
         return GameState.PlayerInPlay;
+      case GameState.OpponentBallInHand:
+        return GameState.PlayerBallInHand;
       default:
         return state;
     }
@@ -392,5 +429,8 @@ export class GameManager {
 
   public sync(state: SerializedGameState) {
     this.setState(this.invertState(state.state));
+    if (this.state === GameState.PlayerBallInHand) {
+      this.table.putBallInHand();
+    }
   }
 }

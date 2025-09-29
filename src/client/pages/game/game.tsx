@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { useSnapshot } from 'valtio';
 import type { LobbyData } from '../../../common/data';
 import { Game } from '../../game/game';
-import { LocalNetwork, Network } from '../../game/network';
+import { MultiplayerAdapter } from '../../game/network/multiplayer-adapter';
+import { OfflineAdapter } from '../../game/network/offline-adapter';
 import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
 import { Canvas } from '../../ui/canvas';
@@ -20,9 +21,10 @@ const bootstrapGame = (lobby: LobbyData | undefined) => {
     return game;
   }
 
-  console.log('bootstrapping game', lobby?.id);
   lastBootstrappedFor = lobby?.id;
-  game = new Game(lobby ? new Network(socket, lobby) : new LocalNetwork());
+  game = new Game(
+    lobby ? new MultiplayerAdapter(socket, lobby) : new OfflineAdapter()
+  );
   return game;
 };
 

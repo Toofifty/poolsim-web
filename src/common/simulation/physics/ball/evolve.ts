@@ -212,11 +212,11 @@ export const evolvePocket = (b: PhysicsBall, p: PhysicsPocket, dt: number) => {
   if (b.r[2] - b.radius < bottomZ) {
     const overlap = bottomZ - b.r[2] + b.radius;
     b.r[2] += overlap;
-
-    if (b.v[2] < 0) {
-      b.v[2] = -b.v[2] * ep;
-    }
-
+    b.v[2] = 0;
     vec.mmult(b.v, 0.5);
+
+    // if (b.v[2] < 0) {
+    //   b.v[2] = -b.v[2] * ep;
+    // }
   }
 };

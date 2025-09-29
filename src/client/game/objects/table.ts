@@ -5,6 +5,7 @@ import {
   PlaneGeometry,
   Vector3,
 } from 'three';
+import { vec } from '../../../common/math';
 import { properties } from '../../../common/simulation/physics/properties';
 import { RuleSet, TableState } from '../../../common/simulation/table-state';
 import { Game } from '../game';
@@ -14,6 +15,7 @@ import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
 import type { INetwork } from '../network';
 import { settings } from '../store/settings';
 import { themed } from '../store/theme';
+import { toVec } from '../util/three-interop';
 import { Ball } from './ball';
 import { Cue } from './cue';
 import { createCushions, Cushion } from './cushion';
@@ -33,6 +35,8 @@ export class Table {
   private plane!: Mesh;
 
   private cursorPosition?: Vector3;
+
+  public ballInHand?: Ball;
 
   constructor(private network: INetwork) {
     this.object3D = new Object3D();
@@ -149,11 +153,50 @@ export class Table {
     return this.state.settled;
   }
 
-  public update(dt: number, updateCue?: boolean) {
+  public onMouseDown(event: MouseEvent) {
+    if (this.ballInHand && (event.button === 0 || event.button === 2)) {
+      vec.msetZ(this.ballInHand.physics.position, 0);
+      this.ballInHand = undefined;
+      this.network.placeBallInHand();
+      return;
+    }
+
+    if (event.button === 2 && settings.enableBallPickup && this.settled) {
+      const intersect = Game.getFirstMouseIntersection(this.plane);
+      if (!intersect) return;
+      const position = toVec(intersect);
+
+      let closest: Ball | undefined;
+      let closestDist = Infinity;
+
+      for (const ball of this.balls) {
+        const dist = vec.dist(position, ball.physics.position);
+        if (dist < closestDist) {
+          closest = ball;
+          closestDist = dist;
+        }
+      }
+      if (closest?.isStationary) {
+        this.ballInHand = closest;
+      }
+    }
+  }
+
+  public putBallInHand() {
+    this.ballInHand = this.cueBall;
+  }
+
+  public update(dt: number, isCurrentTurn?: boolean) {
     // sync to physics position
     this.balls.forEach((ball) => ball.sync());
 
-    if (this.settled && updateCue && !settings.lockCue) {
+    if (this.ballInHand && isCurrentTurn) {
+      this.moveBallInHand(this.ballInHand);
+      this.network.syncSingleBall(this.ballInHand.physics.serialize());
+      return;
+    }
+
+    if (this.settled && isCurrentTurn && !settings.lockCue) {
       this.cursorPosition = Game.getFirstMouseIntersection(this.plane);
       if (this.cursorPosition) {
         this.cue.setTarget(this.cursorPosition);
@@ -161,5 +204,43 @@ export class Table {
       }
     }
     this.cue.update(dt, this.settled);
+  }
+
+  private moveBallInHand(ball: Ball) {
+    const intersect = Game.getFirstMouseIntersection(this.plane);
+    if (!intersect) return;
+    const position = vec.setZ(toVec(intersect), 0);
+
+    const collidingBall = this.balls.some(
+      (b) =>
+        b !== ball &&
+        vec.dist(position, vec.setZ(b.physics.r, 0)) <
+          ball.physics.radius + b.physics.radius
+    );
+    const collidingCushion = this.state.cushions.some((cushion) => {
+      const closestPoint = cushion.findClosestPoint(position);
+      return (
+        vec.dist(vec.setZ(closestPoint, 0), position) < ball.physics.radius
+      );
+    });
+    const collidingPocket = this.state.pockets.some(
+      (pocket) =>
+        vec.dist(vec.setZ(pocket.position, 0), position) < pocket.radius
+    );
+    const outOfBounds =
+      position[0] < -properties.tableLength / 2 ||
+      position[0] > properties.tableLength / 2 ||
+      position[1] < -properties.tableWidth / 2 ||
+      position[1] > properties.tableWidth / 2;
+
+    if (
+      !collidingBall &&
+      !collidingCushion &&
+      !collidingPocket &&
+      !outOfBounds
+    ) {
+      vec.mcopy(ball.physics.position, position);
+    }
+    vec.msetZ(ball.physics.position, 0.1);
   }
 }

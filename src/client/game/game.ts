@@ -37,7 +37,7 @@ import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
 import { GameManager } from './game-manager';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
-import type { INetwork } from './network';
+import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
 import { settings } from './store/settings';
 import { makeTheme } from './store/theme';
@@ -69,7 +69,7 @@ export class Game {
 
   private mounted: boolean = false;
 
-  constructor(private network: INetwork) {
+  constructor(private network: NetworkAdapter) {
     this.init();
   }
 
@@ -237,7 +237,7 @@ export class Game {
   };
 
   private onMouseDown = (e: MouseEvent) => {
-    this.manager.mousedown(e);
+    this.manager.onMouseDown(e);
   };
 
   private onKeyDown = (e: KeyboardEvent) => {
@@ -452,3 +452,5 @@ export class Game {
     this.stats.end();
   }
 }
+
+(window as any).Game = Game;

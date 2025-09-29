@@ -82,7 +82,7 @@ export class TableState {
       return this.balls[5].isPocketed;
     }
 
-    return this.balls.every((ball) => ball.id === -1 || ball.isPocketed);
+    return this.balls.every((ball) => ball.id === 0 || ball.isPocketed);
   }
 
   public get lowestActiveBallId() {

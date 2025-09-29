@@ -35,12 +35,14 @@ import { subscribe } from 'valtio';
 import { properties } from '../../common/simulation/physics/properties';
 import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
+import { InputController } from './controller/input-controller';
 import { GameManager } from './game-manager';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
 import { settings } from './store/settings';
 import { makeTheme } from './store/theme';
+import { toVector2 } from './util/three-interop';
 
 export class Game {
   // rendering
@@ -59,6 +61,7 @@ export class Game {
   private accumulator = 0;
   private timestep = 1 / properties.updatesPerSecond;
   public lerps: Set<(dt: number) => void> = new Set();
+  private input!: InputController;
 
   public static instance: Game;
   public static debug: Debug;
@@ -157,11 +160,12 @@ export class Game {
     Game.audio = new Audio(this.scene);
     this.camera.add(Game.audio.listener);
 
+    this.setupInputController();
+    window.addEventListener('resize', this.onResize);
+
     this.setupRectLights();
     this.setupAmbientLight();
     this.setupSky();
-    this.setupListeners();
-    // this.setupLights();
 
     this.manager = new GameManager(this.network);
     this.scene.add(this.manager.table.object3D);
@@ -182,82 +186,34 @@ export class Game {
     return window.innerHeight;
   }
 
-  private setupListeners() {
-    const el = this.renderer.domElement;
+  private setupInputController() {
+    this.input = new InputController(this.renderer.domElement);
+    this.input.register();
 
-    if (!el) {
-      return;
-    }
+    this.input.onKeyDown((e) => {
+      switch (e.key) {
+        case 'Shift':
+          this.controls.enableZoom = false;
+          return;
+      }
+    });
 
-    el.addEventListener('mousemove', this.onMouseMove);
-    el.addEventListener('touchmove', this.onTouchMove);
-    el.addEventListener('mousedown', this.onMouseDown);
-    document.addEventListener('keydown', this.onKeyDown);
-    document.addEventListener('keyup', this.onKeyUp);
-    window.addEventListener('resize', this.onResize);
+    this.input.onKeyUp((e) => {
+      switch (e.key) {
+        case 'l':
+          settings.lockCue = !settings.lockCue;
+          return;
+        case 'Shift':
+          this.controls.enableZoom = true;
+          return;
+      }
+    });
+
+    // todo: move to game controller
+    this.input.onMouseDown((e) => {
+      this.manager.onMouseDown(e);
+    });
   }
-
-  private teardownListeners() {
-    const el = this.renderer.domElement;
-
-    if (!el) {
-      return;
-    }
-
-    el.removeEventListener('mousemove', this.onMouseMove);
-    el.removeEventListener('touchmove', this.onTouchMove);
-    el.removeEventListener('mousedown', this.onMouseDown);
-    document.removeEventListener('keydown', this.onKeyDown);
-    document.removeEventListener('keyup', this.onKeyUp);
-    window.removeEventListener('resize', this.onResize);
-  }
-
-  private onMouseMove = (e: MouseEvent) => {
-    if (settings.enableZoomPan) return;
-
-    const { left, top, width, height } =
-      this.renderer.domElement.getBoundingClientRect();
-    const x = e.clientX - left;
-    const y = e.clientY - top;
-    this.mousePosition.x = (x / width) * 2 - 1;
-    this.mousePosition.y = -(y / height) * 2 + 1;
-  };
-
-  private onTouchMove = (e: TouchEvent) => {
-    if (settings.enableZoomPan) return;
-
-    const { left, top, width, height } =
-      this.renderer.domElement.getBoundingClientRect();
-    const [touch] = e.touches;
-
-    const x = touch.clientX - left;
-    const y = touch.clientY - top;
-    this.mousePosition.x = (x / width) * 2 - 1;
-    this.mousePosition.y = -(y / height) * 2 + 1;
-  };
-
-  private onMouseDown = (e: MouseEvent) => {
-    this.manager.onMouseDown(e);
-  };
-
-  private onKeyDown = (e: KeyboardEvent) => {
-    switch (e.key) {
-      case 'Shift':
-        this.controls.enableZoom = false;
-        return;
-    }
-  };
-
-  private onKeyUp = (e: KeyboardEvent) => {
-    switch (e.key) {
-      case 'l':
-        settings.lockCue = !settings.lockCue;
-        return;
-      case 'Shift':
-        this.controls.enableZoom = true;
-        return;
-    }
-  };
 
   private onResize = () => {
     const container = this.renderer.domElement.parentElement;
@@ -388,7 +344,7 @@ export class Game {
   }
 
   public getMouseRaycaster() {
-    this.mouseRaycaster.setFromCamera(this.mousePosition, this.camera);
+    this.mouseRaycaster.setFromCamera(toVector2(this.input.mouse), this.camera);
     return this.mouseRaycaster;
   }
 
@@ -412,7 +368,8 @@ export class Game {
     return () => {
       // dispose
       this.renderer.setAnimationLoop(null);
-      this.teardownListeners();
+      this.input.unregister();
+      window.removeEventListener('resize', this.onResize);
       this.scene.traverse((obj: any) => {
         Game.dispose(obj);
       });

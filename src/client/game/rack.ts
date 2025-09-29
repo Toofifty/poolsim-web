@@ -1,10 +1,10 @@
 import { quat, vec } from '../../common/math';
-import { properties } from '../../common/simulation/physics/properties';
+import { params } from '../../common/simulation/physics';
 import type { BallProto } from './objects/ball';
 import { makeTheme } from './store/theme';
 
-const gap = properties.ballRadius / 8;
-const tipX = properties.tableLength / 4;
+const gap = params.ball.radius / 8;
+const tipX = params.table.length / 4;
 const tipY = 0;
 
 const randomGap = () => ((Math.random() * 2 - 1) * gap) / 2;
@@ -14,7 +14,7 @@ export class Rack {
     const theme = makeTheme();
 
     const balls: BallProto[] = [];
-    const step = properties.ballRadius * 2 + gap;
+    const step = params.ball.radius * 2 + gap;
     const rowOffset = (step * Math.sqrt(3)) / 2;
 
     // cue ball

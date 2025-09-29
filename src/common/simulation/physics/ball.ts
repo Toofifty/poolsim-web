@@ -64,7 +64,7 @@ export class PhysicsBall {
     this.velocity = vec.new(0, 0, 0);
     this.angularVelocity = vec.new(0, 0, 0);
 
-    this.radius = properties.ballRadius;
+    this.radius = params.ball.radius;
     this.orientation = orientation;
     this.state = BallState.Stationary;
   }

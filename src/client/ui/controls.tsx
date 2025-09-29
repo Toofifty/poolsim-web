@@ -15,6 +15,8 @@ import { Surface } from './surface';
 
 const getStateName = (state: PlayState | undefined) => {
   switch (state) {
+    case PlayState.Initializing:
+      return 'Initializing';
     case PlayState.AIInPlay:
       return 'AI turn';
     case PlayState.AIShoot:

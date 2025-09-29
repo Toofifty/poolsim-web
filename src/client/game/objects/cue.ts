@@ -62,7 +62,7 @@ export class Cue {
 
   private restingPositionY = -(
     properties.cueLength / 2 +
-    properties.ballRadius * 1.5
+    params.ball.radius * 1.5
   );
 
   constructor() {

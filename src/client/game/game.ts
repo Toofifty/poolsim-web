@@ -39,6 +39,7 @@ import { Audio } from './audio';
 import type { GameController } from './controller/game-controller';
 import { InputController } from './controller/input-controller';
 import { OfflineGameController } from './controller/offline-game-controller';
+import { OnlineGameController } from './controller/online-game-controller';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
@@ -74,7 +75,7 @@ export class Game {
 
   private mounted: boolean = false;
 
-  constructor(private network: NetworkAdapter) {
+  constructor(private adapter: NetworkAdapter) {
     this.init();
   }
 
@@ -169,7 +170,9 @@ export class Game {
     this.setupAmbientLight();
     this.setupSky();
 
-    this.controller = new OfflineGameController(params, this.input);
+    this.controller = this.adapter.isMultiplayer
+      ? new OnlineGameController(params, this.input, this.adapter)
+      : new OfflineGameController(params, this.input);
     this.scene.add(this.controller.root);
 
     this.clock = new Clock();

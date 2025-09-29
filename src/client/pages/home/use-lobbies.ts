@@ -6,11 +6,11 @@ export const useLobbies = () => {
   const [lobbies, setLobbies] = useState<LobbyData[]>();
 
   useEffect(() => {
-    socket.once('query-lobbies-response', setLobbies);
-    socket.emit('query-lobbies');
+    socket.on('push-lobbies', setLobbies);
+    socket.emit('query-lobbies', setLobbies);
 
     return () => {
-      socket.off('query-lobbies-response');
+      socket.off('push-lobbies');
     };
   }, []);
 

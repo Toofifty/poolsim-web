@@ -40,12 +40,20 @@ io.on('connection', (socket) => {
     }
   };
 
-  socket.on('query-lobbies', () => {
+  const pushLobbies = () => {
+    io.emit(
+      'push-lobbies',
+      Object.values(lobbies)
+        .filter((lobby) => lobby.acceptingPlayers())
+        .map((lobby) => lobby.getData())
+    );
+  };
+
+  socket.on('query-lobbies', (callback) => {
     withErrorHandling(() => {
-      io.emit(
-        'query-lobbies-response',
+      callback(
         Object.values(lobbies)
-          .filter((lobby) => !lobby.isGameStarted())
+          .filter((lobby) => lobby.acceptingPlayers())
           .map((lobby) => lobby.getData())
       );
     });
@@ -55,8 +63,9 @@ io.on('connection', (socket) => {
     withErrorHandling(() => {
       const id = nanoid();
       lobbies[id] = new Lobby(id, socket.id);
-      io.emit('lobby-update', lobbies[id].getData());
       socket.join(id);
+      io.to(id).emit('lobby-update', lobbies[id].getData());
+      pushLobbies();
       console.log('lobby created:', id);
     });
   });
@@ -68,8 +77,9 @@ io.on('connection', (socket) => {
         throw new Error('Lobby does not exist!');
       }
       lobby.join(socket.id);
-      io.emit('lobby-update', lobby.getData());
       socket.join(id);
+      pushLobbies();
+      io.to(id).emit('lobby-update', lobby.getData());
     });
   });
 
@@ -84,82 +94,34 @@ io.on('connection', (socket) => {
       }
       lobby.start();
       io.to(id).emit('game-starting');
+      pushLobbies();
     });
   });
 
-  socket.on('setup-table', ([id, data]) => {
-    withErrorHandling(() => {
-      const lobby = lobbies[id];
-      if (!lobby) {
-        throw new Error('Lobby does not exist!');
-      }
-      io.to(id).emit('setup-table', data);
+  const forward = (event: string) => {
+    socket.on(event, ([id, data]) => {
+      withErrorHandling(() => {
+        const lobby = lobbies[id];
+        if (!lobby) {
+          throw new Error('Lobby does not exist!');
+        }
+        socket.broadcast.to(id).emit(event, data);
+      });
     });
-  });
+  };
 
-  socket.on('sync-cue', ([id, cue]) => {
-    withErrorHandling(() => {
-      const lobby = lobbies[id];
-      if (!lobby) {
-        throw new Error('Lobby does not exist!');
-      }
-      io.to(id).emit('sync-cue', cue);
-    });
-  });
-
-  socket.on('shoot-cue', ([id, cue]) => {
-    withErrorHandling(() => {
-      const lobby = lobbies[id];
-      if (!lobby) {
-        throw new Error('Lobby does not exist!');
-      }
-      io.to(id).emit('shoot-cue', cue);
-    });
-  });
-
-  socket.on('sync-game-state', ([id, gameState]) => {
-    withErrorHandling(() => {
-      const lobby = lobbies[id];
-      if (!lobby) {
-        throw new Error('Lobby does not exist!');
-      }
-      io.to(id).emit('sync-game-state', gameState);
-    });
-  });
-
-  socket.on('sync-single-ball', ([id, ballState]) => {
-    withErrorHandling(() => {
-      const lobby = lobbies[id];
-      if (!lobby) {
-        throw new Error('Lobby does not exist!');
-      }
-      io.to(id).emit('sync-single-ball', ballState);
-    });
-  });
-
-  socket.on('place-ball-in-hand', ([id]) => {
-    withErrorHandling(() => {
-      const lobby = lobbies[id];
-      if (!lobby) {
-        throw new Error('Lobby does not exist!');
-      }
-      io.to(id).emit('place-ball-in-hand');
-    });
-  });
-
-  socket.on('sync-table-state', ([id, tableState]) => {
-    withErrorHandling(() => {
-      const lobby = lobbies[id];
-      if (!lobby) {
-        throw new Error('Lobby does not exist!');
-      }
-      io.to(id).emit('sync-table-state', tableState);
-    });
-  });
+  forward('setup-table');
+  forward('reset-cue-ball');
+  forward('set-game-state');
+  forward('place-ball-in-hand');
+  forward('update-ball-in-hand');
+  forward('update-cue');
+  forward('shoot');
 
   socket.on('disconnect', () => {
     Object.entries(lobbies).forEach(([lobbyId, lobby]) => {
       if (lobby.hasPlayer(socket.id)) {
+        socket.leave(lobbyId);
         if (lobby.leave(socket.id)) {
           console.log('destroy lobby', lobbyId);
           delete lobbies[lobbyId];

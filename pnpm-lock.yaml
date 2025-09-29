@@ -56,6 +56,9 @@ importers:
       troika-three-text:
         specifier: ^0.52.4
         version: 0.52.4(three@0.180.0)
+      typescript-event-target:
+        specifier: ^1.1.1
+        version: 1.1.1
       valtio:
         specifier: ^2.1.7
         version: 2.1.7(@types/react@19.1.12)(react@19.1.1)
@@ -1799,6 +1802,9 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
       typescript: '>=4.8.4 <6.0.0'
+
+  typescript-event-target@1.1.1:
+    resolution: {integrity: sha512-dFSOFBKV6uwaloBCCUhxlD3Pr/P1a/tJdcmPrTXCHlEFD3faj0mztjcGn6VBAhQ0/Bdy8K3VWrrqwbt/ffsYsg==}
 
   typescript@5.8.3:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
@@ -3579,6 +3585,8 @@ snapshots:
       typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
+
+  typescript-event-target@1.1.1: {}
 
   typescript@5.8.3: {}
 

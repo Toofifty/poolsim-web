@@ -27,6 +27,7 @@
     "three-bvh-csg": "^0.0.17",
     "three-subdivide": "^1.1.5",
     "troika-three-text": "^0.52.4",
+    "typescript-event-target": "^1.1.1",
     "valtio": "^2.1.7"
   },
   "devDependencies": {

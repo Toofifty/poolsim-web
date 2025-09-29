@@ -1,33 +1,28 @@
+import type { TypedEventTarget } from 'typescript-event-target';
 import type { SerializedPhysicsBall } from '../../../common/simulation/physics';
-import type {
-  RuleSet,
-  SerializedTableState,
-} from '../../../common/simulation/table-state';
-import type { SerializedGameState } from '../game-manager';
+import type { RuleSet } from '../../../common/simulation/table-state';
+import type { SerializedOnlineGameState } from '../controller/online-game-controller';
 import type { BallProto } from '../objects/ball';
 import type { SerializedCue } from '../objects/cue';
 
-export interface NetworkAdapter {
+export type NetworkEventMap = {
+  ['setup-table']: CustomEvent<{ rack: BallProto[]; ruleSet: RuleSet }>;
+  ['reset-cue-ball']: Event;
+  ['set-game-state']: CustomEvent<SerializedOnlineGameState>;
+  ['place-ball-in-hand']: CustomEvent<SerializedPhysicsBall>;
+  ['update-ball-in-hand']: CustomEvent<SerializedPhysicsBall>;
+  ['update-cue']: CustomEvent<SerializedCue>;
+  ['shoot']: CustomEvent<SerializedCue>;
+};
+
+export interface NetworkAdapter extends TypedEventTarget<NetworkEventMap> {
   isHost: boolean;
   isMultiplayer: boolean;
   setupTable(data: { rack: BallProto[]; ruleSet: RuleSet }): void;
-  onSetupTable(
-    fn?: (data: { rack: BallProto[]; ruleSet: RuleSet }) => void
-  ): void;
-  /** Only callable on host */
-  syncGameState(gameState: SerializedGameState): void;
-  /** Only called on non-host */
-  onSyncGameState(fn?: (gameState: SerializedGameState) => void): void;
-  /** Only callable on host */
-  syncTableState(tableState: SerializedTableState): void;
-  /** Only called on non-host */
-  onSyncTableState(fn?: (tableState: SerializedTableState) => void): void;
-  syncSingleBall(ballState: SerializedPhysicsBall): void;
-  onSyncSingleBall(fn?: (ballState: SerializedPhysicsBall) => void): void;
-  placeBallInHand(): void;
-  onPlaceBallInHand(fn?: () => void): void;
-  shootCue(cue: SerializedCue): void;
-  onShootCue(fn?: (cue: SerializedCue) => void): void;
-  syncCue(cue: SerializedCue): void;
-  onSyncCue(fn?: (cue: SerializedCue) => void): void;
+  resetCueBall(): void;
+  setGameState(state: SerializedOnlineGameState): void;
+  placeBallInHand(ball: SerializedPhysicsBall): void;
+  updateBallInHand(ball: SerializedPhysicsBall): void;
+  updateCue(cue: SerializedCue): void;
+  shoot(cue: SerializedCue): void;
 }

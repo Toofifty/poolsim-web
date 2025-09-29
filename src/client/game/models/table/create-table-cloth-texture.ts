@@ -4,6 +4,7 @@ import {
   SRGBColorSpace,
   type Color,
 } from 'three';
+import { params } from '../../../../common/simulation/physics';
 import { properties } from '../../../../common/simulation/physics/properties';
 import { settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
@@ -83,7 +84,7 @@ const drawRack = (
   cx: number,
   cy: number
 ) => {
-  const r = properties.ballRadius * scale;
+  const r = params.ball.radius * scale;
   const side = 8.5 * r + 2;
   const height = 4.25 * r * Math.sqrt(3) + 0.5;
   const A = { x: cx, y: cy };

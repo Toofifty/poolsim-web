@@ -1,7 +1,11 @@
 import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from 'three';
+import { TypedEventTarget } from 'typescript-event-target';
 import { vec, type Vec } from '../../../common/math';
 import type { Collision } from '../../../common/simulation/collision';
-import type { Params } from '../../../common/simulation/physics';
+import type {
+  Params,
+  SerializedPhysicsBall,
+} from '../../../common/simulation/physics';
 import { Result } from '../../../common/simulation/result';
 import { Simulation } from '../../../common/simulation/simulation';
 import { RuleSet, TableState } from '../../../common/simulation/table-state';
@@ -19,6 +23,7 @@ import { toVec, toVector3 } from '../util/three-interop';
 import type { InputController } from './input-controller';
 
 export enum PlayState {
+  Initializing,
   PlayerShoot,
   OpponentShoot,
   AIShoot,
@@ -29,7 +34,18 @@ export enum PlayState {
   OpponentBallInHand,
 }
 
-export interface GameController {
+export type GameControllerEventMap = {
+  ['setup-table']: CustomEvent<{ rack: BallProto[]; ruleSet: RuleSet }>;
+  ['reset-cue-ball']: Event;
+  ['set-game-state']: Event;
+  ['place-ball-in-hand']: CustomEvent<SerializedPhysicsBall>;
+  ['update-ball-in-hand']: Event;
+  ['update-cue']: Event;
+  ['shoot']: Event;
+};
+
+export interface GameController
+  extends TypedEventTarget<GameControllerEventMap> {
   readonly state: TableState;
   readonly playState: PlayState;
 
@@ -52,7 +68,10 @@ export interface GameController {
   update(dt: number): void;
 }
 
-export abstract class BaseGameController implements GameController {
+export abstract class BaseGameController
+  extends TypedEventTarget<GameControllerEventMap>
+  implements GameController
+{
   public state: TableState;
   public playState!: PlayState;
 
@@ -70,12 +89,14 @@ export abstract class BaseGameController implements GameController {
   private simulationResult: Result;
   private aimAssist: AimAssist;
 
-  private ballInHand?: Ball;
+  protected ballInHand?: Ball;
 
   // todo: Aim Assist
 
   constructor(public params: Params, private input: InputController) {
-    this.setPlayState(PlayState.PlayerShoot);
+    super();
+
+    this.setPlayState(PlayState.Initializing);
     this.cue = new Cue();
     this.pockets = createPockets(params);
     this.cushions = createCushions(params);
@@ -109,13 +130,20 @@ export abstract class BaseGameController implements GameController {
     this.input.onMouseDown((e) => {
       if (this.ballInHand && (e.button === 0 || e.button === 2)) {
         vec.msetZ(this.ballInHand.physics.position, 0);
+        this.dispatchTypedEvent(
+          'place-ball-in-hand',
+          new CustomEvent('place-ball-in-hand', {
+            detail: this.ballInHand.physics.serialize(),
+          })
+        );
         this.ballInHand = undefined;
-        // todo: broadcast to network in subclass
         return;
       }
 
       if (e.button === 0) {
+        console.log('onmousedown');
         this.shoot();
+        this.dispatchTypedEvent('shoot', new Event('shoot'));
       }
     });
   }
@@ -138,6 +166,9 @@ export abstract class BaseGameController implements GameController {
     this.aimAssist.setBalls([...balls]);
   }
 
+  /**
+   * @emits setup-table
+   */
   protected setupTable({
     rack,
     ruleSet,
@@ -147,6 +178,10 @@ export abstract class BaseGameController implements GameController {
   }): void {
     this.setBalls(rack.map((proto) => new Ball(proto)));
     this.state.ruleSet = ruleSet;
+    this.dispatchTypedEvent(
+      'setup-table',
+      new CustomEvent('setup-table', { detail: { rack, ruleSet } })
+    );
   }
 
   public setup8Ball(): void {
@@ -183,15 +218,23 @@ export abstract class BaseGameController implements GameController {
 
   public abstract startGame(): void;
 
+  /**
+   * @emits reset-cue-ball
+   */
   protected resetCueBall(): void {
     this.balls[0].place(-this.params.table.length / 4, 0);
+    this.dispatchTypedEvent('reset-cue-ball', new Event('reset-cue-ball'));
   }
 
   public abstract shoot(): void;
 
+  /**
+   * @emits set-game-state
+   */
   protected setPlayState(state: PlayState): void {
     this.simulationResult = new Result();
     this.playState = state;
+    this.dispatchTypedEvent('set-game-state', new Event('set-game-state'));
   }
 
   protected get isInPlay(): boolean {
@@ -242,8 +285,8 @@ export abstract class BaseGameController implements GameController {
     return !!this.ballInHand;
   }
 
-  protected putBallInHand(ball: Ball): void {
-    this.ballInHand = ball;
+  protected putBallInHand(ball?: Ball): void {
+    this.ballInHand = ball ?? this.balls[0];
   }
 
   protected shouldUpdateBallInHand(): boolean {
@@ -292,6 +335,10 @@ export abstract class BaseGameController implements GameController {
       !outOfBoundsOnBreak
     ) {
       vec.mcopy(ball.physics.position, position);
+      this.dispatchTypedEvent(
+        'update-ball-in-hand',
+        new Event('update-ball-in-hand')
+      );
     }
     vec.msetZ(ball.physics.position, 0.1);
   }
@@ -310,6 +357,7 @@ export abstract class BaseGameController implements GameController {
       const mouse3D = this.getMouse3D();
       if (mouse3D) {
         this.cue.setTarget(mouse3D);
+        this.dispatchTypedEvent('update-cue', new Event('update-cue'));
       }
     }
     this.cue.update(dt, this.state.settled);

@@ -44,6 +44,10 @@ export class Lobby {
     return false;
   }
 
+  public acceptingPlayers() {
+    return !this.isGameStarted() && this.players.length < 2;
+  }
+
   public isGameStarted() {
     return this.active;
   }

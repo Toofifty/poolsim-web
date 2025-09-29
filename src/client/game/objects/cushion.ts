@@ -21,8 +21,6 @@ export class Cushion extends Object3D {
   public physics: PhysicsCushion;
   private mesh!: Mesh;
 
-  private height = properties.ballRadius;
-
   constructor(physics: PhysicsCushion) {
     super();
     this.physics = physics;

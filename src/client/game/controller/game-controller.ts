@@ -107,6 +107,13 @@ export abstract class BaseGameController implements GameController {
     this.root.add(this.plane);
 
     this.input.onMouseDown((e) => {
+      if (this.ballInHand && (e.button === 0 || e.button === 2)) {
+        vec.msetZ(this.ballInHand.physics.position, 0);
+        this.ballInHand = undefined;
+        // todo: broadcast to network in subclass
+        return;
+      }
+
       if (e.button === 0) {
         this.shoot();
       }
@@ -231,16 +238,65 @@ export abstract class BaseGameController implements GameController {
     });
   }
 
-  protected shouldUpdateBallInHand(): boolean {
+  protected hasBallInHand(): boolean {
     return !!this.ballInHand;
+  }
+
+  protected putBallInHand(ball: Ball): void {
+    this.ballInHand = ball;
+  }
+
+  protected shouldUpdateBallInHand(): boolean {
+    return this.hasBallInHand();
   }
 
   protected updateBallInHand(ball: Ball): void {
     if (!this.shouldUpdateBallInHand()) return;
-    // todo
+
+    const mouse3D = this.getMouse3D();
+    if (!mouse3D) return;
+    const position = vec.setZ(mouse3D, 0);
+
+    const collidingBall = this.balls.some(
+      (b) =>
+        b !== ball &&
+        vec.dist(position, vec.setZ(b.physics.r, 0)) <
+          ball.physics.radius + b.physics.radius
+    );
+    const collidingCushion = this.state.cushions.some((cushion) => {
+      const closestPoint = cushion.findClosestPoint(position);
+      return (
+        vec.dist(vec.setZ(closestPoint, 0), position) < ball.physics.radius
+      );
+    });
+    const collidingPocket = this.state.pockets.some(
+      (pocket) =>
+        vec.dist(vec.setZ(pocket.position, 0), position) < pocket.radius
+    );
+    const outOfBounds =
+      position[0] < -this.params.table.length / 2 ||
+      position[0] > this.params.table.length / 2 ||
+      position[1] < -this.params.table.width / 2 ||
+      position[1] > this.params.table.width / 2;
+
+    const outOfBoundsOnBreak =
+      this.state.isBreak && ball.number === 0
+        ? position[0] > -this.params.table.length / 4
+        : false;
+
+    if (
+      !collidingBall &&
+      !collidingCushion &&
+      !collidingPocket &&
+      !outOfBounds &&
+      !outOfBoundsOnBreak
+    ) {
+      vec.mcopy(ball.physics.position, position);
+    }
+    vec.msetZ(ball.physics.position, 0.1);
   }
 
-  private getMouse3D(): Vec | undefined {
+  protected getMouse3D(): Vec | undefined {
     const intersect = Game.getFirstMouseIntersection(this.plane);
     return intersect ? toVec(intersect) : undefined;
   }

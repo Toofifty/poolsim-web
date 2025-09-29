@@ -1,6 +1,8 @@
 import { subscribe } from 'valtio';
+import { vec } from '../../../common/math';
 import type { Params } from '../../../common/simulation/physics';
 import { AI } from '../ai';
+import type { Ball } from '../objects/ball';
 import { gameStore } from '../store/game';
 import { AimAssistMode, Players, settings } from '../store/settings';
 import { delay } from '../util/delay';
@@ -8,8 +10,6 @@ import { BaseGameController, PlayState } from './game-controller';
 import type { InputController } from './input-controller';
 
 export class OfflineGameController extends BaseGameController {
-  // todo: AI
-
   private ai: AI;
   private aiProcessing = false;
 
@@ -24,6 +24,39 @@ export class OfflineGameController extends BaseGameController {
       if (op === 'set' && path === 'players' && value === Players.AIVsAI) {
         if (this.playState === PlayState.PlayerShoot) {
           this.setPlayState(PlayState.AIShoot);
+        }
+      }
+    });
+
+    input.onMouseDown((e) => {
+      if (e.button === 2 && !this.hasBallInHand() && this.state.settled) {
+        const mouse3D = this.getMouse3D();
+        if (!mouse3D) return;
+
+        if (settings.enableBallPickup) {
+          let closest: Ball | undefined;
+          let closestDist = Infinity;
+
+          for (const ball of this.balls) {
+            const dist = vec.dist(mouse3D, ball.physics.position);
+            if (dist < ball.radius && dist < closestDist) {
+              closest = ball;
+              closestDist = dist;
+            }
+          }
+          if (closest?.isStationary) {
+            this.putBallInHand(closest);
+          }
+          return;
+        }
+
+        if (this.state.isBreak && this.playState === PlayState.PlayerShoot) {
+          if (
+            vec.dist(mouse3D, this.balls[0].physics.position) <
+            this.balls[0].radius
+          ) {
+            this.putBallInHand(this.balls[0]);
+          }
         }
       }
     });

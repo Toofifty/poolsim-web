@@ -6,6 +6,7 @@ import type { BallProto } from '../objects/ball';
 import type { SerializedCue } from '../objects/cue';
 import type { NetworkAdapter, NetworkEventMap } from './network-adapter';
 
+/** @deprecated */
 export class OfflineAdapter
   extends TypedEventTarget<NetworkEventMap>
   implements NetworkAdapter

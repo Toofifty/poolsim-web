@@ -249,6 +249,7 @@ export class OnlineGameController extends BaseGameController {
       case PlayState.OpponentInPlay:
         this.state.isBreak = false;
         if (this.shouldPutBallInHand()) {
+          this.putBallInHand();
           this.setPlayState(PlayState.PlayerBallInHand);
           break;
         }

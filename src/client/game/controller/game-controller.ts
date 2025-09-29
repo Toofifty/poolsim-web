@@ -109,7 +109,7 @@ export abstract class BaseGameController
       RuleSet._9Ball
     );
     this.simulation = new Simulation();
-    this.simulationResult = new Result();
+    this.simulationResult = new Result(undefined, this.state);
     this.aimAssist = new AimAssist();
 
     // todo: make cue, pockets Object3D
@@ -231,7 +231,7 @@ export abstract class BaseGameController
    * @emits set-game-state
    */
   protected setPlayState(state: PlayState, noEmit: boolean = false): void {
-    this.simulationResult = new Result();
+    this.simulationResult = new Result(undefined, this.state);
     this.playState = state;
     if (!noEmit) {
       this.dispatchTypedEvent('set-game-state', new Event('set-game-state'));
@@ -405,6 +405,7 @@ export abstract class BaseGameController
   }
 
   protected shouldPutBallInHand(): boolean {
+    console.log(this.simulationResult.hasFoul(), this.simulationResult);
     return this.simulationResult.hasFoul();
   }
 }

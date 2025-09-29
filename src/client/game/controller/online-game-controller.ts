@@ -1,15 +1,30 @@
+import type { TypedEventListenerOrEventListenerObject } from 'typescript-event-target';
 import type { Params } from '../../../common/simulation/physics';
 import type { SerializedTableState } from '../../../common/simulation/table-state';
 import { assert } from '../../../common/util';
-import type { NetworkAdapter } from '../network/network-adapter';
+import type {
+  NetworkAdapter,
+  NetworkEventMap,
+} from '../network/network-adapter';
 import { gameStore } from '../store/game';
-import { BaseGameController, PlayState } from './game-controller';
+import { AimAssistMode, settings } from '../store/settings';
+import {
+  BaseGameController,
+  PlayState,
+  type GameControllerEventMap,
+} from './game-controller';
 import type { InputController } from './input-controller';
 
 export type SerializedOnlineGameState = {
   playState: PlayState;
   state: SerializedTableState;
 };
+
+type GameEventListener<K extends keyof GameControllerEventMap> =
+  TypedEventListenerOrEventListenerObject<GameControllerEventMap, K>;
+
+type NetworkEventListener<K extends keyof NetworkEventMap> =
+  TypedEventListenerOrEventListenerObject<NetworkEventMap, K>;
 
 export class OnlineGameController extends BaseGameController {
   constructor(
@@ -29,75 +44,145 @@ export class OnlineGameController extends BaseGameController {
 
   private connect() {
     if (this.isHost) {
-      this.addEventListener('setup-table', ({ detail }) => {
-        this.adapter.setupTable(detail);
-      });
-      this.addEventListener('reset-cue-ball', () => {
-        this.adapter.resetCueBall();
-      });
-      this.addEventListener('set-game-state', () => {
-        this.adapter.setGameState(this.serialize());
-      });
+      this.addEventListener('setup-table', this.onGameSetupTable);
+      this.addEventListener('reset-cue-ball', this.onGameResetCueBall);
+      this.addEventListener('set-game-state', this.onGameSetGameState);
     } else {
-      this.adapter.addEventListener('setup-table', ({ detail }) => {
-        this.setupTable(detail);
-      });
-      this.adapter.addEventListener('reset-cue-ball', () => {
-        this.resetCueBall();
-      });
-      this.adapter.addEventListener('set-game-state', ({ detail }) => {
-        console.log('set-game-state - receive');
-        this.setGameState(detail);
-      });
+      this.adapter.addEventListener('setup-table', this.onNetworkSetupTable);
+      this.adapter.addEventListener(
+        'reset-cue-ball',
+        this.onNetworkResetCueBall
+      );
+      this.adapter.addEventListener(
+        'set-game-state',
+        this.onNetworkSetGameState
+      );
     }
 
-    this.addEventListener('place-ball-in-hand', ({ detail: ball }) => {
-      assert(this.playState === PlayState.PlayerBallInHand);
-      this.adapter.placeBallInHand(ball);
-    });
+    this.addEventListener('place-ball-in-hand', this.onGamePlaceBallInHand);
+    this.adapter.addEventListener(
+      'place-ball-in-hand',
+      this.onNetworkPlaceBallInHand
+    );
+    this.addEventListener('update-ball-in-hand', this.onGameUpdateBallInHand);
+    this.adapter.addEventListener(
+      'update-ball-in-hand',
+      this.onNetworkUpdateBallInHand
+    );
+    this.addEventListener('update-cue', this.onGameUpdateCue);
+    this.adapter.addEventListener('update-cue', this.onNetworkUpdateCue);
+    this.addEventListener('shoot', this.onGameShoot);
+    this.adapter.addEventListener('shoot', this.onNetworkShoot);
+  }
 
-    this.adapter.addEventListener('place-ball-in-hand', ({ detail: ball }) => {
+  public disconnect() {
+    if (this.isHost) {
+      this.removeEventListener('setup-table', this.onGameSetupTable);
+      this.removeEventListener('reset-cue-ball', this.onGameResetCueBall);
+      this.removeEventListener('set-game-state', this.onGameSetGameState);
+    } else {
+      this.adapter.removeEventListener('setup-table', this.onNetworkSetupTable);
+      this.adapter.removeEventListener(
+        'reset-cue-ball',
+        this.onNetworkResetCueBall
+      );
+      this.adapter.removeEventListener(
+        'set-game-state',
+        this.onNetworkSetGameState
+      );
+    }
+
+    this.removeEventListener('place-ball-in-hand', this.onGamePlaceBallInHand);
+    this.adapter.removeEventListener(
+      'place-ball-in-hand',
+      this.onNetworkPlaceBallInHand
+    );
+    this.removeEventListener(
+      'update-ball-in-hand',
+      this.onGameUpdateBallInHand
+    );
+    this.adapter.removeEventListener(
+      'update-ball-in-hand',
+      this.onNetworkUpdateBallInHand
+    );
+    this.removeEventListener('update-cue', this.onGameUpdateCue);
+    this.adapter.removeEventListener('update-cue', this.onNetworkUpdateCue);
+    this.removeEventListener('shoot', this.onGameShoot);
+    this.adapter.removeEventListener('shoot', this.onNetworkShoot);
+  }
+
+  // listeners
+  private onGameSetupTable: GameEventListener<'setup-table'> = ({ detail }) =>
+    this.adapter.setupTable(detail);
+
+  private onGameResetCueBall: GameEventListener<'reset-cue-ball'> = () =>
+    this.adapter.resetCueBall();
+
+  private onGameSetGameState: GameEventListener<'set-game-state'> = () =>
+    this.adapter.setGameState(this.serialize());
+
+  private onNetworkSetupTable: NetworkEventListener<'setup-table'> = ({
+    detail,
+  }) => this.setupTable(detail);
+
+  private onNetworkResetCueBall: NetworkEventListener<'reset-cue-ball'> = () =>
+    this.resetCueBall();
+
+  private onNetworkSetGameState: NetworkEventListener<'set-game-state'> = ({
+    detail,
+  }) => this.setGameState(detail);
+
+  private onGamePlaceBallInHand: GameEventListener<'place-ball-in-hand'> = ({
+    detail: ball,
+  }) => {
+    assert(this.playState === PlayState.PlayerBallInHand);
+    this.adapter.placeBallInHand(ball);
+  };
+
+  private onNetworkPlaceBallInHand: NetworkEventListener<'place-ball-in-hand'> =
+    ({ detail: ball }) => {
       this.balls
         .find(({ id }) => id === ball.id)
         ?.physics.sync(ball, this.state.pockets);
       this.setPlayState(PlayState.OpponentShoot);
-    });
+    };
 
-    this.addEventListener('update-ball-in-hand', () => {
+  private onGameUpdateBallInHand: GameEventListener<'update-ball-in-hand'> =
+    () => {
       assert(this.playState === PlayState.PlayerBallInHand);
       assert(this.ballInHand);
       this.adapter.updateBallInHand(this.ballInHand.physics.serialize());
-    });
+    };
 
-    this.adapter.addEventListener('update-ball-in-hand', ({ detail: ball }) => {
+  private onNetworkUpdateBallInHand: NetworkEventListener<'update-ball-in-hand'> =
+    ({ detail: ball }) => {
       this.balls
         .find(({ id }) => id === ball.id)
         ?.physics.sync(ball, this.state.pockets);
-    });
+    };
 
-    this.addEventListener('update-cue', () => {
-      assert(this.playState === PlayState.PlayerShoot);
-      this.adapter.updateCue(this.cue.serialize());
-    });
+  private onGameUpdateCue: GameEventListener<'update-cue'> = () => {
+    assert(this.playState === PlayState.PlayerShoot);
+    this.adapter.updateCue(this.cue.serialize());
+  };
 
-    this.adapter.addEventListener('update-cue', ({ detail: cue }) => {
-      this.cue.sync(cue, this.balls);
-    });
+  private onNetworkUpdateCue: NetworkEventListener<'update-cue'> = ({
+    detail: cue,
+  }) => this.cue.sync(cue, this.balls);
 
-    this.addEventListener('shoot', () => {
-      assert(this.playState === PlayState.PlayerShoot);
-      console.log('shoot - send');
-      this.adapter.shoot(this.cue.serialize());
-    });
+  private onGameShoot: GameEventListener<'shoot'> = () => {
+    assert(this.playState === PlayState.PlayerShoot);
+    this.adapter.shoot(this.cue.serialize());
+  };
 
-    this.adapter.addEventListener('shoot', ({ detail: cue }) => {
-      console.log('shoot - recieve');
-      this.cue.sync(cue, this.balls);
-      this.cue.shoot(() => {
-        this.setPlayState(PlayState.OpponentInPlay);
-      });
+  private onNetworkShoot: NetworkEventListener<'shoot'> = ({ detail: cue }) => {
+    this.cue.sync(cue, this.balls);
+    this.cue.shoot(() => {
+      this.setPlayState(PlayState.OpponentInPlay, true);
     });
-  }
+  };
+
+  // end listeners
 
   private get isHost() {
     return this.adapter.isHost;
@@ -115,15 +200,21 @@ export class OnlineGameController extends BaseGameController {
   public shoot(): void {
     if (this.playState !== PlayState.PlayerShoot) return;
 
-    console.log('shoot - local');
     this.cue.shoot(() => {
-      this.setPlayState(PlayState.PlayerInPlay);
+      // do not emit state update, else host will send
+      // the shot _and_ the physics state immediately after
+      // the shot, doubling the velocity on non-host
+      this.setPlayState(PlayState.PlayerInPlay, true);
     });
   }
 
-  protected setPlayState(state: PlayState): void {
-    super.setPlayState(state);
+  protected setPlayState(state: PlayState, noEmit = false): void {
+    super.setPlayState(state, noEmit);
     gameStore.state = state;
+  }
+
+  protected shouldShowAimAssist(): boolean {
+    return settings.aimAssistMode === AimAssistMode.FirstContact;
   }
 
   protected updateState(): void {

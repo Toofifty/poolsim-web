@@ -373,6 +373,10 @@ export class Game {
       this.renderer.dispose();
       this.renderer.forceContextLoss();
 
+      if (this.controller instanceof OnlineGameController) {
+        this.controller.disconnect();
+      }
+
       if (this.renderer.domElement.parentNode) {
         this.renderer.domElement.parentNode.removeChild(
           this.renderer.domElement

@@ -141,7 +141,6 @@ export abstract class BaseGameController
       }
 
       if (e.button === 0) {
-        console.log('onmousedown');
         this.shoot();
         this.dispatchTypedEvent('shoot', new Event('shoot'));
       }
@@ -231,10 +230,12 @@ export abstract class BaseGameController
   /**
    * @emits set-game-state
    */
-  protected setPlayState(state: PlayState): void {
+  protected setPlayState(state: PlayState, noEmit: boolean = false): void {
     this.simulationResult = new Result();
     this.playState = state;
-    this.dispatchTypedEvent('set-game-state', new Event('set-game-state'));
+    if (!noEmit) {
+      this.dispatchTypedEvent('set-game-state', new Event('set-game-state'));
+    }
   }
 
   protected get isInPlay(): boolean {

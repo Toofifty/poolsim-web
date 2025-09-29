@@ -6,13 +6,14 @@ import {
   Vector3,
 } from 'three';
 import { vec } from '../../../common/math';
+import type { Params } from '../../../common/simulation/physics';
 import { properties } from '../../../common/simulation/physics/properties';
 import { RuleSet, TableState } from '../../../common/simulation/table-state';
 import { Game } from '../game';
 import { createTableClothMesh } from '../models/table/create-table-cloth-mesh';
 import { createTableRailDiamondsMesh } from '../models/table/create-table-rail-diamonds-mesh';
 import { createTableRailMesh } from '../models/table/create-table-rail-mesh';
-import type { INetwork } from '../network';
+import type { NetworkAdapter } from '../network/network-adapter';
 import { settings } from '../store/settings';
 import { themed } from '../store/theme';
 import { toVec } from '../util/three-interop';
@@ -38,7 +39,7 @@ export class Table {
 
   public ballInHand?: Ball;
 
-  constructor(private network: INetwork) {
+  constructor(private network: NetworkAdapter) {
     this.object3D = new Object3D();
     this.cue = new Cue();
     this.object3D.add(this.cue.anchor);
@@ -199,7 +200,7 @@ export class Table {
     if (this.settled && isCurrentTurn && !settings.lockCue) {
       this.cursorPosition = Game.getFirstMouseIntersection(this.plane);
       if (this.cursorPosition) {
-        this.cue.setTarget(this.cursorPosition);
+        this.cue.setTarget(toVec(this.cursorPosition));
         this.network.syncCue(this.cue.serialize());
       }
     }
@@ -242,5 +243,41 @@ export class Table {
       vec.mcopy(ball.physics.position, position);
     }
     vec.msetZ(ball.physics.position, 0.1);
+  }
+}
+
+export class Table2 extends Object3D {
+  private cloth!: Mesh;
+  private rail!: Mesh;
+  private diamonds!: Mesh;
+
+  constructor(private params: Params, private pockets: Pocket[]) {
+    super();
+
+    themed((theme) => {
+      if (this.cloth) {
+        Game.dispose(this.cloth);
+        this.remove(this.cloth);
+      }
+
+      this.cloth = createTableClothMesh(this.pockets, theme);
+      this.add(this.cloth);
+
+      if (this.rail) {
+        Game.dispose(this.rail);
+        this.remove(this.rail);
+      }
+
+      this.rail = createTableRailMesh(this.pockets, theme);
+      this.add(this.rail);
+
+      if (this.diamonds) {
+        Game.dispose(this.diamonds);
+        this.remove(this.diamonds);
+      }
+
+      this.diamonds = createTableRailDiamondsMesh(theme);
+      this.add(this.diamonds);
+    });
   }
 }

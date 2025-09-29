@@ -1,4 +1,24 @@
-export enum GameState2 {
+import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from 'three';
+import { vec, type Vec } from '../../../common/math';
+import type { Collision } from '../../../common/simulation/collision';
+import type { Params } from '../../../common/simulation/physics';
+import { Result } from '../../../common/simulation/result';
+import { Simulation } from '../../../common/simulation/simulation';
+import { RuleSet, TableState } from '../../../common/simulation/table-state';
+import { createCushions } from '../factory/cushion';
+import { createPockets } from '../factory/pocket';
+import { Game } from '../game';
+import { Ball, type BallProto } from '../objects/ball';
+import { Cue } from '../objects/cue';
+import { type Cushion } from '../objects/cushion';
+import type { Pocket } from '../objects/pocket';
+import { Table2 } from '../objects/table';
+import { Rack } from '../rack';
+import { AimAssist } from '../simulation/aim-assist';
+import { toVec, toVector3 } from '../util/three-interop';
+import type { InputController } from './input-controller';
+
+export enum PlayState {
   PlayerShoot,
   OpponentShoot,
   AIShoot,
@@ -9,4 +29,277 @@ export enum GameState2 {
   OpponentBallInHand,
 }
 
-export interface GameController {}
+export interface GameController {
+  readonly state: TableState;
+  readonly playState: PlayState;
+
+  readonly table: Table2;
+  readonly cue: Cue;
+  readonly cushions: Cushion[];
+  readonly pockets: Pocket[];
+  readonly balls: Ball[];
+
+  readonly root: Object3D;
+
+  // setup
+  setup8Ball(): void;
+  setup9Ball(): void;
+  setupDebugGame(): void;
+  setupPrevious(): void;
+
+  // gameplay
+  shoot(): void;
+  update(dt: number): void;
+}
+
+export abstract class BaseGameController implements GameController {
+  public state: TableState;
+  public playState!: PlayState;
+
+  public table: Table2;
+  public cue: Cue;
+  public cushions: Cushion[];
+  public pockets: Pocket[];
+  public balls: Ball[];
+
+  public root: Object3D;
+
+  private plane: Mesh;
+
+  private simulation: Simulation;
+  private simulationResult: Result;
+  private aimAssist: AimAssist;
+
+  private ballInHand?: Ball;
+
+  // todo: Aim Assist
+
+  constructor(public params: Params, private input: InputController) {
+    this.setPlayState(PlayState.PlayerShoot);
+    this.cue = new Cue();
+    this.pockets = createPockets(params);
+    this.cushions = createCushions(params);
+    this.table = new Table2(params, this.pockets);
+    this.balls = [];
+    this.state = new TableState(
+      [],
+      this.cushions.map((cushion) => cushion.physics),
+      this.pockets.map((pocket) => pocket.physics),
+      RuleSet._9Ball
+    );
+    this.simulation = new Simulation();
+    this.simulationResult = new Result();
+    this.aimAssist = new AimAssist();
+
+    // todo: make cue, pockets Object3D
+    this.root = new Object3D().add(
+      this.table,
+      this.cue.anchor,
+      ...this.pockets.map((pocket) => pocket.parent),
+      ...this.cushions
+    );
+
+    this.plane = new Mesh(
+      new PlaneGeometry(params.table.length * 3, params.table.width * 3),
+      new MeshBasicMaterial({ color: '#fff' })
+    );
+    this.plane.visible = false;
+    this.root.add(this.plane);
+
+    this.input.onMouseDown((e) => {
+      if (e.button === 0) {
+        this.shoot();
+      }
+    });
+  }
+
+  private setBalls(balls: Ball[]): void {
+    if (balls.length === 0) {
+      throw new Error('Cannot set balls to empty');
+    }
+
+    this.balls.forEach((ball) => {
+      this.root.remove(ball.parent);
+      ball.dispose();
+    });
+
+    this.balls = balls;
+    this.cue.attachTo(balls[0]);
+    // todo: make balls Object3Ds
+    this.root.add(...balls.map((ball) => ball.parent));
+    this.state.balls = balls.map((ball) => ball.physics);
+    this.aimAssist.setBalls([...balls]);
+  }
+
+  protected setupTable({
+    rack,
+    ruleSet,
+  }: {
+    rack: BallProto[];
+    ruleSet: RuleSet;
+  }): void {
+    this.setBalls(rack.map((proto) => new Ball(proto)));
+    this.state.ruleSet = ruleSet;
+  }
+
+  public setup8Ball(): void {
+    this.setupTable({
+      rack: Rack.generate8Ball(),
+      ruleSet: RuleSet._8Ball,
+    });
+  }
+
+  public setup9Ball(): void {
+    this.setupTable({
+      rack: Rack.generate9Ball(),
+      ruleSet: RuleSet._9Ball,
+    });
+  }
+
+  public setupDebugGame(): void {
+    this.setupTable({
+      rack: Rack.generateDebugGame(),
+      ruleSet: RuleSet._9Ball,
+    });
+  }
+
+  public setupPrevious(): void {
+    switch (this.state.ruleSet) {
+      case RuleSet._8Ball:
+        this.setup8Ball();
+        break;
+      default:
+        this.setup9Ball();
+        break;
+    }
+  }
+
+  public abstract startGame(): void;
+
+  protected resetCueBall(): void {
+    this.balls[0].place(-this.params.table.length / 4, 0);
+  }
+
+  public abstract shoot(): void;
+
+  protected setPlayState(state: PlayState): void {
+    this.simulationResult = new Result();
+    this.playState = state;
+  }
+
+  protected get isInPlay(): boolean {
+    return [
+      PlayState.PlayerInPlay,
+      PlayState.OpponentInPlay,
+      PlayState.AIInPlay,
+    ].includes(this.playState);
+  }
+
+  protected get isShooting(): boolean {
+    return [
+      PlayState.PlayerShoot,
+      PlayState.OpponentShoot,
+      PlayState.AIShoot,
+    ].includes(this.playState);
+  }
+
+  /**
+   * Called only when state is settled.
+   */
+  protected abstract updateState(): void;
+
+  protected shouldPauseSimulation(): boolean {
+    return false;
+  }
+
+  protected shouldShowAimAssist(): boolean {
+    return false;
+  }
+
+  private playCollisionSounds(collisions: Collision[]) {
+    collisions.forEach((collision) => {
+      if (collision.type === 'ball-ball') {
+        Game.audio.play(
+          'clack_mid',
+          toVector3(collision.position),
+          Math.min(vec.len(collision.impulse) * 2, 5)
+        );
+      }
+      if (collision.type === 'ball-pocket') {
+        Game.audio.play('pocket_drop', toVector3(collision.position));
+      }
+    });
+  }
+
+  protected shouldUpdateBallInHand(): boolean {
+    return !!this.ballInHand;
+  }
+
+  protected updateBallInHand(ball: Ball): void {
+    if (!this.shouldUpdateBallInHand()) return;
+    // todo
+  }
+
+  private getMouse3D(): Vec | undefined {
+    const intersect = Game.getFirstMouseIntersection(this.plane);
+    return intersect ? toVec(intersect) : undefined;
+  }
+
+  protected shouldUpdateCue(): boolean {
+    return this.playState === PlayState.PlayerShoot;
+  }
+
+  protected updateCue(dt: number): void {
+    if (this.shouldUpdateCue()) {
+      const mouse3D = this.getMouse3D();
+      if (mouse3D) {
+        this.cue.setTarget(mouse3D);
+      }
+    }
+    this.cue.update(dt, this.state.settled);
+  }
+
+  public update(dt: number): void {
+    if (this.isInPlay && !this.shouldPauseSimulation()) {
+      const result = this.simulation.step({
+        simulated: false,
+        trackPath: false,
+        state: this.state,
+        dt,
+      });
+      this.simulationResult.add(result);
+      this.playCollisionSounds(result.collisions);
+    }
+
+    if (this.isShooting && !this.cue.isShooting && this.shouldShowAimAssist()) {
+      this.aimAssist.update(this.cue.getShot(), this.state).then(() => {
+        this.balls.forEach((ball) => ball.updateProjection());
+      });
+    } else {
+      this.aimAssist.clear();
+      this.balls.forEach((ball) => ball.updateProjection());
+    }
+
+    this.balls.forEach((ball) => ball.sync());
+
+    if (this.state.settled) {
+      this.updateState();
+    }
+
+    if (this.ballInHand) {
+      this.updateBallInHand(this.ballInHand);
+    } else {
+      this.updateCue(dt);
+    }
+  }
+
+  protected shouldSwitchTurn(): boolean {
+    return (
+      this.simulationResult.hasFoul() || this.simulationResult.ballsPotted === 0
+    );
+  }
+
+  protected shouldPutBallInHand(): boolean {
+    return this.simulationResult.hasFoul();
+  }
+}

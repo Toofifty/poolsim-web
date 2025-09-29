@@ -32,11 +32,13 @@ import {
   SSRPass,
 } from 'three/examples/jsm/Addons.js';
 import { subscribe } from 'valtio';
+import { params } from '../../common/simulation/physics';
 import { properties } from '../../common/simulation/physics/properties';
 import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
+import type { GameController } from './controller/game-controller';
 import { InputController } from './controller/input-controller';
-import { GameManager } from './game-manager';
+import { OfflineGameController } from './controller/offline-game-controller';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
@@ -56,7 +58,7 @@ export class Game {
   // game
   public mousePosition!: Vector2;
   public mouseRaycaster!: Raycaster;
-  public manager!: GameManager;
+  public controller!: GameController;
   public clock!: Clock;
   private accumulator = 0;
   private timestep = 1 / properties.updatesPerSecond;
@@ -167,8 +169,9 @@ export class Game {
     this.setupAmbientLight();
     this.setupSky();
 
-    this.manager = new GameManager(this.network);
-    this.scene.add(this.manager.table.object3D);
+    this.controller = new OfflineGameController(params, this.input);
+    this.scene.add(this.controller.root);
+
     this.clock = new Clock();
 
     this.renderer.setAnimationLoop(this.draw.bind(this));
@@ -207,11 +210,6 @@ export class Game {
           this.controls.enableZoom = true;
           return;
       }
-    });
-
-    // todo: move to game controller
-    this.input.onMouseDown((e) => {
-      this.manager.onMouseDown(e);
     });
   }
 
@@ -334,13 +332,9 @@ export class Game {
   }
 
   public static focusCueBall() {
-    const target = this.instance.table.balls[0].position;
+    const target = this.instance.controller.balls[0].position;
     this.instance.controls.target.copy(target);
     this.instance.controls.update();
-  }
-
-  public static get manager() {
-    return this.instance.manager;
   }
 
   public getMouseRaycaster() {
@@ -385,10 +379,6 @@ export class Game {
     };
   }
 
-  get table() {
-    return this.manager.table;
-  }
-
   public draw() {
     this.stats.begin();
     this.controls.update();
@@ -398,7 +388,7 @@ export class Game {
 
     // physics step
     while (this.accumulator >= this.timestep) {
-      this.manager.update(this.timestep);
+      this.controller.update(this.timestep);
       this.accumulator -= this.timestep;
     }
 

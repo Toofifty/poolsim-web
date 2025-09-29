@@ -1,4 +1,5 @@
 import { Mesh, Object3D, Vector3 } from 'three';
+import type { Vec } from '../../../common/math';
 import { params } from '../../../common/simulation/physics/params';
 import { properties } from '../../../common/simulation/physics/properties';
 import { Shot } from '../../../common/simulation/shot';
@@ -90,12 +91,12 @@ export class Cue {
     }
   }
 
-  public setTarget(point: Vector3) {
+  public setTarget(point: Vec) {
     if (this.isShooting || !this.targetBall || !this.targetBall.isStationary) {
       return false;
     }
     const position = this.targetBall.position.clone();
-    const angle = Math.atan2(point.y - position.y, point.x - position.x);
+    const angle = Math.atan2(point[1] - position.y, point[0] - position.x);
     this.anchor.rotation.z = angle - Math.PI / 2;
     this.object.position.y = this.restingPositionY;
   }

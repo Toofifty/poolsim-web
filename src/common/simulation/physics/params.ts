@@ -55,4 +55,6 @@ export const params = {
   },
 };
 
+export type Params = typeof params;
+
 if (typeof window !== 'undefined') (window as any).params = params;

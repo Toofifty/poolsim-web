@@ -1,8 +1,8 @@
 import { IconChevronUp, IconSettings } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
+import { PlayState } from '../game/controller/game-controller';
 import { Game } from '../game/game';
-import { GameState } from '../game/game-manager';
 import { gameStore } from '../game/store/game';
 import { AimAssistMode, Players, settings } from '../game/store/settings';
 import { theme } from '../game/store/theme';
@@ -13,21 +13,21 @@ import './controls.scss';
 import { PowerBar } from './power-bar';
 import { Surface } from './surface';
 
-const getStateName = (state: GameState | undefined) => {
+const getStateName = (state: PlayState | undefined) => {
   switch (state) {
-    case GameState.AIInPlay:
+    case PlayState.AIInPlay:
       return 'AI turn';
-    case GameState.AIShoot:
+    case PlayState.AIShoot:
       return 'AI is thinking';
-    case GameState.PlayerInPlay:
-    case GameState.PlayerShoot:
+    case PlayState.PlayerInPlay:
+    case PlayState.PlayerShoot:
       return 'Your turn';
-    case GameState.PlayerBallInHand:
+    case PlayState.PlayerBallInHand:
       return 'You have ball in hand';
-    case GameState.OpponentInPlay:
-    case GameState.OpponentShoot:
+    case PlayState.OpponentInPlay:
+    case PlayState.OpponentShoot:
       return "Opponent's turn";
-    case GameState.OpponentBallInHand:
+    case PlayState.OpponentBallInHand:
       return 'Opponent has ball in hand';
     default:
       return `Unknown ${state}`;
@@ -54,7 +54,7 @@ export const Controls = () => {
             <span>Status:</span>
             <span>
               {getStateName(state)}
-              {state === GameState.AIShoot && (
+              {state === PlayState.AIShoot && (
                 <code> {analysisProgress.toFixed(0)}%</code>
               )}
             </span>
@@ -89,13 +89,19 @@ export const Controls = () => {
                 </Button>
                 {isHost && (
                   <>
-                    <Button onClick={() => Game.manager.setup8Ball()}>
+                    <Button
+                      onClick={() => Game.instance.controller.setup8Ball()}
+                    >
                       8 ball
                     </Button>
-                    <Button onClick={() => Game.manager.setup9Ball()}>
+                    <Button
+                      onClick={() => Game.instance.controller.setup9Ball()}
+                    >
                       9 ball
                     </Button>
-                    <Button onClick={() => Game.manager.setupDebugGame()}>
+                    <Button
+                      onClick={() => Game.instance.controller.setupDebugGame()}
+                    >
                       Debug
                     </Button>
                   </>

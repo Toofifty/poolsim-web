@@ -11,7 +11,7 @@ export const MobileControls = () => {
   const { enableZoomPan } = useSnapshot(settings);
 
   const onShoot = () => {
-    Game.manager.shoot();
+    Game.instance.controller.shoot();
   };
 
   //   if (!isMobile) {

@@ -17,8 +17,6 @@ export class OfflineGameController extends BaseGameController {
     super(params, input);
     this.ai = new AI();
 
-    this.setup9Ball();
-
     // immediately make AI shoot if setting changes to AIvAI
     subscribe(settings, ([[op, [path], value]]) => {
       if (op === 'set' && path === 'players' && value === Players.AIVsAI) {
@@ -60,6 +58,9 @@ export class OfflineGameController extends BaseGameController {
         }
       }
     });
+
+    this.setup9Ball();
+    this.startGame();
   }
 
   public startGame(): void {

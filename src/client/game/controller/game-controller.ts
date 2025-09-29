@@ -16,7 +16,7 @@ import { Ball, type BallProto } from '../objects/ball';
 import { Cue } from '../objects/cue';
 import { type Cushion } from '../objects/cushion';
 import type { Pocket } from '../objects/pocket';
-import { Table2 } from '../objects/table';
+import { Table } from '../objects/table';
 import { Rack } from '../rack';
 import { AimAssist } from '../simulation/aim-assist';
 import { toVec, toVector3 } from '../util/three-interop';
@@ -49,7 +49,7 @@ export interface GameController
   readonly state: TableState;
   readonly playState: PlayState;
 
-  readonly table: Table2;
+  readonly table: Table;
   readonly cue: Cue;
   readonly cushions: Cushion[];
   readonly pockets: Pocket[];
@@ -75,7 +75,7 @@ export abstract class BaseGameController
   public state: TableState;
   public playState!: PlayState;
 
-  public table: Table2;
+  public table: Table;
   public cue: Cue;
   public cushions: Cushion[];
   public pockets: Pocket[];
@@ -100,7 +100,7 @@ export abstract class BaseGameController
     this.cue = new Cue();
     this.pockets = createPockets(params);
     this.cushions = createCushions(params);
-    this.table = new Table2(params, this.pockets);
+    this.table = new Table(params, this.pockets);
     this.balls = [];
     this.state = new TableState(
       [],

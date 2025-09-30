@@ -22,7 +22,7 @@ const lobbies: Record<string, Lobby> = {};
 app.use(express.static(path.resolve(process.cwd(), 'public')));
 app.use(cors());
 
-app.get('/', (_, res) => {
+app.get('/{*any}', (_, res) => {
   res.sendFile(path.resolve(process.cwd(), 'public', 'index.html'));
 });
 

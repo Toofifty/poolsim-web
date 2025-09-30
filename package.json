@@ -7,6 +7,8 @@
     "dev:client": "vite",
     "build:client": "tsc -b && vite build --outDir dist/public",
     "dev:server": "npx tsx src/server/index.ts",
+    "build:server": "esbuild src/server/index.ts --bundle --platform=node --target=node18 --outfile=dist/server/index.cjs --minify",
+    "build": "rm -rf dist && pnpm run build:client && pnpm run build:server",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -15,6 +17,7 @@
     "@types/cors": "^2.8.19",
     "classnames": "^2.5.1",
     "cors": "^2.8.5",
+    "esbuild": "^0.25.10",
     "express": "^5.1.0",
     "nanoid": "^5.1.6",
     "react": "^19.1.1",
@@ -28,6 +31,7 @@
     "three-bvh-csg": "^0.0.17",
     "three-subdivide": "^1.1.5",
     "troika-three-text": "^0.52.4",
+    "tsup": "^8.5.0",
     "typescript-event-target": "^1.1.1",
     "valtio": "^2.1.7"
   },

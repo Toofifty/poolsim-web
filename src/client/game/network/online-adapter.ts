@@ -6,6 +6,7 @@ import type { RuleSet } from '../../../common/simulation/table-state';
 import type { SerializedOnlineGameState } from '../controller/online-game-controller';
 import type { BallProto } from '../objects/ball';
 import type { SerializedCue } from '../objects/cue';
+import { throttle } from '../util/throttle';
 import type { NetworkAdapter, NetworkEventMap } from './network-adapter';
 
 export class OnlineAdapter
@@ -55,13 +56,13 @@ export class OnlineAdapter
     this.socket.emit('place-ball-in-hand', [this.lobby.id, ball]);
   }
 
-  updateBallInHand(ball: SerializedPhysicsBall): void {
+  updateBallInHand = throttle((ball: SerializedPhysicsBall): void => {
     this.socket.emit('update-ball-in-hand', [this.lobby.id, ball]);
-  }
+  }, 100);
 
-  updateCue(cue: SerializedCue): void {
+  updateCue = throttle((cue: SerializedCue): void => {
     this.socket.emit('update-cue', [this.lobby.id, cue]);
-  }
+  }, 100);
 
   shoot(cue: SerializedCue): void {
     this.socket.emit('shoot', [this.lobby.id, cue]);

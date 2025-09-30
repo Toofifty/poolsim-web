@@ -33,6 +33,7 @@ export const params = {
     frictionCushion: 0.2,
     /** g */
     gravity: 9.81,
+    spinMultiplier: 2,
   },
   cushion: {
     /** h = 1.2R */
@@ -40,6 +41,7 @@ export const params = {
     baseWidth: 0.01,
     height: 0.028575 * 1.2,
     backHeight: 0.028575 * 1.3,
+    cornerRounding: 0.25,
     rounding: 0.005,
   },
   pocket: {

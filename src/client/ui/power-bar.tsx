@@ -1,13 +1,16 @@
+import { Button } from '@mantine/core';
 import { useEffect } from 'react';
 import { useSnapshot } from 'valtio';
 import { constrain } from '../../common/util';
 import { Cue } from '../game/objects/cue';
 import { gameStore } from '../game/store/game';
+import { settings } from '../game/store/settings';
 import './power-bar.scss';
 import { useMouseInputs } from './use-mouse-inputs';
 
 export const PowerBar = () => {
   const { cueForce } = useSnapshot(gameStore);
+  const { distanceBasedPower } = useSnapshot(settings);
 
   const props = useMouseInputs(({ x }) => {
     gameStore.cueForce = Cue.MAX_FORCE * x;
@@ -28,14 +31,24 @@ export const PowerBar = () => {
   }, []);
 
   return (
-    <div className="power-bar">
-      <div className="power-bar__click-area" {...props}>
-        <div
-          className="power-bar__current-power"
-          style={{ width: `${(cueForce / Cue.MAX_FORCE) * 100}%` }}
-        />
-        <span className="power-bar__power-num">{cueForce.toFixed(2)}m/s</span>
+    <>
+      <Button
+        variant={distanceBasedPower ? 'filled' : 'default'}
+        size="32"
+        px="md"
+        onClick={() => (settings.distanceBasedPower = !distanceBasedPower)}
+      >
+        Auto
+      </Button>
+      <div className="power-bar">
+        <div className="power-bar__click-area" {...props}>
+          <div
+            className="power-bar__current-power"
+            style={{ width: `${(cueForce / Cue.MAX_FORCE) * 100}%` }}
+          />
+          <span className="power-bar__power-num">{cueForce.toFixed(2)}m/s</span>
+        </div>
       </div>
-    </div>
+    </>
   );
 };

@@ -1,12 +1,15 @@
 import { Mesh, Object3D, Vector3 } from 'three';
-import type { Vec } from '../../../common/math';
+import { vec, type Vec } from '../../../common/math';
 import { params } from '../../../common/simulation/physics/params';
 import { properties } from '../../../common/simulation/physics/properties';
 import { Shot } from '../../../common/simulation/shot';
+import { constrain } from '../../../common/util';
 import { dlerp } from '../dlerp';
 import { Game } from '../game';
 import { createCueMeshes } from '../models/cue/create-cue-meshes';
 import { gameStore } from '../store/game';
+import { settings } from '../store/settings';
+import { toVec } from '../util/three-interop';
 import type { Ball } from './ball';
 
 export type SerializedCue = {
@@ -95,10 +98,16 @@ export class Cue {
     if (this.isShooting || !this.targetBall || !this.targetBall.isStationary) {
       return false;
     }
-    const position = this.targetBall.position.clone();
-    const angle = Math.atan2(point[1] - position.y, point[0] - position.x);
+
+    const position = toVec(this.targetBall.position);
+    const angle = Math.atan2(point[1] - position[1], point[0] - position[0]);
     this.anchor.rotation.z = angle - Math.PI / 2;
     this.object.position.y = this.restingPositionY;
+
+    if (settings.distanceBasedPower) {
+      const dist = vec.dist(position, point);
+      this.force = constrain(dist * 2, 0, properties.cueMaxForce);
+    }
   }
 
   public get angle() {

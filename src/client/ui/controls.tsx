@@ -67,7 +67,9 @@ export const Controls = () => {
           </div>
         </Surface>
         <Surface className="grow">
-          <PowerBar />
+          <div className="group">
+            <PowerBar />
+          </div>
         </Surface>
       </div>
       {showUI && (
@@ -228,7 +230,7 @@ const DebugControls = () => {
     lockCue,
     debugLights,
     debugBalls,
-    debugCollisionBoxes,
+    debugCushions,
     enableProfiler,
     enableBallPickup,
   } = useSnapshot(settings);
@@ -284,14 +286,14 @@ const DebugControls = () => {
       >
         Debug balls
       </Button>
-      {/* <Button
-        active={debugCollisionBoxes}
+      <Button
+        variant={debugCushions ? 'filled' : 'default'}
         onClick={() => {
-          settings.debugCollisionBoxes = !debugCollisionBoxes;
+          settings.debugCushions = !debugCushions;
         }}
       >
-        Debug collision boxes
-      </Button> */}
+        Debug cushions
+      </Button>
       {/* <Button
         active={enableProfiler}
         onClick={() => {

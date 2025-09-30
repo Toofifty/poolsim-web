@@ -2,7 +2,7 @@
 
 .power-bar {
   height: 32px;
-  width: 100%;
+  flex-grow: 1;
 }
 
 .power-bar__click-area {

@@ -118,18 +118,28 @@ export class PhysicsBall {
 
     // apply spins
     if (Math.abs(shot.topSpin) > 0) {
-      const r = vec.mult(up, shot.topSpin * this.radius);
+      const r = vec.mult(
+        up,
+        shot.topSpin * params.ball.spinMultiplier * this.radius
+      );
       const dw = vec.mult(vec.cross(r, direction), 1 / I);
       vec.madd(this.w, dw);
     }
 
     if (Math.abs(shot.sideSpin) > 0) {
-      const r = vec.mult(right, shot.sideSpin * this.radius);
+      const r = vec.mult(
+        right,
+        shot.sideSpin * params.ball.spinMultiplier * this.radius
+      );
       const dw = vec.mult(vec.cross(r, direction), 1 / I);
       vec.madd(this.w, dw);
     }
 
-    const dv = vec.mult(direction, vec.len(shot.velocity));
+    // contribute less to velocity based on where the cue ball is hit
+    const vContribution =
+      Math.cos((shot.topSpin * Math.PI) / 2) *
+      Math.cos((shot.sideSpin * Math.PI) / 2);
+    const dv = vec.mult(direction, vContribution * vec.len(shot.velocity));
     vec.madd(this.v, dv);
   }
 

@@ -3,18 +3,15 @@ import { vec, type Vec } from '../../../../common/math';
 import { params } from '../../../../common/simulation/physics/params';
 import { constrain } from '../../../../common/util';
 import { generateBoundingBoxUVs } from '../util';
+import { getControlPoints } from './get-control-points';
 
 export const createCushionGeometry = ([A, B, C, D]: [Vec, Vec, Vec, Vec]) => {
   const {
-    cushion: { height, backHeight, width, baseWidth, rounding },
+    cushion: { height, width, baseWidth, rounding },
     ball,
   } = params;
 
-  const AB = vec.mult(vec.add(A, B), 1 / 2);
-  const AtoAB = vec.len(vec.sub(AB, A));
-  const BC1 = vec.add(B, vec.mult(vec.norm(vec.sub(C, B)), AtoAB));
-  const BC2 = vec.add(C, vec.mult(vec.norm(vec.sub(B, C)), AtoAB));
-  const CD = vec.mult(vec.add(C, D), 1 / 2);
+  const [AB, BC1, BC2, CD] = getControlPoints([A, B, C, D], params);
 
   const shape = new Shape();
 

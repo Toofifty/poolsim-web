@@ -4,6 +4,8 @@ import {
   MeshBasicMaterial,
   Object3D,
   PlaneGeometry,
+  Points,
+  PointsMaterial,
 } from 'three';
 import { subscribe } from 'valtio';
 import { vec, type Vec } from '../../../common/math';
@@ -12,10 +14,12 @@ import { params } from '../../../common/simulation/physics/params';
 import { properties } from '../../../common/simulation/physics/properties';
 import { Game } from '../game';
 import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
+import { getControlPoints } from '../models/cushion/get-control-points';
 import { createTableClothNormalTexture } from '../models/table/create-table-cloth-texture';
 import { createMaterial } from '../rendering/create-material';
 import { settings } from '../store/settings';
 import { themed } from '../store/theme';
+import { toVector3 } from '../util/three-interop';
 
 export class Cushion extends Object3D {
   public physics: PhysicsCushion;
@@ -102,15 +106,36 @@ export class Cushion extends Object3D {
     const [position, size] = this.physics.collisionBox;
     const collisionBoxMesh = new Mesh(
       new PlaneGeometry(size[0], size[1]),
-      new MeshBasicMaterial({ color: 0xffffff, wireframe: true })
+      new MeshBasicMaterial({
+        color: 0xffffff,
+        wireframe: true,
+        depthTest: false,
+      })
     );
     collisionBoxMesh.position.x = position[0] + size[0] / 2;
     collisionBoxMesh.position.y = position[1] + size[1] / 2;
+    collisionBoxMesh.renderOrder = 9999;
+
+    const [A, B, C, D] = this.physics.vertices;
+    const [AB, BC1, BC2, CD] = getControlPoints([A, B, C, D], params);
+    const controlPoints = new Points(
+      new BufferGeometry().setFromPoints(
+        [A, AB, B, BC1, BC2, C, CD, D].map(toVector3)
+      ),
+      new PointsMaterial({
+        color: 0xffffff,
+        size: 0.01,
+        depthTest: false,
+      })
+    );
+    controlPoints.renderOrder = 9999;
+    controlPoints.position.z = 0.01;
+
     subscribe(settings, () => {
-      if (settings.debugCollisionBoxes) {
-        this.add(collisionBoxMesh);
+      if (settings.debugCushions) {
+        this.add(collisionBoxMesh, controlPoints);
       } else {
-        this.remove(collisionBoxMesh);
+        this.remove(collisionBoxMesh, controlPoints);
       }
     });
   }

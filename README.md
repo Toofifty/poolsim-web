@@ -7,7 +7,7 @@ Play pool in your browser
 ### Gameplay
 
 - Fully implement 8 ball
-- Switch turns
+- ~~Switch turns~~
 - Snooker?
 
 ### Physics
@@ -31,7 +31,7 @@ Play pool in your browser
 ### AI
 
 - Optimise
-- Only check down the table on break
+- ~~Only check down the table on break~~
 - Better shot scoring
   - Consider collisions before/after target ball struck
   - Score shots higher that look like they had intention
@@ -41,5 +41,13 @@ Play pool in your browser
 
 ### Multiplayer
 
-- Add online multiplayer
+- ~~Add online multiplayer~~
 - Custom games (custom properties)
+- Private lobbies
+- Better interactions
+  - Sounds
+    - On your turn
+    - On foul
+    - On win/loss
+  - Notifications
+- Handle disconnects

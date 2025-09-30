@@ -21,13 +21,14 @@ export const settings = proxy({
   players: Players.PlayerVsPlayer,
   enableZoomPan: typeof window !== 'undefined' && !getIsMobile(),
   highlightTargetBalls: true,
+  distanceBasedPower: true,
 
   canvasEnabled: true,
   pauseSimulation: false,
   lockCue: false,
   debugLights: false,
   debugBalls: false,
-  debugCollisionBoxes: false,
+  debugCushions: false,
   enableProfiler: false,
   enableBallPickup: false,
 });

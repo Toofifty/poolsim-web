@@ -19,11 +19,11 @@ const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 6);
 
 const lobbies: Record<string, Lobby> = {};
 
-app.use(express.static(path.resolve(process.cwd())));
+app.use(express.static(path.resolve(process.cwd(), 'public')));
 app.use(cors());
 
 app.get('/', (_, res) => {
-  res.sendFile(path.resolve(process.cwd(), 'index.html'));
+  res.sendFile(path.resolve(process.cwd(), 'public', 'index.html'));
 });
 
 io.on('connection', (socket) => {

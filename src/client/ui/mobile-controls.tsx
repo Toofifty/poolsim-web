@@ -1,8 +1,8 @@
+import { Button } from '@mantine/core';
 import { IconArrowsMove, IconPlayerPlay } from '@tabler/icons-react';
 import { useSnapshot } from 'valtio';
 import { Game } from '../game/game';
 import { settings } from '../game/store/settings';
-import { Button } from './button';
 import './mobile-controls.scss';
 import { useIsMobile } from './use-media-query';
 
@@ -10,7 +10,9 @@ export const MobileControls = () => {
   const isMobile = useIsMobile();
   const { enableZoomPan } = useSnapshot(settings);
 
-  const onShoot = () => {
+  const onShoot = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     Game.instance.controller.shoot();
   };
 
@@ -20,16 +22,22 @@ export const MobileControls = () => {
 
   return (
     <div className="mobile-controls">
-      <Button surface circle onClick={onShoot}>
-        <IconPlayerPlay size={16} />
+      <Button
+        className="surface button"
+        size="40"
+        onClick={onShoot}
+        rightSection={<IconPlayerPlay size={16} />}
+      >
+        Shoot
       </Button>
       <Button
-        surface
-        circle
-        active={enableZoomPan}
+        className="surface button"
+        size="40"
+        variant={!enableZoomPan ? 'filled' : 'default'}
         onClick={() => (settings.enableZoomPan = !enableZoomPan)}
+        rightSection={<IconArrowsMove size={16} />}
       >
-        <IconArrowsMove size={16} />
+        Lock orientation
       </Button>
     </div>
   );

@@ -1,11 +1,11 @@
-import { Flex, Stack, Text, Title } from '@mantine/core';
+import { Button, Flex, Group, Stack, Text, Title } from '@mantine/core';
 import { useEffect } from 'react';
 import { useParams } from 'react-router';
 import { socket } from '../../socket';
-import { Button } from '../../ui/button';
 import { PageContainer } from '../../ui/page-container';
 import { Surface } from '../../ui/surface';
 import { useLobby } from '../../util/use-lobby';
+import { GameParams } from './game-params';
 import { useRedirectOnStart } from './use-redirect-on-start';
 
 export const LobbyPage = () => {
@@ -22,45 +22,58 @@ export const LobbyPage = () => {
     return null;
   }
 
+  const isHost = lobby.hostId === socket.id;
+
   const onStartGame = () => {
     socket.emit('start-game', id);
   };
 
   return (
     <PageContainer>
-      <Surface>
+      <Group wrap="nowrap" align="stretch">
         <Stack align="center">
-          <Title order={2}>
-            Lobby code{' '}
-            <Text component="span" fz="inherit">
-              {lobby?.id}
-            </Text>
-          </Title>
-        </Stack>
-        <Flex gap="lg">
-          {lobby.hostId === socket.id && (
-            <Button disabled={lobby.players.length < 2} onClick={onStartGame}>
-              Start game
-            </Button>
+          <Surface p="lg" w="100%">
+            <Stack align="stretch" gap="lg">
+              <Title order={2}>
+                Lobby code: <strong>{lobby?.id}</strong>
+              </Title>
+              <Title order={3}>
+                <strong>{lobby.players.length}</strong> Players
+              </Title>
+              <Flex wrap="wrap" align="flex-start" gap="md">
+                {lobby.players.map((player) => (
+                  <Text key={player.id}>
+                    id: {player.id} name: {player.name}
+                  </Text>
+                ))}
+              </Flex>
+            </Stack>
+          </Surface>
+          <Surface p="lg" w="100%">
+            <Stack>
+              <Button size="lg" w="100%" disabled>
+                Preferences
+              </Button>
+              <Button size="lg" w="100%" c="red" disabled>
+                Leave lobby
+              </Button>
+            </Stack>
+          </Surface>
+          {isHost && (
+            <Surface p="lg" w="100%">
+              <Button
+                w="100%"
+                size="lg"
+                disabled={lobby.players.length < 2}
+                onClick={onStartGame}
+              >
+                Start game
+              </Button>
+            </Surface>
           )}
-          <Button>Copy link</Button>
-        </Flex>
-        <Stack miw="400px">
-          <Title order={2}>
-            <Text component="span" fz="inherit">
-              {lobby.players.length}
-            </Text>{' '}
-            Players
-          </Title>
-          <Flex wrap="wrap" align="flex-start" gap="md">
-            {lobby.players.map((player) => (
-              <Text key={player.id}>
-                id: {player.id} name: {player.name}
-              </Text>
-            ))}
-          </Flex>
         </Stack>
-      </Surface>
+        <GameParams lobby={lobby} />
+      </Group>
     </PageContainer>
   );
 };

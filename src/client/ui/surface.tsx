@@ -1,12 +1,17 @@
-import type { ElementType, ReactNode } from 'react';
+import { Box, type BoxComponentProps } from '@mantine/core';
+import cx from 'classnames';
+import type { ReactNode } from 'react';
 import './surface.scss';
 
 export const Surface = ({
-  as: Element = 'div',
   children,
   className,
+  ...props
 }: {
-  as?: ElementType;
   children: ReactNode;
   className?: string;
-}) => <Element className={`surface ${className}`}>{children}</Element>;
+} & BoxComponentProps) => (
+  <Box {...props} className={cx('surface', className)}>
+    {children}
+  </Box>
+);

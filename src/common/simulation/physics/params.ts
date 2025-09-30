@@ -1,4 +1,9 @@
+import { RuleSet } from '../table-state';
+
 export const params = {
+  game: {
+    ruleSet: RuleSet._9Ball,
+  },
   ball: {
     /** M */
     mass: 0.170097,

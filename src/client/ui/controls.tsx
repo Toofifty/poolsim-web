@@ -1,3 +1,4 @@
+import { ActionIcon, Button } from '@mantine/core';
 import { IconChevronUp, IconSettings } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
@@ -8,7 +9,6 @@ import { AimAssistMode, Players, settings } from '../game/store/settings';
 import { theme } from '../game/store/theme';
 import { socket } from '../socket';
 import { useLobby } from '../util/use-lobby';
-import { Button } from './button';
 import './controls.scss';
 import { PowerBar } from './power-bar';
 import { Surface } from './surface';
@@ -47,9 +47,13 @@ export const Controls = () => {
   return (
     <div className="controls">
       <div className="group">
-        <Button surface circle onClick={() => setShowUI((v) => !v)}>
+        <ActionIcon
+          className="surface button icon"
+          size="40"
+          onClick={() => setShowUI((v) => !v)}
+        >
           {showUI ? <IconChevronUp size={16} /> : <IconSettings size={16} />}
-        </Button>
+        </ActionIcon>
         <Surface>
           <div className="group lower">
             {lobby && <span>{lobby.id}</span>}
@@ -127,7 +131,7 @@ const GraphicsControls = () => {
     <div className="group lower">
       <span>Graphics</span>
       <Button
-        active={ortho}
+        variant={ortho ? 'filled' : 'default'}
         onClick={() => {
           settings.ortho = !ortho;
         }}
@@ -135,7 +139,7 @@ const GraphicsControls = () => {
         Ortho
       </Button>
       <Button
-        active={highDetail}
+        variant={highDetail ? 'filled' : 'default'}
         onClick={() => {
           settings.highDetail = !highDetail;
         }}
@@ -153,7 +157,7 @@ const AimAssistControls = () => {
     <div className="group lower">
       <span>Aim assist</span>
       <Button
-        active={aimAssistMode === AimAssistMode.Off}
+        variant={aimAssistMode === AimAssistMode.Off ? 'filled' : 'default'}
         onClick={() => {
           settings.aimAssistMode = AimAssistMode.Off;
         }}
@@ -161,7 +165,9 @@ const AimAssistControls = () => {
         Off
       </Button>
       <Button
-        active={aimAssistMode === AimAssistMode.FirstContact}
+        variant={
+          aimAssistMode === AimAssistMode.FirstContact ? 'filled' : 'default'
+        }
         onClick={() => {
           settings.aimAssistMode = AimAssistMode.FirstContact;
         }}
@@ -169,7 +175,7 @@ const AimAssistControls = () => {
         Simple
       </Button>
       <Button
-        active={aimAssistMode === AimAssistMode.Full}
+        variant={aimAssistMode === AimAssistMode.Full ? 'filled' : 'default'}
         onClick={() => {
           settings.aimAssistMode = AimAssistMode.Full;
         }}
@@ -187,7 +193,7 @@ const PlayerControls = () => {
     <div className="group lower">
       <span>Players</span>
       <Button
-        active={players === Players.PlayerVsPlayer}
+        variant={players === Players.PlayerVsPlayer ? 'filled' : 'default'}
         onClick={() => {
           settings.players = Players.PlayerVsPlayer;
         }}
@@ -195,7 +201,7 @@ const PlayerControls = () => {
         PvP
       </Button>
       <Button
-        active={players === Players.PlayerVsAI}
+        variant={players === Players.PlayerVsAI ? 'filled' : 'default'}
         onClick={() => {
           settings.players = Players.PlayerVsAI;
         }}
@@ -203,7 +209,7 @@ const PlayerControls = () => {
         PvAI
       </Button>
       <Button
-        active={players === Players.AIVsAI}
+        variant={players === Players.AIVsAI ? 'filled' : 'default'}
         onClick={() => {
           settings.players = Players.AIVsAI;
         }}
@@ -238,7 +244,7 @@ const DebugControls = () => {
         Disable canvas
       </Button> */}
       <Button
-        active={enableBallPickup}
+        variant={enableBallPickup ? 'filled' : 'default'}
         onClick={() => {
           settings.enableBallPickup = !enableBallPickup;
         }}
@@ -246,7 +252,7 @@ const DebugControls = () => {
         Enable pick up
       </Button>
       <Button
-        active={pauseSimulation}
+        variant={pauseSimulation ? 'filled' : 'default'}
         onClick={() => {
           settings.pauseSimulation = !pauseSimulation;
         }}
@@ -254,7 +260,7 @@ const DebugControls = () => {
         Pause simulation
       </Button>
       <Button
-        active={lockCue}
+        variant={lockCue ? 'filled' : 'default'}
         onClick={() => {
           settings.lockCue = !lockCue;
         }}
@@ -270,7 +276,7 @@ const DebugControls = () => {
         Debug lights
       </Button> */}
       <Button
-        active={debugBalls}
+        variant={debugBalls ? 'filled' : 'default'}
         onClick={() => {
           settings.debugBalls = !debugBalls;
         }}
@@ -307,7 +313,7 @@ const ThemeControls = () => {
         {(['green', 'blue', 'red', 'pink'] as const).map((v) => (
           <Button
             key={v}
-            active={table === v}
+            variant={table === v ? 'filled' : 'default'}
             onClick={() => (theme.table = v)}
           >
             {v[0].toLocaleUpperCase() + v.slice(1).toLowerCase()}

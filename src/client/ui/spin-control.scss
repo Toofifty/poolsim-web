@@ -42,22 +42,6 @@ $point-size: $size * 0.2;
   pointer-events: none;
 }
 
-.spin-control__buttons {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-}
-
-.spin-control__button {
-  padding: 4px;
-  border-radius: 100% !important;
-  height: $size * 0.25;
-  width: $size * 0.25;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 $la-pad: 4px;
 .spin-control__lift-area {
   width: $size * 0.5;

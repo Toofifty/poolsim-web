@@ -1,12 +1,18 @@
 @use './var' as *;
 
+$inner-spread: 1px;
+$inner-opacity: 0.25;
+
 .surface {
   border-radius: $br-surface;
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: $pad-surface;
   margin: $pad-surface $pad-surface * 0.5;
   pointer-events: initial;
   backdrop-filter: blur(64px);
-  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: //
+    // inset 0 $inner-spread $inner-spread rgba(255, 255, 255, $inner-opacity),
+    // inset 0 $inner-spread * -1 $inner-spread rgba(255, 255, 255, $inner-opacity),
+    0 4px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, $inner-opacity);
 }

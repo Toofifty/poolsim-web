@@ -1,5 +1,4 @@
 .button {
-  padding: 4px 12px;
   cursor: pointer;
   transition: 0.1s;
   font-family: inherit;
@@ -8,8 +7,34 @@
   white-space: nowrap;
 }
 
+.button:not(.surface) {
+  border-radius: 16px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  &.active,
+  &[data-variant='filled'] {
+    background: #646cff;
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.button.icon {
+  border-radius: 100%;
+}
+
 .button.surface {
-  padding: 8px 16px;
+  &:not(.icon) {
+    padding: 0 16px;
+  }
 
   &.circle {
     padding: 8px 8px;
@@ -30,22 +55,9 @@
     margin-left: 0;
   }
 
-  &.active {
+  &.active,
+  &[data-variant='filled'] {
     border-color: #646cff;
     background: #646cff88;
-  }
-}
-
-.button:not(.surface) {
-  border-radius: 16px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  &.active {
-    background: #646cff;
   }
 }

@@ -1,3 +1,4 @@
+import { ActionIcon, Stack, Tooltip } from '@mantine/core';
 import {
   IconArrowsHorizontal,
   IconArrowsVertical,
@@ -8,7 +9,6 @@ import {
 import { useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { gameStore } from '../game/store/game';
-import { Button } from './button';
 import './spin-control.scss';
 import { Surface } from './surface';
 import { useIsMobile } from './use-media-query';
@@ -52,28 +52,42 @@ export const SpinControl = () => {
 
   return (
     <div className="spin-control__container">
-      <Button surface circle onClick={() => setVisible((v) => !v)}>
-        {visible ? <IconChevronRight size={16} /> : <IconRotate360 size={16} />}
-      </Button>
+      <Tooltip
+        // force rerender
+        key={visible ? 'visible' : 'not-visible'}
+        label={visible ? 'Close spin control' : 'Open spin control'}
+      >
+        <ActionIcon
+          className="surface button icon"
+          size="40"
+          onClick={() => setVisible((v) => !v)}
+        >
+          {visible ? (
+            <IconChevronRight size={16} />
+          ) : (
+            <IconRotate360 size={16} />
+          )}
+        </ActionIcon>
+      </Tooltip>
       {visible && (
-        <Surface className="spin-control">
-          <div className="spin-control__buttons">
-            <Button
-              className="spin-control__button"
-              active={!lockTopSpin}
+        <Surface className="spin-control" py="md">
+          <Stack justify="space-evenly">
+            <ActionIcon
+              variant={lockTopSpin ? 'default' : 'filled'}
+              size="40"
               onClick={() => setLockTopSpin((v) => !v)}
             >
               <IconArrowsVertical size={16} />
-            </Button>
-            <Button
-              className="spin-control__button"
-              active={!lockSideSpin}
+            </ActionIcon>
+            <ActionIcon
+              variant={lockSideSpin ? 'default' : 'filled'}
+              size="40"
               onClick={() => setLockSideSpin((v) => !v)}
             >
               <IconArrowsHorizontal size={16} />
-            </Button>
-            <Button
-              className="spin-control__button"
+            </ActionIcon>
+            <ActionIcon
+              size="40"
               onClick={() => {
                 gameStore.cueSpinX = 0;
                 gameStore.cueSpinY = 0;
@@ -81,8 +95,8 @@ export const SpinControl = () => {
               }}
             >
               <IconRefresh size={16} />
-            </Button>
-          </div>
+            </ActionIcon>
+          </Stack>
           <div ref={setClickArea} className="spin-control__ball-area">
             <div className="spin-control__ball" {...ballAreaProps} />
             <div

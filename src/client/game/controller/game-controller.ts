@@ -87,7 +87,7 @@ export abstract class BaseGameController
 
   private simulation: Simulation;
   private simulationResult: Result;
-  private aimAssist: AimAssist;
+  protected aimAssist: AimAssist;
 
   protected ballInHand?: Ball;
 
@@ -110,7 +110,7 @@ export abstract class BaseGameController
     );
     this.simulation = new Simulation();
     this.simulationResult = new Result(undefined, this.state);
-    this.aimAssist = new AimAssist();
+    this.aimAssist = new AimAssist(params.game.aimAssist);
 
     // todo: make cue, pockets Object3D
     this.root = new Object3D().add(
@@ -385,7 +385,11 @@ export abstract class BaseGameController
       this.balls.forEach((ball) => ball.updateProjection());
     }
 
-    this.balls.forEach((ball) => ball.sync());
+    const highlightedBalls = this.state.targetableBalls;
+    this.balls.forEach((ball) => {
+      ball.sync();
+      ball.highlight.visible = highlightedBalls.has(ball.id);
+    });
 
     if (this.state.settled) {
       this.updateState();

@@ -25,6 +25,7 @@ import { createMaterial } from '../rendering/create-material';
 import { toQuaternion, toVector3 } from '../util/three-interop';
 import { Arrow } from './arrow';
 import { BallDebug } from './ball-debug';
+import { BallHighlight } from './ball-highlight';
 
 export type BallProto = {
   id: number;
@@ -44,7 +45,7 @@ export class Ball {
   public physics: PhysicsBall;
 
   public number: number;
-  private color: Color;
+  public color: Color;
 
   // simulation
   private collisionPoints: Vector3[] = [];
@@ -63,6 +64,7 @@ export class Ball {
   private projectionMaterial!: Material;
   private impactArrow!: Arrow;
 
+  public highlight: BallHighlight;
   private debug: BallDebug;
 
   constructor({ id, number, color, position, orientation }: BallProto) {
@@ -71,9 +73,11 @@ export class Ball {
     this.number = number;
     this.parent = new Object3D();
     this.parent.position.add(this.position);
+    this.highlight = new BallHighlight(this);
+    this.highlight.update();
     this.debug = new BallDebug(this);
     this.debug.update();
-    this.parent.add(this.debug);
+    this.parent.add(this.highlight, this.debug);
 
     this.createMesh();
     this.updateMesh();
@@ -158,7 +162,7 @@ export class Ball {
     this.impactArrow.position.copy(
       toVector3(vec.sub(position, this.physics.position))
     );
-    this.impactVelocity = toVector3(velocity);
+    this.impactVelocity = toVector3(vec.setZ(velocity, 0));
   }
 
   public clearImpactArrow() {
@@ -167,6 +171,7 @@ export class Ball {
 
   public sync() {
     this.updateMesh();
+    this.highlight.update();
     this.debug.update();
   }
 
@@ -228,6 +233,9 @@ export class Ball {
       Game.remove(this.trackingLine);
       Game.dispose(this.trackingLine);
     }
+
+    this.highlight.dispose();
+    this.debug.dispose();
 
     this.parent.traverse((obj) => Game.dispose(obj));
     Game.dispose(this.parent);

@@ -94,6 +94,14 @@ export class TableState {
     return Math.min(...activeIds);
   }
 
+  public get targetableBalls() {
+    if (this.ruleSet === RuleSet._9Ball) {
+      return new Set([this.lowestActiveBallId]);
+    }
+
+    return new Set();
+  }
+
   public get is8Ball() {
     return this.ruleSet === RuleSet._8Ball;
   }

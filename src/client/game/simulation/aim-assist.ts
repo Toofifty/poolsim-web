@@ -19,6 +19,8 @@ export class AimAssist {
   private balls: Ball[] = [];
   private ballMap: Map<number, Ball> = new Map();
 
+  constructor(public mode: AimAssistMode) {}
+
   public setBalls(balls: Ball[]) {
     this.clear();
     this.balls = balls;
@@ -38,11 +40,11 @@ export class AimAssist {
   }
 
   public async update(shot: Shot, state: TableState) {
-    if (this.lastShotKey === shot.key) {
+    if (this.lastShotKey === shot.key || this.mode === AimAssistMode.Off) {
       return;
     }
 
-    const firstContact = settings.aimAssistMode === AimAssistMode.FirstContact;
+    const firstContact = this.mode === AimAssistMode.FirstContact;
     const profiler = settings.enableProfiler ? Game.profiler : undefined;
 
     await (profiler ?? Profiler.none).profile('aim-update', async () => {

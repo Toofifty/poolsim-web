@@ -79,17 +79,18 @@ export const Controls = () => {
                 <ThemeControls />
               </div>
             </Surface>
-            <Surface>
-              <div className="group">
-                <AimAssistControls />
-                {!isMultiplayer && <PlayerControls />}
-              </div>
-            </Surface>
+            {!isMultiplayer && (
+              <Surface>
+                <div className="group">
+                  <AimAssistControls />
+                  <PlayerControls />
+                </div>
+              </Surface>
+            )}
           </div>
           <div className="group space-between">
             <Surface>
               <div className="group lower">
-                <Button onClick={() => Game.resetCamera()}>Reset camera</Button>
                 <Button onClick={() => Game.focusCueBall()}>
                   Focus cue ball
                 </Button>

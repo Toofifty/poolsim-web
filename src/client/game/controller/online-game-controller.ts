@@ -7,7 +7,7 @@ import type {
   NetworkEventMap,
 } from '../network/network-adapter';
 import { gameStore } from '../store/game';
-import { AimAssistMode, settings } from '../store/settings';
+import { AimAssistMode } from '../store/settings';
 import {
   BaseGameController,
   PlayState,
@@ -214,7 +214,7 @@ export class OnlineGameController extends BaseGameController {
   }
 
   protected shouldShowAimAssist(): boolean {
-    return settings.aimAssistMode === AimAssistMode.FirstContact;
+    return this.params.game.aimAssist !== AimAssistMode.Off;
   }
 
   protected updateState(): void {

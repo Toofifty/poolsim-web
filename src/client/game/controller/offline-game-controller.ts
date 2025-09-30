@@ -24,6 +24,9 @@ export class OfflineGameController extends BaseGameController {
           this.setPlayState(PlayState.AIShoot);
         }
       }
+      if (op === 'set' && path === 'aimAssistMode') {
+        this.aimAssist.mode = value as AimAssistMode;
+      }
     });
 
     input.onMouseDown((e) => {

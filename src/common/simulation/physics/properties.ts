@@ -42,7 +42,7 @@ export const properties = {
 
   // simulation
   maxIterations: 1_000,
-  trackingPointDist: 2,
+  trackingPointDist: 10,
   updatesPerSecond: 300,
 
   // visuals

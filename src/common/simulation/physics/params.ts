@@ -1,8 +1,10 @@
+import { AimAssistMode } from '../../../client/game/store/settings';
 import { RuleSet } from '../table-state';
 
 export const params = {
   game: {
     ruleSet: RuleSet._9Ball,
+    aimAssist: AimAssistMode.FirstContact,
   },
   ball: {
     /** M */

@@ -46,9 +46,7 @@ export class Arrow extends Object3D {
       new ConeGeometry(this.coneRadius, this.coneHeight),
       material
     );
-    this.stem.castShadow = true;
     this.stem.renderOrder = 9999;
-    this.cone.castShadow = true;
     this.cone.renderOrder = 9999;
     this.setVector(new Vector3(0, 0, 0));
     this.add(this.stem, this.cone);

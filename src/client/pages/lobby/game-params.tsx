@@ -6,6 +6,7 @@ import {
   type Params,
 } from '../../../common/simulation/physics';
 import { RuleSet } from '../../../common/simulation/table-state';
+import { AimAssistMode } from '../../game/store/settings';
 import { Surface } from '../../ui/surface';
 
 const getGameMode = (params: Params) => {
@@ -16,6 +17,17 @@ const getGameMode = (params: Params) => {
       return '9 Ball';
     case RuleSet.Debug:
       return 'Debug';
+  }
+};
+
+const getAimAssistMode = (params: Params) => {
+  switch (params.game.aimAssist) {
+    case AimAssistMode.Off:
+      return 'Off';
+    case AimAssistMode.FirstContact:
+      return 'First contact';
+    case AimAssistMode.Full:
+      return 'Full';
   }
 };
 
@@ -41,6 +53,7 @@ export const GameParams = ({
     <Surface p="lg" w="400px" mah="500px" style={{ overflow: 'auto' }}>
       <Stack>
         <Item title="Game mode">{getGameMode(params)}</Item>
+        <Item title="Aim assist">{getAimAssistMode(params)}</Item>
         <Accordion variant="unstyled">
           <Accordion.Item value="table">
             <Accordion.Control px="0">

@@ -20,6 +20,7 @@ export const settings = proxy({
   ortho: false,
   players: Players.PlayerVsPlayer,
   enableZoomPan: typeof window !== 'undefined' && !getIsMobile(),
+  highlightTargetBalls: true,
 
   canvasEnabled: true,
   pauseSimulation: false,

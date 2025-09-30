@@ -31,7 +31,7 @@ export const LobbyPage = () => {
   return (
     <PageContainer>
       <Group wrap="nowrap" align="stretch">
-        <Stack align="center">
+        <Stack align="center" w="400px">
           <Surface p="lg" w="100%">
             <Stack align="stretch" gap="lg">
               <Title order={2}>

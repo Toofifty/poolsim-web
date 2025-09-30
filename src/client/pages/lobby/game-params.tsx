@@ -2,11 +2,11 @@ import { Accordion, Flex, Stack, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { LobbyData } from '../../../common/data';
 import {
+  AimAssistMode,
   params as defaultParams,
   type Params,
 } from '../../../common/simulation/physics';
 import { RuleSet } from '../../../common/simulation/table-state';
-import { AimAssistMode } from '../../game/store/settings';
 import { Surface } from '../../ui/surface';
 
 const getGameMode = (params: Params) => {

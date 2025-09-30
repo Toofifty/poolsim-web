@@ -1,7 +1,6 @@
 import { Flex, Loader } from '@mantine/core';
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter } from 'react-router';
-import { RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router';
 import { PageContainer } from './ui/page-container';
 import { Surface } from './ui/surface';
 import { LobbyProvider } from './util/lobby-provider';
@@ -20,9 +19,9 @@ export const Router = () => (
   <Suspense
     fallback={
       <PageContainer>
-        <Surface>
+        <Surface p="lg">
           <Flex justify="center">
-            <Loader py="xl" />
+            <Loader color="#FFF8" />
           </Flex>
         </Surface>
       </PageContainer>

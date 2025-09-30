@@ -3,7 +3,7 @@
 $inner-spread: 1px;
 $inner-opacity: 0.25;
 
-.surface {
+.surface:not(.mantine-Modal-inner) {
   border-radius: $br-surface;
   background: rgba(255, 255, 255, 0.1);
   padding: $pad-surface;

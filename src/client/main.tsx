@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import { Router } from './router.tsx';
 import './ui/button.scss';
+import { Preferences } from './ui/preferences.tsx';
 
 const theme = createTheme({
   colors: {
@@ -28,6 +29,8 @@ const theme = createTheme({
     Button: {
       defaultProps: {
         className: 'button',
+        size: '32',
+        px: 'md',
       },
     },
     ActionIcon: {
@@ -41,6 +44,7 @@ const theme = createTheme({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MantineProvider theme={theme} defaultColorScheme="dark">
+      <Preferences />
       <Router />
     </MantineProvider>
   </StrictMode>

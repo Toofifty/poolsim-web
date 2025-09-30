@@ -1,6 +1,7 @@
 import { Button, Flex, Group, Stack, Text, Title } from '@mantine/core';
 import { useEffect } from 'react';
 import { useParams } from 'react-router';
+import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
 import { PageContainer } from '../../ui/page-container';
 import { Surface } from '../../ui/surface';
@@ -51,7 +52,11 @@ export const LobbyPage = () => {
           </Surface>
           <Surface p="lg" w="100%">
             <Stack>
-              <Button size="lg" w="100%" disabled>
+              <Button
+                size="lg"
+                w="100%"
+                onClick={() => (settings.preferencesOpen = true)}
+              >
                 Preferences
               </Button>
               <Button size="lg" w="100%" c="red" disabled>

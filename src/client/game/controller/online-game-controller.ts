@@ -1,5 +1,5 @@
 import type { TypedEventListenerOrEventListenerObject } from 'typescript-event-target';
-import type { Params } from '../../../common/simulation/physics';
+import { AimAssistMode, type Params } from '../../../common/simulation/physics';
 import type { SerializedTableState } from '../../../common/simulation/table-state';
 import { assert } from '../../../common/util';
 import type {
@@ -7,7 +7,7 @@ import type {
   NetworkEventMap,
 } from '../network/network-adapter';
 import { gameStore } from '../store/game';
-import { AimAssistMode } from '../store/settings';
+import { settings } from '../store/settings';
 import {
   BaseGameController,
   PlayState,
@@ -215,6 +215,10 @@ export class OnlineGameController extends BaseGameController {
 
   protected shouldShowAimAssist(): boolean {
     return this.params.game.aimAssist !== AimAssistMode.Off;
+  }
+
+  protected shouldHighlightTargetBalls(): boolean {
+    return settings.highlightTargetBalls;
   }
 
   protected updateState(): void {

@@ -364,6 +364,10 @@ export abstract class BaseGameController
     this.cue.update(dt, this.state.settled);
   }
 
+  protected shouldHighlightTargetBalls() {
+    return false;
+  }
+
   public update(dt: number): void {
     if (this.isInPlay && !this.shouldPauseSimulation()) {
       const result = this.simulation.step({
@@ -385,7 +389,9 @@ export abstract class BaseGameController
       this.balls.forEach((ball) => ball.updateProjection());
     }
 
-    const highlightedBalls = this.state.targetableBalls;
+    const highlightedBalls = this.shouldHighlightTargetBalls()
+      ? this.state.targetableBalls
+      : new Set();
     this.balls.forEach((ball) => {
       ball.sync();
       ball.highlight.visible = highlightedBalls.has(ball.id);

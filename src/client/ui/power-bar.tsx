@@ -34,8 +34,6 @@ export const PowerBar = () => {
     <>
       <Button
         variant={distanceBasedPower ? 'filled' : 'default'}
-        size="32"
-        px="md"
         onClick={() => (settings.distanceBasedPower = !distanceBasedPower)}
       >
         Auto

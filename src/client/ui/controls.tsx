@@ -2,11 +2,11 @@ import { ActionIcon, Button } from '@mantine/core';
 import { IconChevronUp, IconSettings } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
+import { AimAssistMode } from '../../common/simulation/physics';
 import { PlayState } from '../game/controller/game-controller';
 import { Game } from '../game/game';
 import { gameStore } from '../game/store/game';
-import { AimAssistMode, Players, settings } from '../game/store/settings';
-import { theme } from '../game/store/theme';
+import { Players, settings } from '../game/store/settings';
 import { socket } from '../socket';
 import { useLobby } from '../util/use-lobby';
 import './controls.scss';
@@ -74,25 +74,12 @@ export const Controls = () => {
       </div>
       {showUI && (
         <>
-          <div className="group ">
-            <Surface>
-              <div className="group">
-                <GraphicsControls />
-                <ThemeControls />
-              </div>
-            </Surface>
-            {!isMultiplayer && (
-              <Surface>
-                <div className="group">
-                  <AimAssistControls />
-                  <PlayerControls />
-                </div>
-              </Surface>
-            )}
-          </div>
           <div className="group space-between">
             <Surface>
               <div className="group lower">
+                <Button onClick={() => (settings.preferencesOpen = true)}>
+                  Preferences
+                </Button>
                 <Button onClick={() => Game.focusCueBall()}>
                   Focus cue ball
                 </Button>
@@ -117,38 +104,18 @@ export const Controls = () => {
                 )}
               </div>
             </Surface>
-            <Surface>
-              <DebugControls />
-            </Surface>
+
+            {!isMultiplayer && (
+              <Surface>
+                <div className="group">
+                  <AimAssistControls />
+                  <PlayerControls />
+                </div>
+              </Surface>
+            )}
           </div>
         </>
       )}
-    </div>
-  );
-};
-
-const GraphicsControls = () => {
-  const { ortho, highDetail } = useSnapshot(settings);
-
-  return (
-    <div className="group lower">
-      <span>Graphics</span>
-      <Button
-        variant={ortho ? 'filled' : 'default'}
-        onClick={() => {
-          settings.ortho = !ortho;
-        }}
-      >
-        Ortho
-      </Button>
-      <Button
-        variant={highDetail ? 'filled' : 'default'}
-        onClick={() => {
-          settings.highDetail = !highDetail;
-        }}
-      >
-        HD
-      </Button>
     </div>
   );
 };
@@ -219,110 +186,6 @@ const PlayerControls = () => {
       >
         AIvAI
       </Button>
-    </div>
-  );
-};
-
-const DebugControls = () => {
-  const {
-    canvasEnabled,
-    pauseSimulation,
-    lockCue,
-    debugLights,
-    debugBalls,
-    debugCushions,
-    enableProfiler,
-    enableBallPickup,
-  } = useSnapshot(settings);
-
-  return (
-    <div className="group lower">
-      <span>Debug</span>
-      {/* <Button
-        active={!canvasEnabled}
-        onClick={() => {
-          settings.canvasEnabled = !canvasEnabled;
-        }}
-      >
-        Disable canvas
-      </Button> */}
-      <Button
-        variant={enableBallPickup ? 'filled' : 'default'}
-        onClick={() => {
-          settings.enableBallPickup = !enableBallPickup;
-        }}
-      >
-        Enable pick up
-      </Button>
-      <Button
-        variant={pauseSimulation ? 'filled' : 'default'}
-        onClick={() => {
-          settings.pauseSimulation = !pauseSimulation;
-        }}
-      >
-        Pause simulation
-      </Button>
-      <Button
-        variant={lockCue ? 'filled' : 'default'}
-        onClick={() => {
-          settings.lockCue = !lockCue;
-        }}
-      >
-        Lock cue <kbd>L</kbd>
-      </Button>
-      {/* <Button
-        active={debugLights}
-        onClick={() => {
-          settings.debugLights = !debugLights;
-        }}
-      >
-        Debug lights
-      </Button> */}
-      <Button
-        variant={debugBalls ? 'filled' : 'default'}
-        onClick={() => {
-          settings.debugBalls = !debugBalls;
-        }}
-      >
-        Debug balls
-      </Button>
-      <Button
-        variant={debugCushions ? 'filled' : 'default'}
-        onClick={() => {
-          settings.debugCushions = !debugCushions;
-        }}
-      >
-        Debug cushions
-      </Button>
-      {/* <Button
-        active={enableProfiler}
-        onClick={() => {
-          settings.enableProfiler = !enableProfiler;
-        }}
-      >
-        {enableProfiler ? 'Disable' : 'Enable'} profiler
-      </Button> */}
-    </div>
-  );
-};
-
-const ThemeControls = () => {
-  const { table } = useSnapshot(theme);
-
-  return (
-    <div className="group lower">
-      <span>Theme</span>
-      <div className="group">
-        {(['green', 'blue', 'red', 'pink'] as const).map((v) => (
-          <Button
-            key={v}
-            variant={table === v ? 'filled' : 'default'}
-            onClick={() => (theme.table = v)}
-          >
-            {v[0].toLocaleUpperCase() + v.slice(1).toLowerCase()}
-          </Button>
-        ))}
-      </div>
     </div>
   );
 };

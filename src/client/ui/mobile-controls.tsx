@@ -44,7 +44,6 @@ export const MobileControls = () => {
       <Button
         className="surface button"
         size="40"
-        variant={!enableZoomPan ? 'filled' : 'default'}
         onClick={() => Game.resetCamera()}
         rightSection={<IconRefreshDot size={16} />}
       >

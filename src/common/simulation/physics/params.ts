@@ -1,5 +1,10 @@
-import { AimAssistMode } from '../../../client/game/store/settings';
 import { RuleSet } from '../table-state';
+
+export enum AimAssistMode {
+  Off,
+  FirstContact,
+  Full,
+}
 
 export const params = {
   game: {

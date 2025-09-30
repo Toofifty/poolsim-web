@@ -1,3 +1,4 @@
+import { AimAssistMode } from '../../../common/simulation/physics';
 import { properties } from '../../../common/simulation/physics/properties';
 import type { Shot } from '../../../common/simulation/shot';
 import {
@@ -8,7 +9,7 @@ import type { TableState } from '../../../common/simulation/table-state';
 import { Profiler } from '../../../common/util/profiler';
 import { Game } from '../game';
 import type { Ball } from '../objects/ball';
-import { AimAssistMode, settings } from '../store/settings';
+import { settings } from '../store/settings';
 import { ThreadedSimulation } from './threaded-simulation';
 
 export class AimAssist {

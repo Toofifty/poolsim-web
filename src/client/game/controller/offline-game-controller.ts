@@ -1,10 +1,10 @@
 import { subscribe } from 'valtio';
 import { vec } from '../../../common/math';
-import type { Params } from '../../../common/simulation/physics';
+import { AimAssistMode, type Params } from '../../../common/simulation/physics';
 import { AI } from '../ai';
 import type { Ball } from '../objects/ball';
 import { gameStore } from '../store/game';
-import { AimAssistMode, Players, settings } from '../store/settings';
+import { Players, settings } from '../store/settings';
 import { delay } from '../util/delay';
 import { BaseGameController, PlayState } from './game-controller';
 import type { InputController } from './input-controller';
@@ -174,7 +174,7 @@ export class OfflineGameController extends BaseGameController {
     return settings.aimAssistMode !== AimAssistMode.Off;
   }
 
-  public override update(dt: number): void {
-    super.update(dt);
+  protected shouldHighlightTargetBalls(): boolean {
+    return settings.highlightTargetBalls;
   }
 }

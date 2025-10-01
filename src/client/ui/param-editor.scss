@@ -1,0 +1,82 @@
+.number-input {
+  max-width: 120px;
+
+  .mantine-NumberInput-input {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: white;
+    border: none;
+    font-size: 1em;
+    text-align: right;
+    padding-right: 24px;
+
+    &:disabled {
+      opacity: 1;
+      cursor: initial;
+      background-color: transparent;
+      padding-right: 0;
+      width: 60px;
+
+      .mantine-NumberInput-control {
+        display: none;
+      }
+    }
+  }
+
+  .mantine-NumberInput-control {
+    border: none;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.mantine-Accordion-content {
+  padding: 0;
+  padding-bottom: 12px;
+}
+
+.mantine-Select-root {
+  max-width: 160px;
+
+  .mantine-Select-input {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: white;
+    border: none;
+    font-size: 1em;
+    text-align: right;
+
+    &:disabled {
+      opacity: 1;
+      cursor: initial;
+      background: transparent;
+      color: white;
+      width: 100px;
+      padding-right: 0;
+    }
+  }
+
+  [data-disabled='true'] {
+    .mantine-Select-section {
+      display: none;
+    }
+  }
+
+  .mantine-ComboboxChevron-chevron {
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+.mantine-Select-dropdown {
+  background-color: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  .mantine-Select-option {
+    color: rgba(255, 255, 255, 0.9);
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+}

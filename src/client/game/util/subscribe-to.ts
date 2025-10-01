@@ -1,18 +1,5 @@
 import { subscribe } from 'valtio';
-
-type Paths<T extends object> = {
-  [K in keyof T]: T[K] extends object ? [K, ...Paths<T[K]>] : [K];
-}[keyof T];
-
-type DeepKeyOf<T extends object> = {
-  [K in Exclude<keyof T, symbol>]: T[K] extends object
-    ? `${K}${DotPrefix<DeepKeyOf<T[K]>>}`
-    : K;
-}[Exclude<keyof T, symbol>] extends infer D
-  ? Extract<D, string>
-  : never;
-
-type DotPrefix<T extends string> = T extends '' ? '' : `.${T}`;
+import type { DeepKeyOf } from '../../util/types';
 
 export const subscribeTo = <T extends object>(
   proxyObject: T,

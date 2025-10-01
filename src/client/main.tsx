@@ -44,6 +44,14 @@ const theme = createTheme({
         radius: '100%',
       },
     },
+    NumberInput: {
+      defaultProps: {
+        className: 'number-input',
+        size: 'xs',
+        fixedDecimalScale: true,
+        stepHoldDelay: 500,
+      },
+    },
   },
 });
 

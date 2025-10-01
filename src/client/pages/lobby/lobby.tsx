@@ -1,12 +1,13 @@
 import { Button, Flex, Group, Stack, Text, Title } from '@mantine/core';
 import { useEffect } from 'react';
 import { useParams } from 'react-router';
+import { defaultParams } from '../../../common/simulation/physics';
 import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
 import { PageContainer } from '../../ui/page-container';
+import { ParamEditor } from '../../ui/param-editor';
 import { Surface } from '../../ui/surface';
 import { useLobby } from '../../util/use-lobby';
-import { GameParams } from './game-params';
 import { useRedirectOnStart } from './use-redirect-on-start';
 
 export const LobbyPage = () => {
@@ -77,7 +78,13 @@ export const LobbyPage = () => {
             </Surface>
           )}
         </Stack>
-        <GameParams lobby={lobby} />
+        <Surface p="lg" w="400px" mah="600px" style={{ overflow: 'auto' }}>
+          <ParamEditor
+            params={defaultParams}
+            full
+            onEdit={isHost ? () => {} : undefined}
+          />
+        </Surface>
       </Group>
     </PageContainer>
   );

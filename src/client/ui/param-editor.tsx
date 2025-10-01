@@ -110,6 +110,7 @@ export const ParamEditor = ({
                 value={params.table.length}
                 suffix="m"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('table.length', v)}
                 min={0.1}
@@ -122,6 +123,7 @@ export const ParamEditor = ({
                 value={params.table.width}
                 suffix="m"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('table.width', v)}
                 min={0.1}
@@ -144,6 +146,7 @@ export const ParamEditor = ({
                 value={params.ball.mass * 100}
                 suffix="g"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.mass', +v / 100)}
                 min={0}
@@ -156,6 +159,7 @@ export const ParamEditor = ({
                 value={params.ball.radius * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.radius', +v / 100)}
                 min={0.1}
@@ -168,6 +172,7 @@ export const ParamEditor = ({
                 value={params.ball.gravity}
                 suffix="m/s²"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.gravity', v)}
                 min={0}
@@ -180,6 +185,7 @@ export const ParamEditor = ({
                 value={-params.ball.frictionSlide}
                 suffix="m/s"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.frictionSlide', -v)}
                 max={0}
@@ -192,6 +198,7 @@ export const ParamEditor = ({
                 value={-params.ball.frictionRoll}
                 suffix="m/s"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.frictionRoll', -v)}
                 max={0}
@@ -204,6 +211,7 @@ export const ParamEditor = ({
                 value={-params.ball.frictionSpin}
                 suffix="m/s"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.frictionSpin', -v)}
                 max={0}
@@ -216,6 +224,7 @@ export const ParamEditor = ({
                 value={-params.ball.frictionAir}
                 suffix="m/s"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.frictionAir', -v)}
                 max={0}
@@ -228,6 +237,7 @@ export const ParamEditor = ({
                 value={-params.ball.frictionBall}
                 suffix="m/s"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.frictionBall', -v)}
                 max={0}
@@ -240,6 +250,7 @@ export const ParamEditor = ({
                 value={-params.ball.frictionCushion}
                 suffix="m/s"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.frictionCushion', -v)}
                 max={0}
@@ -252,6 +263,7 @@ export const ParamEditor = ({
                 value={params.ball.restitutionBall}
                 prefix="x"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.restitutionBall', v)}
               />
@@ -263,6 +275,7 @@ export const ParamEditor = ({
                 value={params.ball.restitutionCushion}
                 prefix="x"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.restitutionCushion', v)}
               />
@@ -274,6 +287,7 @@ export const ParamEditor = ({
                 value={params.ball.restitutionPocket}
                 prefix="x"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.restitutionPocket', v)}
               />
@@ -285,6 +299,7 @@ export const ParamEditor = ({
                 value={params.ball.restitutionSlate}
                 prefix="x"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('ball.restitutionSlate', v)}
               />
@@ -306,6 +321,7 @@ export const ParamEditor = ({
                 value={params.cushion.width * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('cushion.width', +v / 100)}
                 min={0.1}
@@ -318,6 +334,7 @@ export const ParamEditor = ({
                 value={params.cushion.baseWidth * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('cushion.baseWidth', +v / 100)}
                 min={0.1}
@@ -330,6 +347,7 @@ export const ParamEditor = ({
                 value={params.cushion.height * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('cushion.height', +v / 100)}
                 min={0.1}
@@ -352,6 +370,7 @@ export const ParamEditor = ({
                 value={params.pocket.depth * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('pocket.depth', +v / 100)}
                 min={0.1}
@@ -364,6 +383,7 @@ export const ParamEditor = ({
                 value={params.pocket.edge.radius * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('pocket.edge.radius', +v / 100)}
                 min={0.1}
@@ -376,6 +396,7 @@ export const ParamEditor = ({
                 value={params.pocket.corner.radius * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('pocket.corner.radius', +v / 100)}
                 min={0.1}
@@ -388,6 +409,7 @@ export const ParamEditor = ({
                 value={params.pocket.edge.overlap * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('pocket.edge.overlap', +v / 100)}
                 min={0.1}
@@ -400,6 +422,7 @@ export const ParamEditor = ({
                 value={params.pocket.corner.overlap * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('pocket.corner.overlap', +v / 100)}
                 min={0.1}
@@ -412,6 +435,7 @@ export const ParamEditor = ({
                 value={params.pocket.edge.girth * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('pocket.edge.girth', +v / 100)}
                 min={0.1}
@@ -424,6 +448,7 @@ export const ParamEditor = ({
                 value={params.pocket.corner.girth * 100}
                 suffix="cm"
                 decimalScale={2}
+                step={0.01}
                 stepHoldInterval={0.01}
                 onChange={(v) => onEdit?.('pocket.corner.girth', +v / 100)}
                 min={0.1}

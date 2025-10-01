@@ -2,14 +2,20 @@ import { ActionIcon, Button } from '@mantine/core';
 import { IconChevronUp, IconSettings } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
-import { AimAssistMode, params } from '../../common/simulation/physics';
+import {
+  AimAssistMode,
+  params,
+  type StaticParams,
+} from '../../common/simulation/physics';
 import { PlayState } from '../game/controller/game-controller';
 import { Game } from '../game/game';
 import { gameStore } from '../game/store/game';
 import { Players, settings } from '../game/store/settings';
 import { socket } from '../socket';
+import type { DeepKeyOf } from '../util/types';
 import { useLobby } from '../util/use-lobby';
 import './controls.scss';
+import { OverlayParamEditor } from './overlay-param-editor';
 import { PowerBar } from './power-bar';
 import { Surface } from './surface';
 
@@ -37,6 +43,7 @@ const getStateName = (state: PlayState | undefined) => {
 };
 
 export const Controls = () => {
+  const { paramEditorOpen } = useSnapshot(settings);
   const { state, analysisProgress } = useSnapshot(gameStore);
   const { lobby } = useLobby();
   const isHost = !lobby || lobby?.hostId === socket.id;
@@ -44,8 +51,21 @@ export const Controls = () => {
 
   const [showUI, setShowUI] = useState(false);
 
+  const localParams = useSnapshot(params);
+
+  const onEdit = (key: DeepKeyOf<StaticParams>, value: unknown) => {
+    const path = key.split('.');
+    const obj = path.slice(0, -1).reduce((o, prop) => {
+      // @ts-ignore
+      return o[prop];
+    }, params);
+    // @ts-ignore
+    obj[path.at(-1)] = value;
+  };
+
   return (
     <div className="controls">
+      {!isHost && <OverlayParamEditor params={localParams} onEdit={onEdit} />}
       <div className="group">
         <ActionIcon
           className="surface button icon"
@@ -76,32 +96,48 @@ export const Controls = () => {
         <>
           <div className="group space-between">
             <Surface>
-              <div className="group lower">
-                <Button onClick={() => (settings.preferencesOpen = true)}>
-                  Preferences
-                </Button>
-                <Button onClick={() => Game.focusCueBall()}>
-                  Focus cue ball
-                </Button>
-                {isHost && (
-                  <>
+              <div className="group">
+                <div className="group lower">
+                  <Button onClick={() => (settings.preferencesOpen = true)}>
+                    Preferences
+                  </Button>
+                  {isHost && (
                     <Button
-                      onClick={() => Game.instance.controller.setup8Ball()}
+                      variant={paramEditorOpen ? 'filled' : 'default'}
+                      onClick={() =>
+                        (settings.paramEditorOpen = !paramEditorOpen)
+                      }
                     >
-                      8 ball
+                      Parameters
                     </Button>
-                    <Button
-                      onClick={() => Game.instance.controller.setup9Ball()}
-                    >
-                      9 ball
-                    </Button>
-                    <Button
-                      onClick={() => Game.instance.controller.setupDebugGame()}
-                    >
-                      Debug
-                    </Button>
-                  </>
-                )}
+                  )}
+                </div>
+                <div className="group lower">
+                  <Button onClick={() => Game.focusCueBall()}>
+                    Focus cue ball
+                  </Button>
+                  {isHost && (
+                    <>
+                      <Button
+                        onClick={() => Game.instance.controller.setup8Ball()}
+                      >
+                        8 ball
+                      </Button>
+                      <Button
+                        onClick={() => Game.instance.controller.setup9Ball()}
+                      >
+                        9 ball
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          Game.instance.controller.setupDebugGame()
+                        }
+                      >
+                        Debug
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </Surface>
 

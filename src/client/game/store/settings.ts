@@ -16,6 +16,7 @@ export const settings = proxy({
   players: Players.PlayerVsPlayer,
   enableZoomPan: typeof window !== 'undefined' && !getIsMobile(),
   preferencesOpen: false,
+  paramEditorOpen: false,
   pauseSimulation: false,
   lockCue: false,
 

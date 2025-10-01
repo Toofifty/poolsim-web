@@ -11,7 +11,7 @@ Play pool in your browser
 - Snooker?
 - Show balls pocketed
 - Show curve after first contact
-- Aim assist - first contact
+- ~~Aim assist - first contact~~
 
 ### Physics
 
@@ -21,7 +21,7 @@ Play pool in your browser
 - ~~Revisit physics values~~
 - ~~Fix ball entering pocket physics~~
 - Mid-timestep collision resolution
-- Runtime physics param changes
+- ~~Runtime physics param changes~~
 
 ### Graphics
 
@@ -36,6 +36,7 @@ Play pool in your browser
 ### AI
 
 - Optimise
+- Randomise break
 - ~~Only check down the table on break~~
 - Better shot scoring
   - Consider collisions before/after target ball struck

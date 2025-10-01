@@ -6,14 +6,14 @@ export class BallHighlight extends Object3D {
   private billboard: Object3D;
   private ring: Mesh;
 
-  constructor(private ball: Ball) {
+  constructor(ball: Ball) {
     super();
 
     this.billboard = new Object3D();
 
     this.ring = new Mesh(
       new TorusGeometry(ball.radius * 1.05, ball.radius * 0.1),
-      new MeshBasicMaterial({ color: ball.color, depthTest: false })
+      new MeshBasicMaterial({ color: 0xffffff, depthTest: false })
     );
     this.ring.renderOrder = 9999;
     this.billboard.add(this.ring);

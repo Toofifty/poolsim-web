@@ -46,6 +46,7 @@ export class AimAssist {
     }
 
     const firstContact = this.mode === AimAssistMode.FirstContact;
+    const firstBallContact = this.mode === AimAssistMode.FirstBallContact;
     const profiler = settings.enableProfiler ? Game.profiler : undefined;
 
     await (profiler ?? Profiler.none).profile('aim-update', async () => {
@@ -58,9 +59,56 @@ export class AimAssist {
         trackPath: true,
         profiler,
         stopAtFirstContact: firstContact,
+        stopAtFirstBallContact: firstBallContact,
       });
 
       const hasFoul = result.hasFoul();
+
+      if (firstContact) {
+        const firstCollision = result.collisions.find(
+          (collision) =>
+            collision.type === 'ball-ball' || collision.type === 'ball-cushion'
+        );
+        if (
+          firstCollision &&
+          (!hasFoul || firstCollision.type === 'ball-cushion')
+        ) {
+          this.ballMap
+            .get(firstCollision.initiator.id)!
+            .updateImpactArrow(
+              firstCollision.snapshots.initiator.position,
+              firstCollision.snapshots.initiator.velocity
+            );
+
+          if (firstCollision.type === 'ball-ball') {
+            this.ballMap
+              .get(firstCollision.other.id)!
+              .updateImpactArrow(
+                firstCollision.snapshots.other.position,
+                firstCollision.snapshots.other.velocity
+              );
+          }
+        }
+      } else if (firstBallContact) {
+        const firstCollision = result.collisions.find(
+          (collision) => collision.type === 'ball-ball'
+        );
+        if (firstCollision && !hasFoul) {
+          this.ballMap
+            .get(firstCollision.initiator.id)!
+            .updateImpactArrow(
+              firstCollision.snapshots.initiator.position,
+              firstCollision.snapshots.initiator.velocity
+            );
+
+          this.ballMap
+            .get(firstCollision.other.id)!
+            .updateImpactArrow(
+              firstCollision.snapshots.other.position,
+              firstCollision.snapshots.other.velocity
+            );
+        }
+      }
 
       result.collisions.forEach((collision, i) => {
         const initiator = this.ballMap.get(collision.initiator.id)!;
@@ -68,18 +116,8 @@ export class AimAssist {
           collision.snapshots.initiator.position,
           collision.snapshots.initiator.orientation
         );
-        if (hasFoul) {
+        if (hasFoul && collision.type !== 'ball-cushion') {
           initiator.invalidCollision = true;
-        }
-        if (
-          firstContact &&
-          i === 0 &&
-          (!hasFoul || collision.type === 'ball-cushion')
-        ) {
-          initiator.updateImpactArrow(
-            collision.snapshots.initiator.position,
-            collision.snapshots.initiator.velocity
-          );
         }
 
         if (collision.type === 'ball-ball') {
@@ -88,12 +126,6 @@ export class AimAssist {
             collision.snapshots.other.position,
             collision.snapshots.other.orientation
           );
-          if (firstContact && i === 0 && !hasFoul) {
-            other.updateImpactArrow(
-              collision.snapshots.other.position,
-              collision.snapshots.other.velocity
-            );
-          }
         }
       });
 

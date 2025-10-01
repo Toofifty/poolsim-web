@@ -91,8 +91,6 @@ export abstract class BaseGameController
 
   protected ballInHand?: Ball;
 
-  // todo: Aim Assist
-
   constructor(public params: Params, private input: InputController) {
     super();
 
@@ -268,13 +266,15 @@ export abstract class BaseGameController
   }
 
   private playCollisionSounds(collisions: Collision[]) {
+    let soundsPlayed = 0;
     collisions.forEach((collision) => {
-      if (collision.type === 'ball-ball') {
+      if (collision.type === 'ball-ball' && soundsPlayed < 3) {
         Game.audio.play(
           'clack_mid',
           toVector3(collision.position),
           Math.min(vec.len(collision.impulse) * 2, 5)
         );
+        soundsPlayed++;
       }
       if (collision.type === 'ball-pocket') {
         Game.audio.play('pocket_drop', toVector3(collision.position));

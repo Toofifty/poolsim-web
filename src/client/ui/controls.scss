@@ -38,6 +38,16 @@
     color: rgba(255, 255, 255, 0.75);
     white-space: nowrap;
   }
+
+  .button[data-variant='default']:not(:hover),
+  .button:not([data-variant]):not(:hover) {
+    background: transparent;
+  }
+
+  .button[data-variant='default']:hover,
+  .button:not([data-variant]):hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .grow {

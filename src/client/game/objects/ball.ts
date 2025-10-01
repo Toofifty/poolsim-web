@@ -162,7 +162,7 @@ export class Ball {
     this.impactArrow.position.copy(
       toVector3(vec.sub(position, this.physics.position))
     );
-    this.impactVelocity = toVector3(vec.setZ(velocity, 0));
+    this.impactVelocity = toVector3(velocity);
   }
 
   public clearImpactArrow() {

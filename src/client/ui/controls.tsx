@@ -125,7 +125,7 @@ const AimAssistControls = () => {
 
   return (
     <div className="group lower">
-      <span>Aim assist</span>
+      <span>Guidelines</span>
       <Button
         variant={aimAssistMode === AimAssistMode.Off ? 'filled' : 'default'}
         onClick={() => {
@@ -142,7 +142,19 @@ const AimAssistControls = () => {
           settings.aimAssistMode = AimAssistMode.FirstContact;
         }}
       >
-        Simple
+        First contact
+      </Button>
+      <Button
+        variant={
+          aimAssistMode === AimAssistMode.FirstBallContact
+            ? 'filled'
+            : 'default'
+        }
+        onClick={() => {
+          settings.aimAssistMode = AimAssistMode.FirstBallContact;
+        }}
+      >
+        First ball contact
       </Button>
       <Button
         variant={aimAssistMode === AimAssistMode.Full ? 'filled' : 'default'}

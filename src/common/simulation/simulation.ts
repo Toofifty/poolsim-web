@@ -10,6 +10,7 @@ export type RunSimulationOptions = {
   trackPath: boolean;
   profiler?: IProfiler;
   stopAtFirstContact?: boolean;
+  stopAtFirstBallContact?: boolean;
 };
 
 export type RunSimulationStepOptions = {
@@ -124,6 +125,7 @@ export class Simulation implements ISimulation {
     trackPath,
     profiler = Profiler.none,
     stopAtFirstContact = false,
+    stopAtFirstBallContact = false,
   }: RunSimulationOptions) {
     const copiedState = state.clone();
 
@@ -156,6 +158,10 @@ export class Simulation implements ISimulation {
 
       if (isInvalidBreak && result.cueBallCushionCollisions > 0) {
         result.invalidShot = true;
+        break;
+      }
+
+      if (stopAtFirstBallContact && result.cueBallCollisions > 0) {
         break;
       }
 

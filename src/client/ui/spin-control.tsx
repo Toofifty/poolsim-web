@@ -70,7 +70,7 @@ export const SpinControl = () => {
         </ActionIcon>
       </Tooltip>
       {visible && (
-        <Surface className="spin-control" py="md">
+        <Surface className="spin-control" p="md">
           <Stack justify="space-evenly">
             <ActionIcon
               variant={lockTopSpin ? 'default' : 'filled'}

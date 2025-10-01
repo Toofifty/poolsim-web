@@ -3,6 +3,7 @@ import { RuleSet } from '../table-state';
 export enum AimAssistMode {
   Off,
   FirstContact,
+  FirstBallContact,
   Full,
 }
 

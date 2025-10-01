@@ -38,6 +38,12 @@ const theme = createTheme({
         className: 'button icon',
       },
     },
+    Checkbox: {
+      defaultProps: {
+        size: '24',
+        radius: '100%',
+      },
+    },
   },
 });
 

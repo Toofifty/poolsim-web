@@ -9,6 +9,9 @@ Play pool in your browser
 - Fully implement 8 ball
 - ~~Switch turns~~
 - Snooker?
+- Show balls pocketed
+- Show curve after first contact
+- Aim assist - first contact
 
 ### Physics
 
@@ -17,6 +20,8 @@ Play pool in your browser
 - ~~Event-based evolution~~ not worth
 - ~~Revisit physics values~~
 - ~~Fix ball entering pocket physics~~
+- Mid-timestep collision resolution
+- Runtime physics param changes
 
 ### Graphics
 
@@ -51,3 +56,4 @@ Play pool in your browser
     - On win/loss
   - Notifications
 - Handle disconnects
+- Custom params

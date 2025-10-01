@@ -9,7 +9,7 @@ $inner-opacity: 0.25;
   padding: $pad-surface;
   margin: $pad-surface $pad-surface * 0.5;
   pointer-events: initial;
-  backdrop-filter: blur(64px);
+  backdrop-filter: blur(16px);
   box-shadow: //
     // inset 0 $inner-spread $inner-spread rgba(255, 255, 255, $inner-opacity),
     // inset 0 $inner-spread * -1 $inner-spread rgba(255, 255, 255, $inner-opacity),

@@ -17,9 +17,8 @@ import {
   evolvePocket,
 } from './ball/evolve';
 import { PhysicsCushion } from './cushion';
-import { params } from './params';
+import { params, type Params } from './params';
 import type { PhysicsPocket } from './pocket';
-import { properties } from './properties';
 
 export type SerializedPhysicsBall = {
   id: number;
@@ -59,7 +58,12 @@ export class PhysicsBall {
 
   public pocket?: PhysicsPocket;
 
-  constructor(public id: number, position: Vec, orientation: Quat) {
+  constructor(
+    private params: Params,
+    public id: number,
+    position: Vec,
+    orientation: Quat
+  ) {
     this.position = position;
     this.velocity = vec.new(0, 0, 0);
     this.angularVelocity = vec.new(0, 0, 0);
@@ -83,6 +87,7 @@ export class PhysicsBall {
 
   public clone() {
     const newBall = new PhysicsBall(
+      this.params,
       this.id,
       vec.clone(this.r),
       quat.clone(this.orientation)
@@ -120,7 +125,7 @@ export class PhysicsBall {
     if (Math.abs(shot.topSpin) > 0) {
       const r = vec.mult(
         up,
-        shot.topSpin * params.ball.spinMultiplier * this.radius
+        shot.topSpin * this.params.ball.spinMultiplier * this.radius
       );
       const dw = vec.mult(vec.cross(r, direction), 1 / I);
       vec.madd(this.w, dw);
@@ -129,7 +134,7 @@ export class PhysicsBall {
     if (Math.abs(shot.sideSpin) > 0) {
       const r = vec.mult(
         right,
-        shot.sideSpin * params.ball.spinMultiplier * this.radius
+        shot.sideSpin * this.params.ball.spinMultiplier * this.radius
       );
       const dw = vec.mult(vec.cross(r, direction), 1 / I);
       vec.madd(this.w, dw);
@@ -152,13 +157,15 @@ export class PhysicsBall {
   }
 
   get isOutOfBounds() {
-    const { tableWidth, tableLength } = properties;
+    const {
+      table: { width, length },
+    } = this.params;
     return (
       !this.isPocketed &&
-      (this.r[0] > tableLength / 2 ||
-        this.r[0] < -tableLength / 2 ||
-        this.r[1] > tableWidth / 2 ||
-        this.r[1] < -tableWidth / 2)
+      (this.r[0] > length / 2 ||
+        this.r[0] < -length / 2 ||
+        this.r[1] > width / 2 ||
+        this.r[1] < -width / 2)
     );
   }
 

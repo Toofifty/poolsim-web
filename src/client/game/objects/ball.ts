@@ -9,11 +9,11 @@ import {
 } from 'three';
 import type { Line2 } from 'three/examples/jsm/Addons.js';
 import { vec, type Quat, type Vec } from '../../../common/math';
+import { defaultParams, type Params } from '../../../common/simulation/physics';
 import {
   BallState,
   PhysicsBall,
 } from '../../../common/simulation/physics/ball';
-import { properties } from '../../../common/simulation/physics/properties';
 import type { Shot } from '../../../common/simulation/shot';
 import { Game } from '../game';
 import { createBallMesh } from '../models/ball/create-ball-mesh';
@@ -22,6 +22,7 @@ import {
   type TrackingPoint,
 } from '../models/ball/create-path-mesh';
 import { createMaterial } from '../rendering/create-material';
+import { makeTheme } from '../store/theme';
 import { toQuaternion, toVector3 } from '../util/three-interop';
 import { Arrow } from './arrow';
 import { BallDebug } from './ball-debug';
@@ -38,7 +39,7 @@ export type BallProto = {
 const INVALID_PROJECTION_MATERIAL = createMaterial({
   color: 0xff0000,
   transparent: true,
-  opacity: properties.projectionOpacity,
+  opacity: defaultParams.ball.projectionOpacity,
 });
 
 export class Ball {
@@ -67,8 +68,11 @@ export class Ball {
   public highlight: BallHighlight;
   private debug: BallDebug;
 
-  constructor({ id, number, color, position, orientation }: BallProto) {
-    this.physics = new PhysicsBall(id, position, orientation);
+  constructor(
+    private params: Params,
+    { id, number, color, position, orientation }: BallProto
+  ) {
+    this.physics = new PhysicsBall(params, id, position, orientation);
     this.color = new Color(color);
     this.number = number;
     this.parent = new Object3D();
@@ -84,11 +88,15 @@ export class Ball {
   }
 
   private createMesh() {
-    const { mesh, projectionMaterial } = createBallMesh({
-      radius: this.physics.radius,
-      color: this.color,
-      number: this.number,
-    });
+    const { mesh, projectionMaterial } = createBallMesh(
+      this.params,
+      makeTheme(),
+      {
+        radius: this.physics.radius,
+        color: this.color,
+        number: this.number,
+      }
+    );
     this.mesh = mesh;
     Game.reflectives.push(this.mesh);
     this.geometry = this.mesh.geometry;
@@ -214,7 +222,7 @@ export class Ball {
       this.trackingLine = undefined;
     }
 
-    if (this.trackingPoints.length > 0) {
+    if (this.trackingPoints.length > 1) {
       this.trackingLine = createPathMesh(this.trackingPoints);
       Game.add(this.trackingLine);
     }

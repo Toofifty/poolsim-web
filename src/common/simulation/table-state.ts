@@ -1,10 +1,11 @@
-import type {
-  PhysicsBall,
-  PhysicsCushion,
-  PhysicsPocket,
-  SerializedPhysicsBall,
-  SerializedPhysicsCushion,
-  SerializedPhysicsPocket,
+import {
+  RuleSet,
+  type PhysicsBall,
+  type PhysicsCushion,
+  type PhysicsPocket,
+  type SerializedPhysicsBall,
+  type SerializedPhysicsCushion,
+  type SerializedPhysicsPocket,
 } from './physics';
 
 export type SerializedTableState = {
@@ -16,12 +17,6 @@ export type FullSerializedTableState = SerializedTableState & {
   cushions: SerializedPhysicsCushion[];
   pockets: SerializedPhysicsPocket[];
 };
-
-export enum RuleSet {
-  _8Ball,
-  _9Ball,
-  Debug,
-}
 
 /**
  * Table state used for simulations

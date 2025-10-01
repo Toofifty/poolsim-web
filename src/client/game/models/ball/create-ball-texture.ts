@@ -1,16 +1,19 @@
 import { CanvasTexture, Color, SRGBColorSpace } from 'three';
-import { properties } from '../../../../common/simulation/physics/properties';
 import { settings } from '../../store/settings';
+import type { ThemeObject } from '../../store/theme';
 
 const hex = (color: Color) => '#' + color.getHexString();
 
-export function createBallTexture({
-  color,
-  number,
-}: {
-  color: Color;
-  number: number;
-}): CanvasTexture {
+export function createBallTexture(
+  theme: ThemeObject,
+  {
+    color,
+    number,
+  }: {
+    color: Color;
+    number: number;
+  }
+): CanvasTexture {
   const tsize = settings.highDetail ? 256 : 64;
 
   const canvas = document.createElement('canvas');
@@ -28,7 +31,7 @@ export function createBallTexture({
     const dotSize = tsize / 16;
 
     // Red dots and stripes for cue ball
-    ctx.fillStyle = hex(properties.colorCueBallAccent);
+    ctx.fillStyle = hex(theme.balls.colorCueBallAccent);
     for (let k = 0; k < 5; k++) {
       ctx.beginPath();
       ctx.ellipse(
@@ -48,7 +51,7 @@ export function createBallTexture({
     const numberSize = tsize / 8;
 
     // Numbered balls
-    ctx.fillStyle = hex(properties.colorBallCircle);
+    ctx.fillStyle = hex(theme.balls.colorBallCircle);
     ctx.beginPath();
     ctx.ellipse(
       tsize / 2,
@@ -70,7 +73,7 @@ export function createBallTexture({
     );
     ctx.fill();
 
-    ctx.fillStyle = hex(properties.colorBallNumber);
+    ctx.fillStyle = hex(theme.balls.colorBallNumber);
     ctx.font = `bold ${tsize / 5}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -80,7 +83,7 @@ export function createBallTexture({
     }
 
     if (number >= 9) {
-      ctx.fillStyle = hex(properties.colorBallCircle);
+      ctx.fillStyle = hex(theme.balls.colorBallCircle);
       ctx.fillRect(0, 0, tsize * 2, tsize / 4);
       ctx.fillRect(0, (tsize * 3) / 4, tsize * 2, tsize / 4);
     }

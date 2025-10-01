@@ -1,3 +1,4 @@
+import { defaultParams } from '../../../common/simulation/physics';
 import { Simulation } from '../../../common/simulation/simulation';
 import {
   hydrateRunBatchSimulationOptions,
@@ -6,20 +7,21 @@ import {
 } from './hydrate';
 import type { SentMessage } from './shared';
 
-const simulation = new Simulation();
+// todo: accept new params for worker
+const simulation = new Simulation(defaultParams);
 
-onmessage = ({ data: { fn, key, params } }: SentMessage) => {
+onmessage = ({ data: { fn, key, args } }: SentMessage) => {
   switch (fn) {
     case 'run':
-      simulation.run(hydrateRunSimulationOptions(params)).then((result) => {
+      simulation.run(hydrateRunSimulationOptions(args)).then((result) => {
         postMessage({ fn, key, result });
       });
       break;
     case 'runBatch':
       simulation
         .runBatch(
-          hydrateRunBatchSimulationOptions(params.params),
-          hydrateTableState(params.state)
+          hydrateRunBatchSimulationOptions(args.args),
+          hydrateTableState(args.state)
         )
         .then((result) => {
           postMessage({ fn, key, result });

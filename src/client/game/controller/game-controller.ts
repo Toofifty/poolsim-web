@@ -2,13 +2,14 @@ import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from 'three';
 import { TypedEventTarget } from 'typescript-event-target';
 import { vec, type Vec } from '../../../common/math';
 import type { Collision } from '../../../common/simulation/collision';
-import type {
-  Params,
-  SerializedPhysicsBall,
+import {
+  RuleSet,
+  type Params,
+  type SerializedPhysicsBall,
 } from '../../../common/simulation/physics';
 import { Result } from '../../../common/simulation/result';
 import { Simulation } from '../../../common/simulation/simulation';
-import { RuleSet, TableState } from '../../../common/simulation/table-state';
+import { TableState } from '../../../common/simulation/table-state';
 import { createCushions } from '../factory/cushion';
 import { createPockets } from '../factory/pocket';
 import { Game } from '../game';
@@ -95,7 +96,7 @@ export abstract class BaseGameController
     super();
 
     this.setPlayState(PlayState.Initializing);
-    this.cue = new Cue();
+    this.cue = new Cue(params);
     this.pockets = createPockets(params);
     this.cushions = createCushions(params);
     this.table = new Table(params, this.pockets);
@@ -106,9 +107,9 @@ export abstract class BaseGameController
       this.pockets.map((pocket) => pocket.physics),
       RuleSet._9Ball
     );
-    this.simulation = new Simulation();
+    this.simulation = new Simulation(params);
     this.simulationResult = new Result(undefined, this.state);
-    this.aimAssist = new AimAssist(params.game.aimAssist);
+    this.aimAssist = new AimAssist(params);
 
     // todo: make cue, pockets Object3D
     this.root = new Object3D().add(
@@ -173,7 +174,7 @@ export abstract class BaseGameController
     rack: BallProto[];
     ruleSet: RuleSet;
   }): void {
-    this.setBalls(rack.map((proto) => new Ball(proto)));
+    this.setBalls(rack.map((proto) => new Ball(this.params, proto)));
     this.state.ruleSet = ruleSet;
     this.dispatchTypedEvent(
       'setup-table',

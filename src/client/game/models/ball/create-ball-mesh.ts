@@ -5,25 +5,30 @@ import {
   Vector2,
   type Color,
 } from 'three';
-import { properties } from '../../../../common/simulation/physics/properties';
 import { createMaterial } from '../../rendering/create-material';
 import { createBallTexture } from './create-ball-texture';
 
+import type { Params } from '../../../../common/simulation/physics';
 import normalMapUrl from '../../../assets/scratch_normal.png';
+import type { ThemeObject } from '../../store/theme';
 
 const normalMap = new TextureLoader().load(normalMapUrl);
 
-export const createBallMesh = ({
-  radius,
-  color,
-  number,
-}: {
-  radius: number;
-  color: Color;
-  number: number;
-}) => {
+export const createBallMesh = (
+  params: Params,
+  theme: ThemeObject,
+  {
+    radius,
+    color,
+    number,
+  }: {
+    radius: number;
+    color: Color;
+    number: number;
+  }
+) => {
   const geometry = new SphereGeometry(radius);
-  const texture = createBallTexture({
+  const texture = createBallTexture(theme, {
     color,
     number,
   });
@@ -39,7 +44,7 @@ export const createBallMesh = ({
     roughness: 0.1,
     metalness: 0,
     transparent: true,
-    opacity: properties.projectionOpacity,
+    opacity: params.ball.projectionOpacity,
   });
 
   const mesh = new Mesh(geometry, material);

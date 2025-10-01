@@ -1,6 +1,5 @@
 import { ExtrudeGeometry, Mesh, Path } from 'three';
-import { params } from '../../../../common/simulation/physics/params';
-import { properties } from '../../../../common/simulation/physics/properties';
+import { type Params } from '../../../../common/simulation/physics/params';
 import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
 import { settings } from '../../store/settings';
@@ -11,11 +10,17 @@ import {
   createTableClothTexture,
 } from './create-table-cloth-texture';
 
-export const createTableClothMesh = (pockets: Pocket[], theme: ThemeObject) => {
+export const createTableClothMesh = (
+  params: Params,
+  pockets: Pocket[],
+  theme: ThemeObject
+) => {
+  const { table, pocket } = params;
+
   const shape = createRoundedRectShape(
-    properties.tableLength + properties.pocketCornerRadius * 2,
-    properties.tableWidth + properties.pocketCornerRadius * 2,
-    properties.pocketCornerRadius
+    table.length + pocket.corner.radius * 2,
+    table.width + pocket.corner.radius * 2,
+    pocket.corner.radius
   );
 
   for (const pocket of pockets) {
@@ -43,8 +48,10 @@ export const createTableClothMesh = (pockets: Pocket[], theme: ThemeObject) => {
   const cloth = new Mesh(
     geometry,
     createMaterial({
-      map: createTableClothTexture(theme),
-      normalMap: settings.highDetail ? createTableClothNormalTexture() : null,
+      map: createTableClothTexture(params, theme),
+      normalMap: settings.highDetail
+        ? createTableClothNormalTexture(params)
+        : null,
       roughness: 1,
       metalness: 0,
       sheen: 1,

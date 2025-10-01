@@ -18,19 +18,19 @@ export class ThreadedSimulation implements ISimulation {
     this.worker = new SimulationWorker();
   }
 
-  public async run(params: RunSimulationOptions) {
+  public async run(args: RunSimulationOptions) {
     return hydrateResult(
-      await runInWorker<RunSimulationFn>(this.worker, 'run', params)
+      await runInWorker<RunSimulationFn>(this.worker, 'run', args)
     );
   }
 
   public async runBatch(
-    params: Omit<RunSimulationOptions, 'state'>[],
+    args: Omit<RunSimulationOptions, 'state'>[],
     state: TableState
   ) {
     return hydrateResults(
       await runInWorker<RunBatchSimulationFn>(this.worker, 'runBatch', {
-        params,
+        args,
         state,
       })
     );

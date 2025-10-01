@@ -21,7 +21,7 @@ export class Table extends Object3D {
         this.remove(this.cloth);
       }
 
-      this.cloth = createTableClothMesh(this.pockets, theme);
+      this.cloth = createTableClothMesh(params, this.pockets, theme);
       this.add(this.cloth);
 
       if (this.rail) {
@@ -37,7 +37,7 @@ export class Table extends Object3D {
         this.remove(this.diamonds);
       }
 
-      this.diamonds = createTableRailDiamondsMesh(theme);
+      this.diamonds = createTableRailDiamondsMesh(params, theme);
       this.add(this.diamonds);
     });
   }

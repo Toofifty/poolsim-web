@@ -33,7 +33,6 @@ import {
 } from 'three/examples/jsm/Addons.js';
 import { subscribe } from 'valtio';
 import { params } from '../../common/simulation/physics';
-import { properties } from '../../common/simulation/physics/properties';
 import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
 import type { GameController } from './controller/game-controller';
@@ -62,7 +61,7 @@ export class Game {
   public controller!: GameController;
   public clock!: Clock;
   private accumulator = 0;
-  private timestep = 1 / properties.updatesPerSecond;
+  private timestep = 1 / params.simulation.updatesPerSecond;
   public lerps: Set<(dt: number) => void> = new Set();
   private input!: InputController;
 
@@ -275,7 +274,7 @@ export class Game {
       createCeilingLight(0, -spy, settings.highDetail ? 2 : 4);
       createCeilingLight(0, spy, settings.highDetail ? 2 : 4);
 
-      const lights = createNeonLightStrips();
+      const lights = createNeonLightStrips(params);
       this.scene.add(...lights);
 
       return;

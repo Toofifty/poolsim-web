@@ -6,6 +6,7 @@ import {
   Object3D,
   Vector2,
 } from 'three';
+import type { Params } from '../../../common/simulation/physics';
 import { PhysicsPocket } from '../../../common/simulation/physics/pocket';
 import { createPocketLinerMesh } from '../models/pocket/create-pocket-liner-mesh';
 import { createMaterial } from '../rendering/create-material';
@@ -18,8 +19,15 @@ export class Pocket {
 
   public radius: number;
 
-  constructor(id: number, x: number, y: number, z: number, radius: number) {
-    this.physics = new PhysicsPocket(id, x, y, z, radius);
+  constructor(
+    private params: Params,
+    id: number,
+    x: number,
+    y: number,
+    z: number,
+    radius: number
+  ) {
+    this.physics = new PhysicsPocket(params, id, x, y, z, radius);
     this.radius = radius;
     this.parent = new Object3D();
     this.createMesh();

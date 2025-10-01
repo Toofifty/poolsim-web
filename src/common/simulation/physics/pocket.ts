@@ -1,6 +1,6 @@
 import { vec, type Vec } from '../../math';
 import type { PhysicsBall } from './ball';
-import { properties } from './properties';
+import type { Params } from './params';
 
 export type SerializedPhysicsPocket = {
   id: number;
@@ -12,16 +12,18 @@ export type SerializedPhysicsPocket = {
 export class PhysicsPocket {
   public position: Vec;
   public radius: number;
-  public depth = properties.pocketDepth;
+  public depth: number;
   public balls: PhysicsBall[] = [];
 
   constructor(
+    private params: Params,
     public id: number,
     x: number,
     y: number,
     z: number,
     radius: number
   ) {
+    this.depth = params.pocket.depth;
     this.position = vec.new(x, y, z - this.depth / 2);
     this.radius = radius;
   }

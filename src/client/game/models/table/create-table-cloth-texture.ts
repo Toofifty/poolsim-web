@@ -4,19 +4,20 @@ import {
   SRGBColorSpace,
   type Color,
 } from 'three';
-import { params } from '../../../../common/simulation/physics';
-import { properties } from '../../../../common/simulation/physics/properties';
+import { params, type Params } from '../../../../common/simulation/physics';
 import { settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
 
 const hex = (color: Color) => '#' + color.getHexString();
 
-export const createTableClothTexture = (theme: ThemeObject) => {
+export const createTableClothTexture = (params: Params, theme: ThemeObject) => {
+  const { table, pocket } = params;
+
   const scale = settings.highDetail ? 2000 : 500;
 
-  const tableLength = properties.tableLength * scale;
-  const tableWidth = properties.tableWidth * scale;
-  const pocketCornerRadius = properties.pocketCornerRadius * scale;
+  const tableLength = table.length * scale;
+  const tableWidth = table.width * scale;
+  const pocketCornerRadius = pocket.corner.radius * scale;
 
   const canvas = document.createElement('canvas');
   canvas.width = tableLength + pocketCornerRadius * 2;
@@ -129,13 +130,16 @@ const drawRack = (
 };
 
 export const createTableClothNormalTexture = (
+  params: Params,
   width?: number,
   height?: number
 ) => {
+  const { table, pocket } = params;
+
   const scale = settings.highDetail ? 2000 : 1000;
-  const tableLength = properties.tableLength * scale;
-  const tableWidth = properties.tableWidth * scale;
-  const pocketCornerRadius = properties.pocketCornerRadius * scale;
+  const tableLength = table.length * scale;
+  const tableWidth = table.width * scale;
+  const pocketCornerRadius = pocket.corner.radius * scale;
   const canvas = document.createElement('canvas');
   canvas.width = (width ?? 0) * scale || tableLength + pocketCornerRadius * 2;
   canvas.height = (height ?? 0) * scale || tableWidth + pocketCornerRadius * 2;

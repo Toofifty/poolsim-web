@@ -1,44 +1,50 @@
 import { Mesh, PlaneGeometry } from 'three';
-import { params } from '../../../../common/simulation/physics/params';
-import { properties } from '../../../../common/simulation/physics/properties';
+import { type Params } from '../../../../common/simulation/physics/params';
 import { createMaterial } from '../../rendering/create-material';
 import type { ThemeObject } from '../../store/theme';
 import { combine } from '../util';
 
-const createDiamond = (x: number, y: number) => {
+const createDiamond = (params: Params, x: number, y: number) => {
   const diamond = new PlaneGeometry(
-    properties.diamondWidth,
-    properties.diamondWidth
+    params.table.diamondWidth,
+    params.table.diamondWidth
   );
   diamond.rotateZ(Math.PI / 4);
   diamond.translate(x, y, 0.001);
   return diamond;
 };
 
-export const createTableRailDiamondsMesh = (theme: ThemeObject) => {
-  const { ball, cushion } = params;
-  const { tableWidth: tw, tableLength: tl, railPadding } = properties;
+export const createTableRailDiamondsMesh = (
+  params: Params,
+  theme: ThemeObject
+) => {
+  const {
+    ball,
+    cushion,
+    pocket,
+    table: { width, length, railPadding },
+  } = params;
 
-  const gapX = tl / 8;
-  const gapY = tw / 4;
+  const gapX = length / 8;
+  const gapY = width / 4;
 
-  const midY = tw / 2 + (properties.pocketCornerRadius + railPadding) / 2;
-  const midX = tl / 2 + (properties.pocketCornerRadius + railPadding) / 2;
+  const midY = width / 2 + (pocket.corner.radius + railPadding) / 2;
+  const midX = length / 2 + (pocket.corner.radius + railPadding) / 2;
 
   const diamonds: PlaneGeometry[] = [];
 
   // top & bottom
-  for (let x = gapX; x < tl; x += gapX) {
-    if (x === tl / 2) continue;
+  for (let x = gapX; x < length; x += gapX) {
+    if (x === length / 2) continue;
 
-    diamonds.push(createDiamond(x - tl / 2, midY));
-    diamonds.push(createDiamond(x - tl / 2, -midY));
+    diamonds.push(createDiamond(params, x - length / 2, midY));
+    diamonds.push(createDiamond(params, x - length / 2, -midY));
   }
 
   // left & right
-  for (let y = gapY; y < tw; y += gapY) {
-    diamonds.push(createDiamond(midX, y - tw / 2));
-    diamonds.push(createDiamond(-midX, y - tw / 2));
+  for (let y = gapY; y < width; y += gapY) {
+    diamonds.push(createDiamond(params, midX, y - width / 2));
+    diamonds.push(createDiamond(params, -midX, y - width / 2));
   }
 
   const mesh = new Mesh(

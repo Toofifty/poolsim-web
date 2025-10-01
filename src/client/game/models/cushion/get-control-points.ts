@@ -2,8 +2,8 @@ import { vec, type Vec } from '../../../../common/math';
 import type { Params } from '../../../../common/simulation/physics';
 
 export const getControlPoints = (
-  [A, B, C, D]: [Vec, Vec, Vec, Vec],
-  params: Params
+  params: Params,
+  [A, B, C, D]: [Vec, Vec, Vec, Vec]
 ) => {
   const {
     cushion: { cornerRounding },

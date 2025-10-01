@@ -1,17 +1,20 @@
 import { BufferGeometry, ExtrudeGeometry, Shape } from 'three';
 import { vec, type Vec } from '../../../../common/math';
-import { params } from '../../../../common/simulation/physics/params';
+import { type Params } from '../../../../common/simulation/physics/params';
 import { constrain } from '../../../../common/util';
 import { generateBoundingBoxUVs } from '../util';
 import { getControlPoints } from './get-control-points';
 
-export const createCushionGeometry = ([A, B, C, D]: [Vec, Vec, Vec, Vec]) => {
+export const createCushionGeometry = (
+  params: Params,
+  [A, B, C, D]: [Vec, Vec, Vec, Vec]
+) => {
   const {
     cushion: { height, width, baseWidth, rounding },
     ball,
   } = params;
 
-  const [AB, BC1, BC2, CD] = getControlPoints([A, B, C, D], params);
+  const [AB, BC1, BC2, CD] = getControlPoints(params, [A, B, C, D]);
 
   const shape = new Shape();
 

@@ -1,5 +1,5 @@
 import { Profiler, type IProfiler } from '../util/profiler';
-import { properties } from './physics/properties';
+import type { Params } from './physics';
 import { Result, StepResult } from './result';
 import type { Shot } from './shot';
 import type { TableState } from './table-state';
@@ -23,15 +23,16 @@ export type RunSimulationStepOptions = {
 };
 
 export interface ISimulation {
-  // step(params: RunSimulationStepOptions): StepResult;
-  run(params: RunSimulationOptions): Promise<Result>;
+  run(args: RunSimulationOptions): Promise<Result>;
   runBatch(
-    params: Omit<RunSimulationOptions, 'state'>[],
+    args: Omit<RunSimulationOptions, 'state'>[],
     state: TableState
   ): Promise<Result[]>;
 }
 
 export class Simulation implements ISimulation {
+  constructor(private params: Params) {}
+
   public step({
     simulated,
     trackPath,
@@ -41,7 +42,7 @@ export class Simulation implements ISimulation {
     profiler = Profiler.none,
   }: RunSimulationStepOptions) {
     const result = new StepResult();
-    trackPath &&= stepIndex % properties.trackingPointDist === 0;
+    trackPath &&= stepIndex % this.params.simulation.trackingPointDist === 0;
 
     const endBallUpdate = profiler.start('ballUpdate');
     state.balls.forEach((ball) => {
@@ -138,12 +139,12 @@ export class Simulation implements ISimulation {
       copiedState.isBreak &&
       (shot.angle < -Math.PI / 2 || shot.angle > Math.PI / 2);
 
-    for (let i = 0; i < properties.maxIterations; i++) {
+    for (let i = 0; i < this.params.simulation.maxIterations; i++) {
       const stepResult = profiler.profile('step', () =>
         this.step({
           simulated: true,
           trackPath,
-          dt: 1 / properties.updatesPerSecond,
+          dt: 1 / this.params.simulation.updatesPerSecond,
           state: copiedState,
           stepIndex: i,
         })
@@ -185,8 +186,6 @@ export class Simulation implements ISimulation {
     batchParams: Omit<RunSimulationOptions, 'state'>[],
     state: TableState
   ) {
-    return Promise.all(
-      batchParams.map((params) => this.run({ state, ...params }))
-    );
+    return Promise.all(batchParams.map((args) => this.run({ state, ...args })));
   }
 }

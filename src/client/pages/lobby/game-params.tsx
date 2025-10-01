@@ -4,9 +4,9 @@ import type { LobbyData } from '../../../common/data';
 import {
   AimAssistMode,
   params as defaultParams,
+  RuleSet,
   type Params,
 } from '../../../common/simulation/physics';
-import { RuleSet } from '../../../common/simulation/table-state';
 import { Surface } from '../../ui/surface';
 
 const getGameMode = (params: Params) => {

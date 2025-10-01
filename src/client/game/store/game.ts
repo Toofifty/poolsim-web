@@ -1,10 +1,10 @@
 import { proxy } from 'valtio';
-import { properties } from '../../../common/simulation/physics/properties';
+import { params } from '../../../common/simulation/physics';
 import type { PlayState } from '../controller/game-controller';
 
 export const gameStore = proxy({
   state: undefined as PlayState | undefined,
-  cueForce: properties.cueDefaultForce,
+  cueForce: params.cue.defaultForce,
   /** (-1, 1) of hit on ball */
   cueSpinX: 0,
   /** (-1, 1) of hit on ball */

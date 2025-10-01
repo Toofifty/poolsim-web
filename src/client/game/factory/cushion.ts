@@ -25,6 +25,7 @@ export const createCushions = (params: Params) => {
   // left
   cushions.push(
     Cushion.fromVertices(
+      params,
       vec.addY(bl, corner.radius),
       vec.addXY(bl, width, width + corner.radius + corner.girth),
       vec.subXY(tl, -width, width + corner.radius + corner.girth),
@@ -35,6 +36,7 @@ export const createCushions = (params: Params) => {
   // top-left
   cushions.push(
     Cushion.fromVertices(
+      params,
       vec.addX(tl, corner.radius),
       vec.addXY(tl, width + corner.radius + corner.girth, -width),
       vec.subXY(t, edge.radius + edge.girth, width),
@@ -45,6 +47,7 @@ export const createCushions = (params: Params) => {
   // top-right
   cushions.push(
     Cushion.fromVertices(
+      params,
       vec.addX(t, edge.radius),
       vec.addXY(t, edge.radius + edge.girth, -width),
       vec.subXY(tr, width + corner.radius + corner.girth, width),
@@ -55,6 +58,7 @@ export const createCushions = (params: Params) => {
   // right
   cushions.push(
     Cushion.fromVertices(
+      params,
       vec.subY(tr, corner.radius),
       vec.subXY(tr, width, width + corner.radius + corner.girth),
       vec.addXY(br, -width, width + corner.radius + corner.girth),
@@ -65,6 +69,7 @@ export const createCushions = (params: Params) => {
   // bottom-right
   cushions.push(
     Cushion.fromVertices(
+      params,
       vec.subX(br, corner.radius),
       vec.subXY(br, width + corner.radius + corner.girth, -width),
       vec.addXY(b, edge.radius + edge.girth, width),
@@ -75,6 +80,7 @@ export const createCushions = (params: Params) => {
   // bottom-left
   cushions.push(
     Cushion.fromVertices(
+      params,
       vec.subX(b, edge.radius),
       vec.subXY(b, edge.radius + edge.girth, -width),
       vec.addXY(bl, width + corner.radius + corner.girth, width),

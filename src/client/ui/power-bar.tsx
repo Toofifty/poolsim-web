@@ -1,8 +1,8 @@
 import { Button } from '@mantine/core';
 import { useEffect } from 'react';
 import { useSnapshot } from 'valtio';
+import { params as staticParams } from '../../common/simulation/physics';
 import { constrain } from '../../common/util';
-import { Cue } from '../game/objects/cue';
 import { gameStore } from '../game/store/game';
 import { settings } from '../game/store/settings';
 import './power-bar.scss';
@@ -12,15 +12,19 @@ export const PowerBar = () => {
   const { cueForce } = useSnapshot(gameStore);
   const { distanceBasedPower } = useSnapshot(settings);
 
+  // todo: useSnapshot(params);
+  const params = staticParams;
+
   const props = useMouseInputs(({ x }) => {
-    gameStore.cueForce = Cue.MAX_FORCE * x;
+    gameStore.cueForce = params.cue.maxForce * x;
   }, []);
 
   useEffect(() => {
     const scrollListener = (event: WheelEvent) => {
       if (!event.shiftKey) return;
-      const force = gameStore.cueForce / Cue.MAX_FORCE - event.deltaY * 0.0002;
-      gameStore.cueForce = Cue.MAX_FORCE * constrain(force, 0, 1);
+      const force =
+        gameStore.cueForce / params.cue.maxForce - event.deltaY * 0.0002;
+      gameStore.cueForce = params.cue.maxForce * constrain(force, 0, 1);
     };
 
     document.addEventListener('wheel', scrollListener, { passive: true });
@@ -42,7 +46,7 @@ export const PowerBar = () => {
         <div className="power-bar__click-area" {...props}>
           <div
             className="power-bar__current-power"
-            style={{ width: `${(cueForce / Cue.MAX_FORCE) * 100}%` }}
+            style={{ width: `${(cueForce / params.cue.maxForce) * 100}%` }}
           />
           <span className="power-bar__power-num">{cueForce.toFixed(2)}m/s</span>
         </div>

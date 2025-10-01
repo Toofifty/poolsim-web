@@ -1,5 +1,4 @@
-import { AimAssistMode } from '../../../common/simulation/physics';
-import { properties } from '../../../common/simulation/physics/properties';
+import { AimAssistMode, type Params } from '../../../common/simulation/physics';
 import type { Shot } from '../../../common/simulation/shot';
 import {
   Simulation,
@@ -13,14 +12,20 @@ import { settings } from '../store/settings';
 import { ThreadedSimulation } from './threaded-simulation';
 
 export class AimAssist {
-  private simulation: ISimulation = properties.useWorkerForAimAssist
-    ? new ThreadedSimulation()
-    : new Simulation();
+  private simulation: ISimulation;
   private lastShotKey: bigint = 0n;
   private balls: Ball[] = [];
   private ballMap: Map<number, Ball> = new Map();
 
-  constructor(public mode: AimAssistMode) {}
+  constructor(private params: Params) {
+    this.simulation = params.simulation.useWorkerForAimAssist
+      ? new ThreadedSimulation()
+      : new Simulation(params);
+  }
+
+  get mode() {
+    return this.params.game.aimAssist;
+  }
 
   public setBalls(balls: Ball[]) {
     this.clear();

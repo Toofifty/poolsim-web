@@ -1,6 +1,8 @@
 import type { TypedEventTarget } from 'typescript-event-target';
-import type { SerializedPhysicsBall } from '../../../common/simulation/physics';
-import type { RuleSet } from '../../../common/simulation/table-state';
+import type {
+  RuleSet,
+  SerializedPhysicsBall,
+} from '../../../common/simulation/physics';
 import type { SerializedOnlineGameState } from '../controller/online-game-controller';
 import type { BallProto } from '../objects/ball';
 import type { SerializedCue } from '../objects/cue';

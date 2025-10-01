@@ -1,8 +1,10 @@
 import type { Socket } from 'socket.io-client';
 import { TypedEventTarget } from 'typescript-event-target';
 import type { LobbyData } from '../../../common/data';
-import type { SerializedPhysicsBall } from '../../../common/simulation/physics';
-import type { RuleSet } from '../../../common/simulation/table-state';
+import type {
+  RuleSet,
+  SerializedPhysicsBall,
+} from '../../../common/simulation/physics';
 import type { SerializedOnlineGameState } from '../controller/online-game-controller';
 import type { BallProto } from '../objects/ball';
 import type { SerializedCue } from '../objects/cue';

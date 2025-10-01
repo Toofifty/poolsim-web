@@ -1,4 +1,4 @@
-import { properties } from '../../common/simulation/physics/properties';
+import type { Params } from '../../common/simulation/physics';
 import type { Result } from '../../common/simulation/result';
 import { Shot } from '../../common/simulation/shot';
 import {
@@ -28,10 +28,15 @@ export class AI {
   private prefTrickshot = 100;
   private prefMultishot = 100;
 
-  private simulation: ISimulation = new Simulation();
-  private simulationPool: ISimulation[] = properties.useWorkerForAI
-    ? createSimulationPool()
-    : [];
+  private simulation: ISimulation;
+  private simulationPool: ISimulation[];
+
+  constructor(private params: Params) {
+    this.simulation = new Simulation(params);
+    this.simulationPool = params.simulation.useWorkerForAI
+      ? createSimulationPool()
+      : [];
+  }
 
   private generateShots(state: TableState, topSpin?: number) {
     const shots: Shot[] = [];
@@ -46,8 +51,8 @@ export class AI {
       maxAngle = Math.PI / 2;
     }
 
-    const minForce = properties.cueMaxForce / this.forceSteps;
-    const maxForce = properties.cueMaxForce;
+    const minForce = this.params.cue.maxForce / this.forceSteps;
+    const maxForce = this.params.cue.maxForce;
     const forceStep = (maxForce - minForce) / this.forceSteps;
 
     const minLift = 0;
@@ -135,7 +140,7 @@ export class AI {
 
     const shots = this.generateShots(state, topSpin);
 
-    const results = properties.useWorkerForAI
+    const results = this.params.simulation.useWorkerForAI
       ? await this.runPooledSearch(shots, state)
       : await this.runSearch(shots, state);
 

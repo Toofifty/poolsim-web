@@ -1,5 +1,5 @@
 import { PointLight } from 'three';
-import { properties } from '../../../../common/simulation/physics/properties';
+import type { Params } from '../../../../common/simulation/physics';
 
 const createPointLight = (x: number, y: number) => {
   const light = new PointLight(0xffffff, 0.01);
@@ -8,29 +8,31 @@ const createPointLight = (x: number, y: number) => {
   return light;
 };
 
-export const createNeonLightStrips = () => {
-  const { tableWidth: tw, tableLength: tl, railPadding } = properties;
+export const createNeonLightStrips = (params: Params) => {
+  const {
+    table: { width, length, railPadding },
+  } = params;
 
-  const gapX = tl / 16;
-  const gapY = tw / 8;
+  const gapX = length / 16;
+  const gapY = width / 8;
 
-  const midY = (tw * 0.95) / 2;
-  const midX = (tl * 0.95) / 2;
+  const midY = (width * 0.95) / 2;
+  const midX = (length * 0.95) / 2;
 
   const lights: PointLight[] = [];
 
   // top & bottom
-  for (let x = gapX; x < tl; x += gapX) {
-    if (x === tl / 2) continue;
+  for (let x = gapX; x < length; x += gapX) {
+    if (x === length / 2) continue;
 
-    lights.push(createPointLight(x - tl / 2, midY));
-    lights.push(createPointLight(x - tl / 2, -midY));
+    lights.push(createPointLight(x - length / 2, midY));
+    lights.push(createPointLight(x - length / 2, -midY));
   }
 
   // left & right
-  for (let y = gapY; y < tw; y += gapY) {
-    lights.push(createPointLight(midX, y - tw / 2));
-    lights.push(createPointLight(-midX, y - tw / 2));
+  for (let y = gapY; y < width; y += gapY) {
+    lights.push(createPointLight(midX, y - width / 2));
+    lights.push(createPointLight(-midX, y - width / 2));
   }
 
   return lights;

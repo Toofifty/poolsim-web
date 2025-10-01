@@ -5,10 +5,10 @@ const createKey = () => Math.floor(Math.random() * 10000);
 export const runInWorker = <TFn extends SimulationWorkerFn>(
   worker: Worker,
   fn: TFn['fn'],
-  params: TFn['params']
+  args: TFn['args']
 ): Promise<TFn['result']> => {
   const key = createKey();
-  worker.postMessage({ fn, key, params });
+  worker.postMessage({ fn, key, args });
   return new Promise((res) => {
     worker.onmessage = ({
       data: { fn: returnedFn, key: returnedKey, result },

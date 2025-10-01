@@ -16,11 +16,11 @@ export const createPockets = (params: Params) => {
   const edgeOffset = corner.radius - edge.radius;
 
   return [
-    new Pocket(0, left, top, -ball.radius, corner.radius),
-    new Pocket(1, right, top, -ball.radius, corner.radius),
-    new Pocket(2, left, bottom, -ball.radius, corner.radius),
-    new Pocket(3, right, bottom, -ball.radius, corner.radius),
-    new Pocket(4, 0, top - edgeOffset, -ball.radius, edge.radius),
-    new Pocket(5, 0, bottom + edgeOffset, -ball.radius, edge.radius),
+    new Pocket(params, 0, left, top, -ball.radius, corner.radius),
+    new Pocket(params, 1, right, top, -ball.radius, corner.radius),
+    new Pocket(params, 2, left, bottom, -ball.radius, corner.radius),
+    new Pocket(params, 3, right, bottom, -ball.radius, corner.radius),
+    new Pocket(params, 4, 0, top - edgeOffset, -ball.radius, edge.radius),
+    new Pocket(params, 5, 0, bottom + edgeOffset, -ball.radius, edge.radius),
   ];
 };

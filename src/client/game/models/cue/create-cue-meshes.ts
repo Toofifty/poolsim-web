@@ -1,40 +1,41 @@
 import { CylinderGeometry, Mesh, Object3D, SphereGeometry } from 'three';
-import { properties } from '../../../../common/simulation/physics/properties';
+import type { Params } from '../../../../common/simulation/physics';
 import { createMaterial } from '../../rendering/create-material';
+import type { ThemeObject } from '../../store/theme';
 
-export const createCueMeshes = () => {
+// todo: just use a texture for the cue
+
+export const createCueMeshes = (params: Params, theme: ThemeObject) => {
+  const {
+    cue: { tipRadius, length, handleRadius },
+  } = params;
+
   const anchor = new Object3D();
   const lift = new Object3D();
   const cue = new Object3D();
 
   const tip = new Mesh(
-    new SphereGeometry(properties.cueTipRadius),
-    createMaterial({ color: properties.colorCueTip })
+    new SphereGeometry(tipRadius),
+    createMaterial({ color: theme.cue.colorTip })
   );
-  tip.position.y = properties.cueLength / 2;
+  tip.position.y = length / 2;
   const handlePct = 0.25;
-  const handleLength = properties.cueLength * handlePct;
-  const shaftLength = properties.cueLength - handleLength;
-  const cueMidRadius =
-    properties.cueTipRadius +
-    (properties.cueHandleRadius - properties.cueTipRadius) * handlePct;
+  const handleLength = length * handlePct;
+  const shaftLength = length - handleLength;
+  const cueMidRadius = tipRadius + (handleRadius - tipRadius) * handlePct;
   const shaft = new Mesh(
-    new CylinderGeometry(properties.cueTipRadius, cueMidRadius, shaftLength),
+    new CylinderGeometry(tipRadius, cueMidRadius, shaftLength),
     createMaterial({
-      color: properties.colorCueShaft,
+      color: theme.cue.colorShaft,
       roughness: 0.1,
       metalness: 0,
     })
   );
   shaft.position.y = handleLength / 2;
   const handle = new Mesh(
-    new CylinderGeometry(
-      cueMidRadius,
-      properties.cueHandleRadius,
-      handleLength
-    ),
+    new CylinderGeometry(cueMidRadius, handleRadius, handleLength),
     createMaterial({
-      color: properties.colorCueHandle,
+      color: theme.cue.colorHandle,
       roughness: 0.1,
       metalness: 0,
     })

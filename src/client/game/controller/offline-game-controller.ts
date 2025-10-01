@@ -15,7 +15,7 @@ export class OfflineGameController extends BaseGameController {
 
   constructor(params: Params, input: InputController) {
     super(params, input);
-    this.ai = new AI();
+    this.ai = new AI(params);
 
     // immediately make AI shoot if setting changes to AIvAI
     subscribe(settings, ([[op, [path], value]]) => {

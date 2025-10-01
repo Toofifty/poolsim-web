@@ -4,13 +4,13 @@ import type { TableState } from '../../../common/simulation/table-state';
 
 export type RunSimulationFn = {
   fn: 'run';
-  params: RunSimulationOptions;
+  args: RunSimulationOptions;
   result: Result;
 };
 
 export type RunBatchSimulationFn = {
   fn: 'runBatch';
-  params: { params: Omit<RunSimulationOptions, 'state'>[]; state: TableState };
+  args: { args: Omit<RunSimulationOptions, 'state'>[]; state: TableState };
   result: Result[];
 };
 
@@ -18,8 +18,8 @@ export type SimulationWorkerFn = RunSimulationFn | RunBatchSimulationFn;
 
 export type SentMessage = {
   data: { key: number } & (
-    | Pick<RunSimulationFn, 'fn' | 'params'>
-    | Pick<RunBatchSimulationFn, 'fn' | 'params'>
+    | Pick<RunSimulationFn, 'fn' | 'args'>
+    | Pick<RunBatchSimulationFn, 'fn' | 'args'>
   );
 };
 

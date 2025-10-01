@@ -1,7 +1,6 @@
 import { Mesh, Object3D, Vector3 } from 'three';
 import { vec, type Vec } from '../../../common/math';
-import { params } from '../../../common/simulation/physics/params';
-import { properties } from '../../../common/simulation/physics/properties';
+import { type Params } from '../../../common/simulation/physics/params';
 import { Shot } from '../../../common/simulation/shot';
 import { constrain } from '../../../common/util';
 import { dlerp } from '../dlerp';
@@ -9,6 +8,7 @@ import { Game } from '../game';
 import { createCueMeshes } from '../models/cue/create-cue-meshes';
 import { gameStore } from '../store/game';
 import { settings } from '../store/settings';
+import { makeTheme } from '../store/theme';
 import { toVec } from '../util/three-interop';
 import type { Ball } from './ball';
 
@@ -59,22 +59,17 @@ export class Cue {
     gameStore.cueLift = value;
   }
 
-  public static MAX_FORCE = properties.cueMaxForce;
-
   public isShooting = false;
+  private restingPositionY: number;
 
-  private restingPositionY = -(
-    properties.cueLength / 2 +
-    params.ball.radius * 1.5
-  );
-
-  constructor() {
+  constructor(private params: Params) {
     this.createMesh();
     this.anchor.rotation.z = Math.PI;
+    this.restingPositionY = -(params.cue.length / 2 + params.ball.radius * 1.5);
   }
 
   private createMesh() {
-    const { cue, lift, anchor } = createCueMeshes();
+    const { cue, lift, anchor } = createCueMeshes(this.params, makeTheme());
     this.object = cue;
     this.liftAnchor = lift;
     this.anchor = anchor;
@@ -106,7 +101,7 @@ export class Cue {
 
     if (settings.distanceBasedPower) {
       const dist = vec.dist(position, point);
-      this.force = constrain(dist * 2, 0, properties.cueMaxForce);
+      this.force = constrain(dist * 2, 0, this.params.cue.maxForce);
     }
   }
 
@@ -124,14 +119,14 @@ export class Cue {
       (v) => (this.object.position.y = v),
       this.object.position.y,
       this.restingPositionY - this.force / 2,
-      properties.cuePullBackTime
+      this.params.cue.pullBackTime
     );
     Game.audio.play('hit_centre', this.object.position, this.force / 2);
     await dlerp(
       (v) => (this.object.position.y = v),
       this.object.position.y,
-      this.restingPositionY + properties.ballRadius * 0.5,
-      properties.cueShootTime
+      this.restingPositionY + this.params.ball.radius * 0.5,
+      this.params.cue.shootTime
     );
     this.targetBall.hit(this.getShot());
     onShotMade?.();
@@ -139,7 +134,7 @@ export class Cue {
       (v) => (this.object.position.y = v),
       this.object.position.y,
       this.restingPositionY,
-      properties.cuePullBackTime
+      this.params.cue.pullBackTime
     );
     this.isShooting = false;
   }
@@ -169,8 +164,8 @@ export class Cue {
 
   public update(dt: number = 1 / 60, settled?: boolean) {
     // update positon for spin from UI
-    this.object.position.x = -this.sideSpin * params.ball.radius;
-    this.object.position.z = this.topSpin * params.ball.radius;
+    this.object.position.x = -this.sideSpin * this.params.ball.radius;
+    this.object.position.z = this.topSpin * this.params.ball.radius;
 
     this.liftAnchor.setRotationFromAxisAngle(
       new Vector3(1, 0, 0),

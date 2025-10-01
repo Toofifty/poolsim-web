@@ -1,13 +1,12 @@
 import { vec, type Vec } from '../../math';
 import { constrain } from '../../util';
-import { params } from './params';
-import { properties } from './properties';
+import { params, type Params } from './params';
 
 export class Polygon {
   public vertices: [Vec, Vec, Vec, Vec];
   public collisionBox: [Vec, Vec];
 
-  constructor(vertices: Vec[]) {
+  constructor(params: Params, vertices: Vec[]) {
     this.vertices = vertices as [Vec, Vec, Vec, Vec];
 
     let minX = 0;
@@ -21,10 +20,12 @@ export class Polygon {
       if (minY === 0 || v[1] < minY) minY = v[1];
       if (maxY === 0 || v[1] > maxY) maxY = v[1];
     }
-    const { ballRadius: br } = properties;
+    const {
+      ball: { radius },
+    } = params;
     this.collisionBox = [
-      vec.new(minX - br, minY - br),
-      vec.new(maxX - minX + br * 2, maxY - minY + br * 2),
+      vec.new(minX - radius, minY - radius),
+      vec.new(maxX - minX + radius * 2, maxY - minY + radius * 2),
     ];
   }
 

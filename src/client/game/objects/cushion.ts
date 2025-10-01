@@ -7,10 +7,10 @@ import {
   Points,
   PointsMaterial,
 } from 'three';
-import { subscribe } from 'valtio';
+import { snapshot, subscribe } from 'valtio';
 import { type Vec } from '../../../common/math';
+import { type Params } from '../../../common/simulation/physics';
 import { PhysicsCushion } from '../../../common/simulation/physics/cushion';
-import { type Params } from '../../../common/simulation/physics/params';
 import { Game } from '../game';
 import { createCushionGeometry } from '../models/cushion/create-cushion-geometry';
 import { getControlPoints } from '../models/cushion/get-control-points';
@@ -36,7 +36,7 @@ export class Cushion extends Object3D {
   ) {
     return new Cushion(
       params,
-      PhysicsCushion.fromVertices(params, ...vertices)
+      PhysicsCushion.fromVertices(snapshot(params), ...vertices)
     );
   }
 

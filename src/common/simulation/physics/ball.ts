@@ -17,7 +17,7 @@ import {
   evolvePocket,
 } from './ball/evolve';
 import { PhysicsCushion } from './cushion';
-import { params, type Params } from './params';
+import type { StaticParams } from './default-params';
 import type { PhysicsPocket } from './pocket';
 
 export type SerializedPhysicsBall = {
@@ -59,7 +59,7 @@ export class PhysicsBall {
   public pocket?: PhysicsPocket;
 
   constructor(
-    private params: Params,
+    public params: StaticParams,
     public id: number,
     position: Vec,
     orientation: Quat
@@ -232,29 +232,32 @@ export class PhysicsBall {
   }
 
   public getSlideTime(): number {
-    if (params.ball.frictionSlide === 0) {
+    if (this.params.ball.frictionSlide === 0) {
       return Infinity;
     }
 
     return (
-      (2 * vec.len(this.getContactVelocity())) / (7 * params.ball.frictionSlide)
+      (2 * vec.len(this.getContactVelocity())) /
+      (7 * this.params.ball.frictionSlide)
     );
   }
 
   public getRollTime(): number {
-    if (params.ball.frictionRoll === 0) {
+    if (this.params.ball.frictionRoll === 0) {
       return Infinity;
     }
 
-    return vec.len(this.v) / params.ball.frictionRoll;
+    return vec.len(this.v) / this.params.ball.frictionRoll;
   }
 
   public getSpinTime(): number {
-    if (params.ball.frictionSpin === 0) {
+    if (this.params.ball.frictionSpin === 0) {
       return Infinity;
     }
 
-    return Math.abs(this.w[2]) * 0.4 * (this.radius / params.ball.frictionSpin);
+    return (
+      Math.abs(this.w[2]) * 0.4 * (this.radius / this.params.ball.frictionSpin)
+    );
   }
 
   public getAirTime(): number {
@@ -262,10 +265,11 @@ export class PhysicsBall {
       return 0;
     }
 
-    const disc = this.v[2] * this.v[2] + 2 * params.ball.gravity * this.r[2];
+    const disc =
+      this.v[2] * this.v[2] + 2 * this.params.ball.gravity * this.r[2];
     if (disc < 0) return 0;
 
-    return this.v[2] + Math.sqrt(disc) / params.ball.gravity;
+    return this.v[2] + Math.sqrt(disc) / this.params.ball.gravity;
   }
 
   public evolve(dt: number, simulated?: boolean) {

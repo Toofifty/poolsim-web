@@ -1,8 +1,6 @@
+import { proxy } from 'valtio';
 import { defaultParams } from './default-params';
 
-// todo: proxy
-export const params = defaultParams;
-
-export type Params = typeof params;
+export const params = proxy(defaultParams);
 
 if (typeof window !== 'undefined') (window as any).params = params;

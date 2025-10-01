@@ -1,5 +1,5 @@
 import { type Vec } from '../../math';
-import type { Params } from './params';
+import type { StaticParams } from './default-params';
 import { Polygon } from './polygon';
 
 export type SerializedPhysicsCushion = {
@@ -16,7 +16,7 @@ export class PhysicsCushion extends Polygon {
    *     bl ->-------->- br
    */
   static fromVertices(
-    params: Params,
+    params: StaticParams,
     ...vertices: [tl: Vec, bl: Vec, br: Vec, tr: Vec]
   ) {
     return new PhysicsCushion(params, vertices);

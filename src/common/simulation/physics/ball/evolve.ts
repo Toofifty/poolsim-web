@@ -1,17 +1,6 @@
 import { quat, vec } from '../../../math';
 import { BallState, type PhysicsBall } from '../ball';
-import { params } from '../params';
 import type { PhysicsPocket } from '../pocket';
-
-const {
-  gravity: g,
-  frictionSlide: us,
-  frictionRoll: ur,
-  frictionSpin: usp,
-  frictionAir: ua,
-  restitutionSlate: es,
-  restitutionPocket: ep,
-} = params.ball;
 
 export const evolveBallMotion = (ball: PhysicsBall, dt: number) => {
   if (dt === 0 || ball.state === BallState.Stationary) return;
@@ -61,6 +50,8 @@ export const evolveBallMotion = (ball: PhysicsBall, dt: number) => {
 };
 
 const evolveSlide = (ball: PhysicsBall, dt: number) => {
+  const { gravity: g, frictionSlide: us } = ball.params.ball;
+
   const u0 = vec.norm(ball.getContactVelocity());
 
   // acceleration due to friction
@@ -93,6 +84,8 @@ const evolveSlide = (ball: PhysicsBall, dt: number) => {
 };
 
 const evolveRoll = (ball: PhysicsBall, dt: number) => {
+  const { gravity: g, frictionRoll: ur } = ball.params.ball;
+
   const vh = vec.norm(ball.v);
 
   // r += vt - 0.5at²
@@ -120,6 +113,8 @@ const evolveRoll = (ball: PhysicsBall, dt: number) => {
 };
 
 const evolveSpin = (ball: PhysicsBall, dt: number) => {
+  const { gravity: g, frictionSpin: usp } = ball.params.ball;
+
   const wz = ball.w[2];
   if (Math.abs(wz) < 1e-12) return;
 
@@ -145,6 +140,8 @@ export const evolveBallOrientation = (ball: PhysicsBall, dt: number) => {
 };
 
 const evolveVertical = (ball: PhysicsBall, dt: number) => {
+  const { gravity: g } = ball.params.ball;
+
   const accel = vec.new(0, 0, -g);
   // r += vt + 0.5at²
   vec.madd(
@@ -157,6 +154,8 @@ const evolveVertical = (ball: PhysicsBall, dt: number) => {
 };
 
 const collideWithSlate = (ball: PhysicsBall) => {
+  const { restitutionSlate: es } = ball.params.ball;
+
   if (ball.r[2] < 0 && ball.v[2] < 0) {
     ball.v[2] = -ball.v[2] * es;
     if (Math.abs(ball.v[2]) < 1e-1) {
@@ -165,55 +164,65 @@ const collideWithSlate = (ball: PhysicsBall) => {
   }
 };
 
-export const evolvePocket = (b: PhysicsBall, p: PhysicsPocket, dt: number) => {
+export const evolvePocket = (
+  ball: PhysicsBall,
+  p: PhysicsPocket,
+  dt: number
+) => {
+  const { gravity: g } = ball.params.ball;
+
   // xy dist from pocket centre -> ball centre
-  const delta = vec.sub(vec.setZ(b.r, 0), vec.setZ(p.position, 0));
+  const delta = vec.sub(vec.setZ(ball.r, 0), vec.setZ(p.position, 0));
   const dist = vec.len(delta);
 
-  b.v[2] -= g * dt;
+  ball.v[2] -= g * dt;
 
   // pocket edge rolling
-  if (dist >= p.radius - b.radius && b.r[2] <= 0 && b.r[2] > -2 * b.radius) {
-    const delta = vec.sub(vec.setZ(b.r, 0), vec.setZ(p.position, 0));
+  if (
+    dist >= p.radius - ball.radius &&
+    ball.r[2] <= 0 &&
+    ball.r[2] > -2 * ball.radius
+  ) {
+    const delta = vec.sub(vec.setZ(ball.r, 0), vec.setZ(p.position, 0));
     const contactPoint = vec.add(
-      vec.setZ(p.position, -b.radius),
+      vec.setZ(p.position, -ball.radius),
       vec.mult(vec.norm(delta), p.radius)
     );
-    const normal = vec.norm(vec.sub(b.r, contactPoint));
+    const normal = vec.norm(vec.sub(ball.r, contactPoint));
     const accelGravity = vec.new(0, 0, -g);
     const accelNormal = vec.mult(normal, vec.dot(accelGravity, normal));
-    vec.msub(b.v, vec.mult(accelNormal, dt));
+    vec.msub(ball.v, vec.mult(accelNormal, dt));
   } else {
     // slow spin
-    vec.mmult(b.w, 0.5);
+    vec.mmult(ball.w, 0.5);
   }
 
-  vec.madd(b.r, vec.mult(b.v, dt));
+  vec.madd(ball.r, vec.mult(ball.v, dt));
 
   // internal cylinder collision
-  if (dist > p.radius - b.radius) {
+  if (dist > p.radius - ball.radius) {
     // edge of pocket
-    const normal = vec.norm(vec.sub(b.r, vec.setZ(p.position, 0)));
+    const normal = vec.norm(vec.sub(ball.r, vec.setZ(p.position, 0)));
 
-    const vn = vec.dot(b.v, normal);
+    const vn = vec.dot(ball.v, normal);
     if (vn > 0) {
-      const vz = b.v[2];
-      vec.msub(b.v, vec.mult(normal, 2 * vn));
-      vec.mmult(b.v, 0.5);
-      if (vec.lenSq(b.v) < 1e-8) {
-        vec.mmult(b.v, 0);
+      const vz = ball.v[2];
+      vec.msub(ball.v, vec.mult(normal, 2 * vn));
+      vec.mmult(ball.v, 0.5);
+      if (vec.lenSq(ball.v) < 1e-8) {
+        vec.mmult(ball.v, 0);
       }
-      b.v[2] = vz;
+      ball.v[2] = vz;
     }
   }
 
   // cylinder base collision
   const bottomZ = p.position[2] - p.depth / 2;
-  if (b.r[2] - b.radius < bottomZ) {
-    const overlap = bottomZ - b.r[2] + b.radius;
-    b.r[2] += overlap;
-    b.v[2] = 0;
-    vec.mmult(b.v, 0.5);
+  if (ball.r[2] - ball.radius < bottomZ) {
+    const overlap = bottomZ - ball.r[2] + ball.radius;
+    ball.r[2] += overlap;
+    ball.v[2] = 0;
+    vec.mmult(ball.v, 0.5);
 
     // if (b.v[2] < 0) {
     //   b.v[2] = -b.v[2] * ep;

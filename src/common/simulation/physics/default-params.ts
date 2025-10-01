@@ -1,3 +1,4 @@
+import type { Snapshot } from 'valtio';
 import { AimAssistMode, RuleSet } from './types';
 
 /**
@@ -84,3 +85,6 @@ export const defaultParams = {
     useWorkerForAI: true,
   },
 };
+
+export type StaticParams = Snapshot<typeof defaultParams>;
+export type Params = typeof defaultParams;

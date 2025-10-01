@@ -1,6 +1,6 @@
 import { vec, type Vec } from '../../math';
 import type { PhysicsBall } from './ball';
-import type { Params } from './params';
+import type { StaticParams } from './default-params';
 
 export type SerializedPhysicsPocket = {
   id: number;
@@ -16,7 +16,7 @@ export class PhysicsPocket {
   public balls: PhysicsBall[] = [];
 
   constructor(
-    private params: Params,
+    private params: StaticParams,
     public id: number,
     x: number,
     y: number,

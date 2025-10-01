@@ -1,12 +1,12 @@
 import { vec, type Vec } from '../../math';
 import { constrain } from '../../util';
-import { params, type Params } from './params';
+import type { StaticParams } from './default-params';
 
 export class Polygon {
   public vertices: [Vec, Vec, Vec, Vec];
   public collisionBox: [Vec, Vec];
 
-  constructor(params: Params, vertices: Vec[]) {
+  constructor(private params: StaticParams, vertices: Vec[]) {
     this.vertices = vertices as [Vec, Vec, Vec, Vec];
 
     let minX = 0;
@@ -56,7 +56,10 @@ export class Polygon {
       }
     }
 
-    return vec.setZ(closest, params.cushion.height - params.ball.radius);
+    return vec.setZ(
+      closest,
+      this.params.cushion.height - this.params.ball.radius
+    );
   }
 
   private findClosestPointOnLine(point: Vec, start: Vec, end: Vec) {

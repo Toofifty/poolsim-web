@@ -8,6 +8,7 @@ import {
   Vector3,
 } from 'three';
 import type { Line2 } from 'three/examples/jsm/Addons.js';
+import { snapshot } from 'valtio';
 import { vec, type Quat, type Vec } from '../../../common/math';
 import { defaultParams, type Params } from '../../../common/simulation/physics';
 import {
@@ -72,7 +73,7 @@ export class Ball {
     private params: Params,
     { id, number, color, position, orientation }: BallProto
   ) {
-    this.physics = new PhysicsBall(params, id, position, orientation);
+    this.physics = new PhysicsBall(snapshot(params), id, position, orientation);
     this.color = new Color(color);
     this.number = number;
     this.parent = new Object3D();

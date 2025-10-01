@@ -6,22 +6,15 @@ import type {
 } from '../../collision';
 import type { PhysicsBall } from '../ball';
 import type { PhysicsCushion } from '../cushion';
-import { params } from '../params';
 import type { PhysicsPocket } from '../pocket';
-
-const {
-  mass: m,
-  restitutionBall: eb,
-  restitutionPocket: ep,
-  restitutionCushion: ec,
-  frictionCushion: fc,
-} = params.ball;
 
 export const collideBallBall = (
   b1: PhysicsBall,
   b2: PhysicsBall
 ): BallBallCollision | undefined => {
   if (b1 === b2) return undefined;
+
+  const { restitutionBall: eb } = b1.params.ball;
 
   const dist = vec.dist(b1.r, b2.r);
 
@@ -75,9 +68,10 @@ const applyBallCollisionSpin = (
   impulse: Vec,
   normal: Vec
 ) => {
+  const { mass: m, frictionBall: ub } = b1.params.ball;
+
   const R1 = b1.radius;
   const R2 = b2.radius;
-  const m = params.ball.mass;
   const I1 = (2 / 5) * m * R1 * R1;
   const I2 = (2 / 5) * m * R2 * R2;
 
@@ -102,8 +96,7 @@ const applyBallCollisionSpin = (
     let Jt = vec.mult(vRel_t, -1 / Kt);
 
     // Coulomb friction limit based on normal impulse
-    const mu = params.ball.frictionBall;
-    const JtMax = vec.len(impulse) * mu;
+    const JtMax = vec.len(impulse) * ub;
 
     if (vec.len(Jt) > JtMax) {
       Jt = vec.mult(vec.norm(Jt), JtMax);
@@ -131,6 +124,8 @@ export const collideBallCushion = (
   if (!c.inBounds(b.r)) {
     return undefined;
   }
+
+  const { restitutionCushion: ec, frictionCushion: fc } = b.params.ball;
 
   const closestPoint = c.findClosestPoint(b.r);
 
@@ -190,7 +185,7 @@ export const collideBallPocket = (
 
   // only considered in the pocket if within it's radius,
   // and the ball is below rail height
-  if (dist < p.radius && b.r[2] <= params.cushion.height) {
+  if (dist < p.radius && b.r[2] <= b.params.cushion.height) {
     b.addToPocket(p);
     return {
       type: 'ball-pocket',

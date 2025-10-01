@@ -1,6 +1,6 @@
 import { Mesh, Object3D, Vector3 } from 'three';
 import { vec, type Vec } from '../../../common/math';
-import { type Params } from '../../../common/simulation/physics/params';
+import type { Params } from '../../../common/simulation/physics';
 import { Shot } from '../../../common/simulation/shot';
 import { constrain } from '../../../common/util';
 import { dlerp } from '../dlerp';
@@ -9,6 +9,7 @@ import { createCueMeshes } from '../models/cue/create-cue-meshes';
 import { gameStore } from '../store/game';
 import { settings } from '../store/settings';
 import { makeTheme } from '../store/theme';
+import { subscribeTo } from '../util/subscribe-to';
 import { toVec } from '../util/three-interop';
 import type { Ball } from './ball';
 
@@ -66,6 +67,13 @@ export class Cue {
     this.createMesh();
     this.anchor.rotation.z = Math.PI;
     this.restingPositionY = -(params.cue.length / 2 + params.ball.radius * 1.5);
+
+    subscribeTo(params, ['cue.length', 'ball.radius'], () => {
+      this.restingPositionY = -(
+        params.cue.length / 2 +
+        params.ball.radius * 1.5
+      );
+    });
   }
 
   private createMesh() {

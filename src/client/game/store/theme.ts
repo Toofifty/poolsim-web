@@ -115,5 +115,5 @@ export const makeTheme = (): ThemeObject => ({
 
 export const themed = (fn: (theme: ThemeObject) => void) => {
   fn(makeTheme());
-  subscribe(theme, () => fn(makeTheme()));
+  return subscribe(theme, () => fn(makeTheme()));
 };

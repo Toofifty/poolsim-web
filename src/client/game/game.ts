@@ -345,6 +345,11 @@ export class Game {
   }
 
   public static dispose(obj: any) {
+    if (Array.isArray(obj)) {
+      obj.forEach(Game.dispose);
+      return;
+    }
+
     if (obj.geometry) obj.geometry.dispose();
     if (obj.material) {
       if (Array.isArray(obj.material)) {
@@ -366,9 +371,7 @@ export class Game {
       this.renderer.setAnimationLoop(null);
       this.input.unregister();
       window.removeEventListener('resize', this.onResize);
-      this.scene.traverse((obj: any) => {
-        Game.dispose(obj);
-      });
+      this.scene.traverse(Game.dispose);
       this.renderer.dispose();
       this.renderer.forceContextLoss();
 

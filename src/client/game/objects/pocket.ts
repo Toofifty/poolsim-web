@@ -9,13 +9,13 @@ import {
 import { snapshot } from 'valtio';
 import { type Params } from '../../../common/simulation/physics';
 import { PhysicsPocket } from '../../../common/simulation/physics/pocket';
+import { Game } from '../game';
 import { createPocketLinerMesh } from '../models/pocket/create-pocket-liner-mesh';
 import { createMaterial } from '../rendering/create-material';
 import { toVector3 } from '../util/three-interop';
 
-export class Pocket {
+export class Pocket extends Object3D {
   public physics: PhysicsPocket;
-  public parent: Object3D;
   public mesh!: Mesh;
 
   public radius: number;
@@ -28,9 +28,10 @@ export class Pocket {
     z: number,
     radius: number
   ) {
+    super();
+
     this.physics = new PhysicsPocket(snapshot(params), id, x, y, z, radius);
     this.radius = radius;
-    this.parent = new Object3D();
     this.createMesh();
   }
 
@@ -38,23 +39,24 @@ export class Pocket {
     return this.physics.depth;
   }
 
-  get position() {
-    return this.physics.position;
-  }
-
   get mouthDirection() {
     const dir = new Vector2(0, 0);
 
     // top or bottom
-    dir.y = this.position[1] > 0 ? -1 : 1;
+    dir.y = this.physics.position[1] > 0 ? -1 : 1;
     // left, middle, right
-    dir.x = this.position[0] === 0 ? 0 : this.position[0] > 0 ? -1 : 1;
+    dir.x =
+      this.physics.position[0] === 0
+        ? 0
+        : this.physics.position[0] > 0
+        ? -1
+        : 1;
 
     return dir.normalize();
   }
 
   private createMesh() {
-    this.parent.position.copy(toVector3(this.position));
+    this.position.copy(toVector3(this.physics.position));
     this.mesh = new Mesh(
       new CylinderGeometry(this.radius * 1.01, this.radius * 1.01, this.depth),
       createMaterial({ color: new Color('#222'), side: BackSide })
@@ -63,6 +65,10 @@ export class Pocket {
     this.mesh.receiveShadow = true;
     this.mesh.rotation.x = Math.PI / 2;
     // this.parent.add(this.mesh);
-    this.parent.add(createPocketLinerMesh(this));
+    this.add(createPocketLinerMesh(this));
+  }
+
+  public dispose() {
+    Game.dispose(this);
   }
 }

@@ -67,7 +67,8 @@ export class TableState {
 
   public get settled() {
     return this.balls.every(
-      (ball) => ball.isStationary || ball.isPocketedStationary
+      (ball) =>
+        ball.isStationary || ball.isPocketedStationary || ball.isOutOfBounds
     );
   }
 

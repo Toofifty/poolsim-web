@@ -31,7 +31,11 @@ export const createTableRailMesh = (pockets: Pocket[], theme: ThemeObject) => {
       height * 2
     );
     cylinder.rotateX(Math.PI / 2);
-    cylinder.translate(pocket.position[0], pocket.position[1], -height / 2);
+    cylinder.translate(
+      pocket.physics.position[0],
+      pocket.physics.position[1],
+      -height / 2
+    );
     rail = subtract(rail, cylinder);
   });
 

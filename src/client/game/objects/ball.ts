@@ -93,7 +93,6 @@ export class Ball {
       this.params,
       makeTheme(),
       {
-        radius: this.physics.radius,
         color: this.color,
         number: this.number,
       }

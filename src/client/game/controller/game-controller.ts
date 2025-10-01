@@ -1,5 +1,6 @@
 import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from 'three';
 import { TypedEventTarget } from 'typescript-event-target';
+import { subscribe } from 'valtio';
 import { vec, type Vec } from '../../../common/math';
 import type { Collision } from '../../../common/simulation/collision';
 import {
@@ -20,6 +21,7 @@ import type { Pocket } from '../objects/pocket';
 import { Table } from '../objects/table';
 import { Rack } from '../rack';
 import { AimAssist } from '../simulation/aim-assist';
+import { subscribeTo } from '../util/subscribe-to';
 import { toVec, toVector3 } from '../util/three-interop';
 import type { InputController } from './input-controller';
 
@@ -115,7 +117,7 @@ export abstract class BaseGameController
     this.root = new Object3D().add(
       this.table,
       this.cue.anchor,
-      ...this.pockets.map((pocket) => pocket.parent),
+      ...this.pockets,
       ...this.cushions
     );
 
@@ -144,6 +146,39 @@ export abstract class BaseGameController
         this.dispatchTypedEvent('shoot', new Event('shoot'));
       }
     });
+
+    subscribeTo(params, ['ball.radius'], () => this.setupPrevious());
+
+    subscribe(params.cushion, () => {
+      this.root.remove(...this.cushions);
+      this.cushions.forEach((cushion) => cushion.dispose());
+
+      this.cushions = createCushions(params);
+      this.createFreshState();
+      this.root.add(...this.cushions);
+    });
+
+    subscribe(params.pocket, () => {
+      this.root.remove(...this.cushions, ...this.pockets, this.table);
+      this.cushions.forEach((cushion) => cushion.dispose());
+      this.pockets.forEach((pocket) => pocket.dispose());
+      this.table.dispose();
+
+      this.pockets = createPockets(params);
+      this.cushions = createCushions(params);
+      this.table = new Table(params, this.pockets);
+      this.createFreshState();
+      this.root.add(...this.cushions, ...this.pockets, this.table);
+    });
+  }
+
+  private createFreshState() {
+    this.state = new TableState(
+      this.balls.map((ball) => ball.physics),
+      this.cushions.map((cushion) => cushion.physics),
+      this.pockets.map((pocket) => pocket.physics),
+      this.state.ruleSet
+    );
   }
 
   private setBalls(balls: Ball[]): void {

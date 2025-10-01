@@ -141,4 +141,8 @@ export class Cushion extends Object3D {
       }
     });
   }
+
+  public dispose() {
+    this.traverse(Game.dispose);
+  }
 }

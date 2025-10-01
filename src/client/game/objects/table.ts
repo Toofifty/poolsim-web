@@ -12,10 +12,12 @@ export class Table extends Object3D {
   private rail!: Mesh;
   private diamonds!: Mesh;
 
+  private unsubscribeTheme: () => void;
+
   constructor(private params: Params, private pockets: Pocket[]) {
     super();
 
-    themed((theme) => {
+    this.unsubscribeTheme = themed((theme) => {
       if (this.cloth) {
         Game.dispose(this.cloth);
         this.remove(this.cloth);
@@ -40,5 +42,10 @@ export class Table extends Object3D {
       this.diamonds = createTableRailDiamondsMesh(params, theme);
       this.add(this.diamonds);
     });
+  }
+
+  public dispose() {
+    this.unsubscribeTheme();
+    Game.dispose(this);
   }
 }

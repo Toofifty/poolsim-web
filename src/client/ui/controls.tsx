@@ -2,7 +2,7 @@ import { ActionIcon, Button } from '@mantine/core';
 import { IconChevronUp, IconSettings } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
-import { AimAssistMode } from '../../common/simulation/physics';
+import { AimAssistMode, params } from '../../common/simulation/physics';
 import { PlayState } from '../game/controller/game-controller';
 import { Game } from '../game/game';
 import { gameStore } from '../game/store/game';
@@ -121,45 +121,45 @@ export const Controls = () => {
 };
 
 const AimAssistControls = () => {
-  const { aimAssistMode } = useSnapshot(settings);
+  const {
+    game: { aimAssist },
+  } = useSnapshot(params);
 
   return (
     <div className="group lower">
       <span>Guidelines</span>
       <Button
-        variant={aimAssistMode === AimAssistMode.Off ? 'filled' : 'default'}
+        variant={aimAssist === AimAssistMode.Off ? 'filled' : 'default'}
         onClick={() => {
-          settings.aimAssistMode = AimAssistMode.Off;
+          params.game.aimAssist = AimAssistMode.Off;
         }}
       >
         Off
       </Button>
       <Button
         variant={
-          aimAssistMode === AimAssistMode.FirstContact ? 'filled' : 'default'
+          aimAssist === AimAssistMode.FirstContact ? 'filled' : 'default'
         }
         onClick={() => {
-          settings.aimAssistMode = AimAssistMode.FirstContact;
+          params.game.aimAssist = AimAssistMode.FirstContact;
         }}
       >
         First contact
       </Button>
       <Button
         variant={
-          aimAssistMode === AimAssistMode.FirstBallContact
-            ? 'filled'
-            : 'default'
+          aimAssist === AimAssistMode.FirstBallContact ? 'filled' : 'default'
         }
         onClick={() => {
-          settings.aimAssistMode = AimAssistMode.FirstBallContact;
+          params.game.aimAssist = AimAssistMode.FirstBallContact;
         }}
       >
         First ball contact
       </Button>
       <Button
-        variant={aimAssistMode === AimAssistMode.Full ? 'filled' : 'default'}
+        variant={aimAssist === AimAssistMode.Full ? 'filled' : 'default'}
         onClick={() => {
-          settings.aimAssistMode = AimAssistMode.Full;
+          params.game.aimAssist = AimAssistMode.Full;
         }}
       >
         Full

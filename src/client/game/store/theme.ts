@@ -29,9 +29,19 @@ export type ThemeObject = {
   };
 };
 
-export const theme = proxy({
-  table: 'blue' as TableTheme,
-  lighting: 'normal' as LightingTheme,
+const readFromStorage = <T>(def: T): T => {
+  return JSON.parse(localStorage.getItem('pool:theme') ?? 'null') || def;
+};
+
+export const theme = proxy(
+  readFromStorage({
+    table: 'blue' as TableTheme,
+    lighting: 'normal' as LightingTheme,
+  })
+);
+
+subscribe(theme, () => {
+  localStorage.setItem('pool:theme', JSON.stringify(theme));
 });
 
 const getTableTheme = (): ThemeObject['table'] => {

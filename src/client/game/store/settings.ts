@@ -1,5 +1,4 @@
 import { proxy, subscribe } from 'valtio';
-import { AimAssistMode } from '../../../common/simulation/physics';
 import { getIsMobile } from '../../ui/use-media-query';
 
 export enum Players {
@@ -21,8 +20,6 @@ export const settings = proxy({
   lockCue: false,
 
   ...readFromStorage({
-    aimAssistMode: AimAssistMode.Off,
-
     highDetail: false,
     ortho: false,
     highlightTargetBalls: true,

@@ -1,16 +1,18 @@
 import { useLayoutEffect, useRef } from 'react';
-import { useSnapshot } from 'valtio';
 import { Game } from '../game/game';
-import { settings } from '../game/store/settings';
 import './index.scss';
 
 export const Canvas = ({ game }: { game: Game }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { highDetail, ortho } = useSnapshot(settings);
-  useLayoutEffect(
-    () => (containerRef.current ? game.mount(containerRef.current) : undefined),
-    [game, highDetail, ortho]
-  );
+  const mounted = useRef(false);
+
+  useLayoutEffect(() => {
+    if (mounted.current || !containerRef.current) return;
+    game.mount(containerRef.current);
+    mounted.current = true;
+    // todo: unmount (and fix 2x effect)
+  }, []);
+
   return (
     <div
       className="canvas-container"

@@ -59,7 +59,7 @@ export const Preferences = () => {
         <Stack>
           <Title order={2}>Preferences</Title>
           <Divider style={{ borderTop: '1px solid #FFF2' }} />
-          <Item title="Graphics">
+          <Item title="Graphics (requires refresh)">
             <Button
               variant={ortho ? 'filled' : 'default'}
               onClick={() => {

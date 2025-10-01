@@ -24,9 +24,6 @@ export class OfflineGameController extends BaseGameController {
           this.setPlayState(PlayState.AIShoot);
         }
       }
-      if (op === 'set' && path === 'aimAssistMode') {
-        this.aimAssist.mode = value as AimAssistMode;
-      }
     });
 
     input.onMouseDown((e) => {
@@ -111,6 +108,10 @@ export class OfflineGameController extends BaseGameController {
   }
 
   protected updateState(): void {
+    if (this.playState === PlayState.Initializing) {
+      return;
+    }
+
     if (
       this.state.cueBall.isPocketedStationary ||
       this.state.cueBall.isOutOfBounds
@@ -171,7 +172,7 @@ export class OfflineGameController extends BaseGameController {
   }
 
   protected shouldShowAimAssist(): boolean {
-    return settings.aimAssistMode !== AimAssistMode.Off;
+    return this.params.game.aimAssist !== AimAssistMode.Off;
   }
 
   protected shouldHighlightTargetBalls(): boolean {

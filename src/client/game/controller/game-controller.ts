@@ -92,7 +92,7 @@ export abstract class BaseGameController
 
   protected ballInHand?: Ball;
 
-  constructor(public params: Params, private input: InputController) {
+  constructor(protected params: Params, private input: InputController) {
     super();
 
     this.setPlayState(PlayState.Initializing);

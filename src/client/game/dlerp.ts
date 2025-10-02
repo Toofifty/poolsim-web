@@ -39,6 +39,20 @@ export const dlerp = (
   return deferred.promise;
 };
 
+/**
+ * Assumes radians
+ */
+export const dlerpAngle = (
+  setter: (value: number) => void,
+  from: number,
+  to: number,
+  duration: number
+) => {
+  const shortestAngle =
+    from + ((to - from + Math.PI) % (2 * Math.PI)) - Math.PI;
+  return dlerp(setter, from, shortestAngle, duration);
+};
+
 export const dvlerp = (
   setter: (value: Vector3) => void,
   from: Vector3,

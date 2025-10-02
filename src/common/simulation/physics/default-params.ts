@@ -84,6 +84,10 @@ export const defaultParams = {
     useWorkerForAimAssist: true,
     useWorkerForAI: true,
   },
+  network: {
+    /** time between network updates */
+    throttle: 100,
+  },
 };
 
 export type StaticParams = Snapshot<typeof defaultParams>;

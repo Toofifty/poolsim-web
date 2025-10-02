@@ -1,9 +1,10 @@
 import type { Socket } from 'socket.io-client';
 import { TypedEventTarget } from 'typescript-event-target';
 import type { LobbyData } from '../../../common/data';
-import type {
-  RuleSet,
-  SerializedPhysicsBall,
+import {
+  defaultParams,
+  type RuleSet,
+  type SerializedPhysicsBall,
 } from '../../../common/simulation/physics';
 import type { SerializedOnlineGameState } from '../controller/online-game-controller';
 import type { BallProto } from '../objects/ball';
@@ -64,11 +65,11 @@ export class OnlineAdapter
 
   updateBallInHand = throttle((ball: SerializedPhysicsBall): void => {
     this.socket.emit('update-ball-in-hand', [this.lobby.id, ball]);
-  }, 100);
+  }, defaultParams.network.throttle);
 
   updateCue = throttle((cue: SerializedCue): void => {
     this.socket.emit('update-cue', [this.lobby.id, cue]);
-  }, 100);
+  }, defaultParams.network.throttle);
 
   shoot(cue: SerializedCue): void {
     this.socket.emit('shoot', [this.lobby.id, cue]);

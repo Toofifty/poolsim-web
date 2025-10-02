@@ -193,7 +193,7 @@ export class OnlineGameController extends BaseGameController {
   };
 
   private onNetworkShoot: NetworkEventListener<'shoot'> = ({ detail: cue }) => {
-    this.cue.sync(cue, this.balls);
+    this.cue.sync(cue, this.balls, true);
     this.cue.shoot(() => {
       this.setPlayState(PlayState.OpponentInPlay, true);
     });

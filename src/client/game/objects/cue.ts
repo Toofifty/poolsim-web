@@ -1,9 +1,9 @@
 import { Mesh, Object3D, Vector3 } from 'three';
 import { vec, type Vec } from '../../../common/math';
-import type { Params } from '../../../common/simulation/physics';
+import { defaultParams, type Params } from '../../../common/simulation/physics';
 import { Shot } from '../../../common/simulation/shot';
 import { constrain } from '../../../common/util';
-import { dlerp } from '../dlerp';
+import { dlerp, dlerpAngle } from '../dlerp';
 import { Game } from '../game';
 import { createCueMeshes } from '../models/cue/create-cue-meshes';
 import { gameStore } from '../store/game';
@@ -200,12 +200,23 @@ export class Cue {
     } satisfies SerializedCue;
   }
 
-  public sync(cue: SerializedCue, balls: Ball[]) {
+  public sync(cue: SerializedCue, balls: Ball[], immediate = false) {
     this.targetBall = balls.find((ball) => ball.id === cue.targetBallId);
-    this.angle = cue.angle;
-    this.force = cue.force;
-    this.topSpin = cue.topSpin;
-    this.sideSpin = cue.sideSpin;
-    this.lift = cue.lift;
+
+    if (immediate) {
+      this.angle = cue.angle;
+      this.force = cue.force;
+      this.topSpin = cue.topSpin;
+      this.sideSpin = cue.sideSpin;
+      this.lift = cue.lift;
+    } else {
+      const t = defaultParams.network.throttle;
+
+      dlerpAngle((v) => (this.angle = v), this.angle, cue.angle, t);
+      dlerp((v) => (this.force = v), this.force, cue.force, t);
+      dlerp((v) => (this.topSpin = v), this.topSpin, cue.topSpin, t);
+      dlerp((v) => (this.sideSpin = v), this.sideSpin, cue.sideSpin, t);
+      dlerp((v) => (this.lift = v), this.lift, cue.lift, t);
+    }
   }
 }

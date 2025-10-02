@@ -6,6 +6,7 @@ import {
   Vector3,
   type MeshPhysicalMaterialParameters,
 } from 'three';
+import { Game } from '../game';
 import { createMaterial } from '../rendering/create-material';
 
 const up = new Vector3(0, 1, 0);
@@ -20,15 +21,18 @@ export class Arrow extends Object3D {
 
   private factor: number;
 
-  constructor({
-    color,
-    factor = 1,
-    opacity = 1,
-  }: {
-    color: MeshPhysicalMaterialParameters['color'];
-    factor?: number;
-    opacity?: number;
-  }) {
+  constructor(
+    public ref: { position: Vector3 },
+    {
+      color,
+      factor = 1,
+      opacity = 1,
+    }: {
+      color: MeshPhysicalMaterialParameters['color'];
+      factor?: number;
+      opacity?: number;
+    }
+  ) {
     super();
     this.factor = factor;
     const material = createMaterial({
@@ -50,6 +54,8 @@ export class Arrow extends Object3D {
     this.cone.renderOrder = 9999;
     this.setVector(new Vector3(0, 0, 0));
     this.add(this.stem, this.cone);
+    this.position.copy(ref.position);
+    Game.add(this);
   }
 
   public setVector(vector: Vector3) {
@@ -63,5 +69,14 @@ export class Arrow extends Object3D {
     this.stem.scale.y = length;
     this.stem.position.y = length / 2;
     this.cone.position.y = length + this.coneHeight / 2;
+  }
+
+  public update() {
+    this.position.copy(this.ref.position);
+  }
+
+  public dispose() {
+    Game.remove(this);
+    Game.dispose(this);
   }
 }

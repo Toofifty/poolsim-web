@@ -364,6 +364,9 @@ export class Game {
         obj.material.dispose();
       }
     }
+    if (obj.traverse) {
+      obj.traverse(Game.dispose);
+    }
   }
 
   public mount(container: HTMLDivElement | null) {

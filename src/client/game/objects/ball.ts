@@ -81,8 +81,6 @@ export class Ball {
     this.highlight.update();
     this.debug = new BallDebug(this);
     this.debug.update();
-    this.parent.add(this.debug);
-    Game.add(this.highlight);
 
     this.createMesh();
     this.updateMesh();
@@ -103,11 +101,10 @@ export class Ball {
     this.projectionMaterial = projectionMaterial;
 
     this.parent.add(this.mesh);
-    this.impactArrow = new Arrow({
+    this.impactArrow = new Arrow(this, {
       color: this.color,
-      factor: 0.5,
+      factor: 0.2,
     });
-    this.parent.add(this.impactArrow);
   }
 
   get id() {
@@ -176,9 +173,9 @@ export class Ball {
   }
 
   public updateImpactArrow(position: Vec, velocity: Vec) {
-    this.impactArrow.position.copy(
-      toVector3(vec.sub(position, this.physics.position))
-    );
+    this.impactArrow.ref = {
+      position: toVector3(position),
+    };
     this.impactVelocity = toVector3(velocity);
   }
 
@@ -189,6 +186,7 @@ export class Ball {
   public sync() {
     this.updateMesh();
     this.highlight.update();
+    this.impactArrow.update();
     this.debug.update();
   }
 
@@ -200,8 +198,6 @@ export class Ball {
   }
 
   public updateProjection() {
-    const thisPosition = this.position;
-
     // ball collision projections
     this.projectionMeshes.forEach((mesh) => Game.remove(mesh));
     this.projectionMeshes = [];
@@ -248,7 +244,6 @@ export class Ball {
     }
 
     this.highlight.dispose();
-    Game.remove(this.highlight);
     this.debug.dispose();
 
     this.parent.traverse((obj) => Game.dispose(obj));

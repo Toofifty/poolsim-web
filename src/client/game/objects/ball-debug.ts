@@ -32,10 +32,10 @@ export class BallDebug extends Object3D {
     );
     this.ring.renderOrder = 9999;
 
-    this.arrowU = new Arrow({ color: 0xffff00, factor: 0.2 });
+    this.arrowU = new Arrow(this, { color: 0xffff00, factor: 0.2 });
     this.arrowU.position.z -= ball.radius;
-    this.arrowV = new Arrow({ color: 0x00ffff, factor: 0.2 });
-    this.arrowW = new Arrow({ color: 0xff00ff, factor: 0.01 });
+    this.arrowV = new Arrow(this, { color: 0x00ffff, factor: 0.2 });
+    this.arrowW = new Arrow(this, { color: 0xff00ff, factor: 0.01 });
 
     this.textU = new Text();
     this.textU.color = 0xffff00;
@@ -53,7 +53,8 @@ export class BallDebug extends Object3D {
     this.textW.position.y = 0.1;
 
     this.billboard.add(this.ring, this.textU, this.textV, this.textW);
-    this.add(this.billboard, this.arrowU, this.arrowV, this.arrowW);
+    this.add(this.billboard);
+    Game.add(this);
   }
 
   public update() {
@@ -62,6 +63,7 @@ export class BallDebug extends Object3D {
 
     if (!debugBalls) return;
 
+    this.position.copy(this.ball.position);
     this.billboard.quaternion.copy(Game.instance.camera.quaternion);
     (this.ring.material as MeshBasicMaterial).color = getColor(this.ball.state);
 
@@ -70,8 +72,11 @@ export class BallDebug extends Object3D {
     const w = this.ball.physics.angularVelocity;
 
     this.arrowU.setVector(toVector3(u));
+    this.arrowU.update();
     this.arrowV.setVector(toVector3(v));
+    this.arrowV.update();
     this.arrowW.setVector(toVector3(w));
+    this.arrowW.update();
 
     this.textU.text = 'u ' + vec.toString(u);
     this.textU.sync();
@@ -84,6 +89,7 @@ export class BallDebug extends Object3D {
   }
 
   public dispose() {
-    this.traverse(Game.dispose);
+    Game.remove(this);
+    Game.dispose(this);
   }
 }

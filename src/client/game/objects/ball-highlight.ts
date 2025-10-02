@@ -19,6 +19,7 @@ export class BallHighlight extends Object3D {
     this.ring.renderOrder = 9999;
     this.billboard.add(this.ring);
     this.add(this.billboard);
+    Game.add(this);
   }
 
   public update() {
@@ -27,6 +28,7 @@ export class BallHighlight extends Object3D {
   }
 
   public dispose() {
-    this.traverse(Game.dispose);
+    Game.remove(this);
+    Game.dispose(this);
   }
 }

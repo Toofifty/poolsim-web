@@ -1,6 +1,6 @@
 import { BufferGeometry, ExtrudeGeometry, Shape } from 'three';
 import { vec, type Vec } from '../../../../common/math';
-import { type Params } from '../../../../common/simulation/physics/params';
+import type { Params } from '../../../../common/simulation/physics';
 import { constrain } from '../../../../common/util';
 import { generateBoundingBoxUVs } from '../util';
 import { getControlPoints } from './get-control-points';

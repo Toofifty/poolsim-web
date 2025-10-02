@@ -1,5 +1,5 @@
 import { Mesh, PlaneGeometry } from 'three';
-import { type Params } from '../../../../common/simulation/physics/params';
+import type { Params } from '../../../../common/simulation/physics';
 import { createMaterial } from '../../rendering/create-material';
 import type { ThemeObject } from '../../store/theme';
 import { combine } from '../util';

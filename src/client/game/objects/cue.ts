@@ -10,7 +10,6 @@ import { gameStore } from '../store/game';
 import { settings } from '../store/settings';
 import { makeTheme } from '../store/theme';
 import { subscribeTo } from '../util/subscribe-to';
-import { toVec } from '../util/three-interop';
 import type { Ball } from './ball';
 
 export type SerializedCue = {
@@ -67,6 +66,7 @@ export class Cue {
     this.createMesh();
     this.anchor.rotation.z = Math.PI;
     this.restingPositionY = -(params.cue.length / 2 + params.ball.radius * 1.5);
+    this.object.position.y = this.restingPositionY;
 
     subscribeTo(params, ['cue.length', 'ball.radius'], () => {
       this.restingPositionY = -(
@@ -102,7 +102,7 @@ export class Cue {
       return false;
     }
 
-    const position = toVec(this.targetBall.position);
+    const position = this.targetBall.physics.position;
     const angle = Math.atan2(point[1] - position[1], point[0] - position[0]);
     this.anchor.rotation.z = angle - Math.PI / 2;
     this.object.position.y = this.restingPositionY;
@@ -111,6 +111,10 @@ export class Cue {
       const dist = vec.dist(position, point);
       this.force = constrain(dist * 2, 0, this.params.cue.maxForce);
     }
+  }
+
+  public get position() {
+    return this.targetBall?.physics.position ?? vec.zero;
   }
 
   public get angle() {

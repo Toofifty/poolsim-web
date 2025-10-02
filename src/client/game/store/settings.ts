@@ -12,9 +12,13 @@ const readFromStorage = <T>(def: T): T => {
 };
 
 export const settings = proxy({
-  // not persisted
+  // not persisted - must also be removed from subscribe below
   players: Players.PlayerVsPlayer,
   enableZoomPan: typeof window !== 'undefined' && !getIsMobile(),
+  controlMode:
+    typeof window !== 'undefined' && getIsMobile()
+      ? ('touch' as const)
+      : ('cursor' as const),
   preferencesOpen: false,
   paramEditorOpen: false,
   pauseSimulation: false,
@@ -40,8 +44,10 @@ subscribe(settings, () => {
     enableZoomPan,
     players,
     preferencesOpen,
+    paramEditorOpen,
     pauseSimulation,
     lockCue,
+    controlMode,
     ...serializable
   } = settings;
   localStorage.setItem('pool:settings', JSON.stringify(serializable));

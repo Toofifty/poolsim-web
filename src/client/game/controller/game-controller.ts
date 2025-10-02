@@ -21,6 +21,7 @@ import type { Pocket } from '../objects/pocket';
 import { Table } from '../objects/table';
 import { Rack } from '../rack';
 import { AimAssist } from '../simulation/aim-assist';
+import { settings } from '../store/settings';
 import { subscribeTo } from '../util/subscribe-to';
 import { toVec, toVector3 } from '../util/three-interop';
 import type { InputController } from './input-controller';
@@ -128,6 +129,7 @@ export abstract class BaseGameController
     this.plane.visible = false;
     this.root.add(this.plane);
 
+    this.setupDragListener();
     this.input.onMouseDown((e) => {
       if (this.ballInHand && (e.button === 0 || e.button === 2)) {
         vec.msetZ(this.ballInHand.physics.position, 0);
@@ -141,7 +143,7 @@ export abstract class BaseGameController
         return;
       }
 
-      if (e.button === 0) {
+      if (e.button === 0 && this.getCueControlMode() === 'cursor') {
         this.shoot();
         this.dispatchTypedEvent('shoot', new Event('shoot'));
       }
@@ -169,6 +171,31 @@ export abstract class BaseGameController
       this.table = new Table(params, this.pockets);
       this.createFreshState();
       this.root.add(...this.cushions, ...this.pockets, this.table);
+    });
+  }
+
+  private setupDragListener() {
+    let last: Vec | undefined = undefined;
+
+    this.input.onTouchStart((event) => {
+      last = this.getMouse3D(this.input.getRelativeTouch(event));
+    });
+
+    this.input.onTouchMove((event) => {
+      if (!this.shouldUpdateCue()) return;
+
+      const touch = this.getMouse3D(this.input.getRelativeTouch(event));
+      if (!touch) return;
+
+      if (last) {
+        const lastToCue = vec.sub(this.cue.position, last);
+        const touchToCue = vec.sub(this.cue.position, touch);
+        const lastAngle = Math.atan2(lastToCue[1], lastToCue[0]);
+        const touchAngle = Math.atan2(touchToCue[1], touchToCue[0]);
+        this.cue.angle += touchAngle - lastAngle;
+      }
+
+      last = touch;
     });
   }
 
@@ -380,17 +407,25 @@ export abstract class BaseGameController
     vec.msetZ(ball.physics.position, 0.1);
   }
 
-  protected getMouse3D(): Vec | undefined {
-    const intersect = Game.getFirstMouseIntersection(this.plane);
+  protected getMouse3D(point?: Vec): Vec | undefined {
+    const intersect = Game.getFirstMouseIntersection(this.plane, point);
     return intersect ? toVec(intersect) : undefined;
   }
 
+  protected getCueControlMode(): 'touch' | 'cursor' {
+    return settings.controlMode;
+  }
+
   protected shouldUpdateCue(): boolean {
-    return this.playState === PlayState.PlayerShoot;
+    return (
+      this.playState === PlayState.PlayerShoot &&
+      !settings.lockCue &&
+      (this.getCueControlMode() === 'cursor' || !settings.enableZoomPan)
+    );
   }
 
   protected updateCue(dt: number): void {
-    if (this.shouldUpdateCue()) {
+    if (this.shouldUpdateCue() && this.getCueControlMode() === 'cursor') {
       const mouse3D = this.getMouse3D();
       if (mouse3D) {
         this.cue.setTarget(mouse3D);

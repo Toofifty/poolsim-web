@@ -10,7 +10,7 @@ import { useMouseInputs } from './use-mouse-inputs';
 
 export const PowerBar = () => {
   const { cueForce } = useSnapshot(gameStore);
-  const { distanceBasedPower } = useSnapshot(settings);
+  const { controlMode, distanceBasedPower } = useSnapshot(settings);
 
   // todo: useSnapshot(params);
   const params = staticParams;
@@ -36,12 +36,14 @@ export const PowerBar = () => {
 
   return (
     <>
-      <Button
-        variant={distanceBasedPower ? 'filled' : 'default'}
-        onClick={() => (settings.distanceBasedPower = !distanceBasedPower)}
-      >
-        Auto
-      </Button>
+      {controlMode === 'cursor' && (
+        <Button
+          variant={distanceBasedPower ? 'filled' : 'default'}
+          onClick={() => (settings.distanceBasedPower = !distanceBasedPower)}
+        >
+          Auto
+        </Button>
+      )}
       <div className="power-bar">
         <div className="power-bar__click-area" {...props}>
           <div

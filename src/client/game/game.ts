@@ -32,6 +32,7 @@ import {
   SSRPass,
 } from 'three/examples/jsm/Addons.js';
 import { subscribe } from 'valtio';
+import type { Vec } from '../../common/math';
 import { params } from '../../common/simulation/physics';
 import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
@@ -315,9 +316,9 @@ export class Game {
     this.scene.add(sky);
   }
 
-  public static getFirstMouseIntersection(object: Object3D) {
+  public static getFirstMouseIntersection(object: Object3D, point?: Vec) {
     const intersections = Game.instance
-      .getMouseRaycaster()
+      .getMouseRaycaster(point)
       .intersectObject(object);
     if (intersections.length > 0) {
       return intersections[0].point;
@@ -345,8 +346,11 @@ export class Game {
     this.instance.controls.update();
   }
 
-  public getMouseRaycaster() {
-    this.mouseRaycaster.setFromCamera(toVector2(this.input.mouse), this.camera);
+  public getMouseRaycaster(point?: Vec) {
+    this.mouseRaycaster.setFromCamera(
+      toVector2(point ?? this.input.mouse),
+      this.camera
+    );
     return this.mouseRaycaster;
   }
 

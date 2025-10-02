@@ -77,7 +77,6 @@ export const Controls = () => {
         <Surface>
           <div className="group lower">
             {lobby && <span>{lobby.id}</span>}
-            <span>Status:</span>
             <span>
               {getStateName(state)}
               {state === PlayState.AIShoot && (

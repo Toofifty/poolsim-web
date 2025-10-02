@@ -5,6 +5,7 @@ export class InputController {
 
   private onMouseDownListeners: ((e: MouseEvent) => void)[] = [];
   private onMouseMoveListeners: ((e: MouseEvent) => void)[] = [];
+  private onTouchStartListeners: ((e: TouchEvent) => void)[] = [];
   private onTouchMoveListeners: ((e: TouchEvent) => void)[] = [];
 
   private onKeyDownListeners: ((e: KeyboardEvent) => void)[] = [];
@@ -34,9 +35,21 @@ export class InputController {
     });
   }
 
+  public getRelativeTouch(event: TouchEvent) {
+    const { left, top, width, height } = (
+      event.target as HTMLElement
+    ).getBoundingClientRect();
+    const [touch] = event.touches;
+
+    const x = touch.clientX - left;
+    const y = touch.clientY - top;
+    return vec.new((x / width) * 2 - 1, -(y / height) * 2 + 1);
+  }
+
   public register() {
     this.element.addEventListener('mousedown', this.executeOnMouseDown);
     this.element.addEventListener('mousemove', this.executeOnMouseMove);
+    this.element.addEventListener('touchstart', this.executeOnTouchStart);
     this.element.addEventListener('touchmove', this.executeOnTouchMove);
 
     document.addEventListener('keydown', this.executeOnKeyDown);
@@ -46,6 +59,7 @@ export class InputController {
   public unregister() {
     this.element.removeEventListener('mousedown', this.executeOnMouseDown);
     this.element.removeEventListener('mousemove', this.executeOnMouseMove);
+    this.element.removeEventListener('touchstart', this.executeOnTouchStart);
     this.element.removeEventListener('touchmove', this.executeOnTouchMove);
 
     document.removeEventListener('keydown', this.executeOnKeyDown);
@@ -63,6 +77,9 @@ export class InputController {
 
   private executeOnMouseMove = (event: MouseEvent) =>
     this.onMouseMoveListeners.forEach((l) => l(event));
+
+  private executeOnTouchStart = (event: TouchEvent) =>
+    this.onTouchStartListeners.forEach((l) => l(event));
 
   private executeOnTouchMove = (event: TouchEvent) =>
     this.onTouchMoveListeners.forEach((l) => l(event));
@@ -87,6 +104,10 @@ export class InputController {
 
   public onMouseMove(fn: (e: MouseEvent) => void) {
     return this.addListener(fn, this.onMouseMoveListeners);
+  }
+
+  public onTouchStart(fn: (e: TouchEvent) => void) {
+    return this.addListener(fn, this.onTouchStartListeners);
   }
 
   public onTouchMove(fn: (e: TouchEvent) => void) {

@@ -167,10 +167,6 @@ export class OfflineGameController extends BaseGameController {
     return settings.pauseSimulation;
   }
 
-  protected shouldUpdateCue(): boolean {
-    return super.shouldUpdateCue() && !settings.lockCue;
-  }
-
   protected shouldShowAimAssist(): boolean {
     return this.params.game.aimAssist !== AimAssistMode.Off;
   }

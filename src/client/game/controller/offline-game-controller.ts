@@ -2,6 +2,7 @@ import { subscribe } from 'valtio';
 import { vec } from '../../../common/math';
 import { AimAssistMode, type Params } from '../../../common/simulation/physics';
 import { AI } from '../ai';
+import { Game } from '../game';
 import type { Ball } from '../objects/ball';
 import { gameStore } from '../store/game';
 import { Players, settings } from '../store/settings';
@@ -120,6 +121,11 @@ export class OfflineGameController extends BaseGameController {
     }
 
     if (this.state.isGameOver) {
+      if (this.shouldSwitchTurn()) {
+        Game.audio.play('sad_trumpet', undefined, 1);
+      } else {
+        Game.audio.play('win');
+      }
       this.setupPrevious();
       this.startGame();
       return;
@@ -130,8 +136,18 @@ export class OfflineGameController extends BaseGameController {
         case PlayState.PlayerInPlay:
         case PlayState.AIInPlay:
           this.state.isBreak = false;
+          if (this.shouldPutBallInHand()) {
+            this.putBallInHand();
+            this.setPlayState(PlayState.PlayerBallInHand);
+            break;
+          }
           this.setPlayState(PlayState.PlayerShoot);
           return;
+        case PlayState.PlayerBallInHand:
+          if (!this.ballInHand) {
+            this.setPlayState(PlayState.PlayerShoot);
+          }
+          break;
       }
     } else if (settings.players === Players.AIVsAI) {
       switch (this.playState) {
@@ -145,16 +161,30 @@ export class OfflineGameController extends BaseGameController {
       switch (this.playState) {
         case PlayState.PlayerInPlay:
           this.state.isBreak = false;
+          if (this.shouldPutBallInHand()) {
+            // technically not needed but it plays the sound
+            this.setPlayState(PlayState.AIShoot);
+            break;
+          }
           this.setPlayState(
             this.shouldSwitchTurn() ? PlayState.AIShoot : PlayState.PlayerShoot
           );
           return;
         case PlayState.AIInPlay:
           this.state.isBreak = false;
+          if (this.shouldPutBallInHand()) {
+            this.setPlayState(PlayState.PlayerBallInHand);
+            break;
+          }
           this.setPlayState(
             this.shouldSwitchTurn() ? PlayState.PlayerShoot : PlayState.AIShoot
           );
           return;
+        case PlayState.PlayerBallInHand:
+          if (!this.ballInHand) {
+            this.setPlayState(PlayState.PlayerShoot);
+          }
+          break;
       }
     }
 

@@ -354,23 +354,17 @@ export class Game {
     return this.mouseRaycaster;
   }
 
-  public static dispose(obj: any) {
-    if (Array.isArray(obj)) {
-      obj.forEach(Game.dispose);
-      return;
-    }
-
-    if (obj.geometry) obj.geometry.dispose();
-    if (obj.material) {
-      if (Array.isArray(obj.material)) {
-        obj.material.forEach((m: any) => m.dispose());
-      } else {
-        obj.material.dispose();
+  public static dispose(...objs: any[]) {
+    objs.forEach((obj) => {
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) {
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach((m: any) => m.dispose());
+        } else {
+          obj.material.dispose();
+        }
       }
-    }
-    if (obj.traverse) {
-      obj.traverse(Game.dispose);
-    }
+    });
   }
 
   public mount(container: HTMLDivElement | null) {

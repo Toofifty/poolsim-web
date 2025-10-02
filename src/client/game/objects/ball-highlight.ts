@@ -29,6 +29,6 @@ export class BallHighlight extends Object3D {
 
   public dispose() {
     Game.remove(this);
-    Game.dispose(this);
+    Game.dispose(this, this.ring, this.billboard);
   }
 }

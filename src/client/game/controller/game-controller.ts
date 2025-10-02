@@ -193,6 +193,7 @@ export abstract class BaseGameController
         const lastAngle = Math.atan2(lastToCue[1], lastToCue[0]);
         const touchAngle = Math.atan2(touchToCue[1], touchToCue[0]);
         this.cue.angle += touchAngle - lastAngle;
+        this.dispatchTypedEvent('update-cue', new Event('update-cue'));
       }
 
       last = touch;
@@ -293,9 +294,18 @@ export abstract class BaseGameController
    */
   protected setPlayState(state: PlayState, noEmit: boolean = false): void {
     this.simulationResult = new Result(undefined, this.state);
+    const previous = this.playState;
     this.playState = state;
     if (!noEmit) {
       this.dispatchTypedEvent('set-game-state', new Event('set-game-state'));
+    }
+
+    if (
+      this.playState === PlayState.PlayerShoot &&
+      previous !== PlayState.PlayerInPlay &&
+      previous !== PlayState.PlayerBallInHand
+    ) {
+      Game.audio.play('boop');
     }
   }
 
@@ -486,7 +496,10 @@ export abstract class BaseGameController
   }
 
   protected shouldPutBallInHand(): boolean {
-    console.log(this.simulationResult.hasFoul(), this.simulationResult);
-    return this.simulationResult.hasFoul();
+    if (this.simulationResult.hasFoul()) {
+      Game.audio.play('foul', undefined, 0.1);
+      return true;
+    }
+    return false;
   }
 }

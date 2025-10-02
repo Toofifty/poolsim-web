@@ -90,6 +90,13 @@ export class BallDebug extends Object3D {
 
   public dispose() {
     Game.remove(this);
-    Game.dispose(this);
+    Game.dispose(
+      this,
+      this.billboard,
+      this.ring,
+      this.arrowU,
+      this.arrowV,
+      this.arrowW
+    );
   }
 }

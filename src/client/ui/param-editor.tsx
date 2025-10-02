@@ -72,6 +72,7 @@ export const ParamEditor = ({
                   label: getRuleSetName(value),
                 })
               )}
+              onChange={(v) => onEdit?.('game.ruleSet', +(v ?? RuleSet._9Ball))}
               comboboxProps={{ transitionProps: { transition: 'fade' } }}
             />
           </Item>
@@ -89,6 +90,9 @@ export const ParamEditor = ({
                 value: value.toString(),
                 label: getAimAssistName(value),
               }))}
+              onChange={(v) =>
+                onEdit?.('game.aimAssist', +(v ?? AimAssistMode.FirstContact))
+              }
               comboboxProps={{ transitionProps: { transition: 'fade' } }}
             />
           </Item>

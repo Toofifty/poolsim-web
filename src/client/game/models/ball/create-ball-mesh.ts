@@ -11,7 +11,7 @@ import { createBallTexture } from './create-ball-texture';
 import type { Params } from '../../../../common/simulation/physics';
 import normalMapUrl from '../../../assets/scratch_normal.png';
 import type { ThemeObject } from '../../store/theme';
-import { subscribeTo } from '../../util/subscribe-to';
+import { subscribeTo } from '../../util/subscribe';
 
 const normalMap = new TextureLoader().load(normalMapUrl);
 

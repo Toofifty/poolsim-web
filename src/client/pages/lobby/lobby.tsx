@@ -1,13 +1,14 @@
 import { Button, Flex, Group, Stack, Text, Title } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { defaultParams } from '../../../common/simulation/physics';
+import { type StaticParams } from '../../../common/simulation/physics';
 import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
 import { PageContainer } from '../../ui/page-container';
 import { ParamEditor } from '../../ui/param-editor';
 import { Surface } from '../../ui/surface';
+import type { DeepKeyOf } from '../../util/types';
 import { useLobby } from '../../util/use-lobby';
 import { useRedirectOnStart } from './use-redirect-on-start';
 
@@ -21,6 +22,25 @@ export const LobbyPage = () => {
   useEffect(() => {
     id && setId(id);
   }, [id, setId]);
+
+  const onEditParam = useCallback(
+    (key: DeepKeyOf<StaticParams>, value: unknown) => {
+      if (!lobby) return;
+
+      const params = JSON.parse(JSON.stringify(lobby.params));
+
+      const path = key.split('.');
+      const obj = path.slice(0, -1).reduce((o, prop) => {
+        // @ts-ignore
+        return o[prop];
+      }, params);
+      // @ts-ignore
+      obj[path.at(-1)] = value;
+
+      socket.emit('update-params', [lobby.id, params]);
+    },
+    [lobby?.params]
+  );
 
   if (!lobby) {
     return null;
@@ -94,9 +114,9 @@ export const LobbyPage = () => {
         </Stack>
         <Surface p="lg" w="400px" mah="600px" style={{ overflow: 'auto' }}>
           <ParamEditor
-            params={defaultParams}
+            params={lobby.params}
             full
-            onEdit={isHost ? () => {} : undefined}
+            onEdit={isHost ? onEditParam : undefined}
           />
         </Surface>
       </Group>

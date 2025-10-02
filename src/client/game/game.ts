@@ -33,7 +33,7 @@ import {
 } from 'three/examples/jsm/Addons.js';
 import { subscribe } from 'valtio';
 import type { Vec } from '../../common/math';
-import { params } from '../../common/simulation/physics';
+import { type Params } from '../../common/simulation/physics';
 import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
 import type { GameController } from './controller/game-controller';
@@ -63,7 +63,7 @@ export class Game {
   public controller!: GameController;
   public clock!: Clock;
   private accumulator = 0;
-  private timestep = 1 / params.simulation.updatesPerSecond;
+  private timestep: number;
   public lerps: Set<(dt: number) => void> = new Set();
   private input!: InputController;
 
@@ -76,8 +76,9 @@ export class Game {
 
   private mounted: boolean = false;
 
-  constructor(private adapter: NetworkAdapter) {
+  constructor(private adapter: NetworkAdapter, private params: Params) {
     this.init();
+    this.timestep = 1 / params.simulation.updatesPerSecond;
   }
 
   init() {
@@ -174,8 +175,8 @@ export class Game {
     this.setupSky();
 
     this.controller = this.adapter.isMultiplayer
-      ? new OnlineGameController(params, this.input, this.adapter)
-      : new OfflineGameController(params, this.input);
+      ? new OnlineGameController(this.params, this.input, this.adapter)
+      : new OfflineGameController(this.params, this.input);
     this.scene.add(this.controller.root);
 
     this.clock = new Clock();
@@ -278,7 +279,7 @@ export class Game {
       createCeilingLight(0, -spy, settings.highDetail ? 2 : 4);
       createCeilingLight(0, spy, settings.highDetail ? 2 : 4);
 
-      const lights = createNeonLightStrips(params);
+      const lights = createNeonLightStrips(this.params);
       this.scene.add(...lights);
 
       return;

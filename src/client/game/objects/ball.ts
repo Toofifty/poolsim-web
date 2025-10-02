@@ -7,7 +7,6 @@ import {
   Vector3,
 } from 'three';
 import type { Line2 } from 'three/examples/jsm/Addons.js';
-import { snapshot } from 'valtio';
 import { vec, type Quat, type Vec } from '../../../common/math';
 import { defaultParams, type Params } from '../../../common/simulation/physics';
 import {
@@ -23,6 +22,7 @@ import {
 } from '../models/ball/create-path-mesh';
 import { createMaterial } from '../rendering/create-material';
 import { makeTheme } from '../store/theme';
+import { snapshot } from '../util/subscribe';
 import { toQuaternion, toVector3 } from '../util/three-interop';
 import { Arrow } from './arrow';
 import { BallDebug } from './ball-debug';

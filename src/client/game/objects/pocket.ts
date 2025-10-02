@@ -6,12 +6,12 @@ import {
   Object3D,
   Vector2,
 } from 'three';
-import { snapshot } from 'valtio';
 import { type Params } from '../../../common/simulation/physics';
 import { PhysicsPocket } from '../../../common/simulation/physics/pocket';
 import { Game } from '../game';
 import { createPocketLinerMesh } from '../models/pocket/create-pocket-liner-mesh';
 import { createMaterial } from '../rendering/create-material';
+import { snapshot } from '../util/subscribe';
 import { toVector3 } from '../util/three-interop';
 
 export class Pocket extends Object3D {

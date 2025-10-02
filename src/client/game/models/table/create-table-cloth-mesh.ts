@@ -4,7 +4,7 @@ import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
 import { settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
-import { subscribeTo } from '../../util/subscribe-to';
+import { subscribeTo } from '../../util/subscribe';
 import { createRoundedRectShape, fixUVs } from '../util';
 import {
   createTableClothNormalTexture,

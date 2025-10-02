@@ -1,6 +1,5 @@
 import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from 'three';
 import { TypedEventTarget } from 'typescript-event-target';
-import { subscribe } from 'valtio';
 import { vec, type Vec } from '../../../common/math';
 import type { Collision } from '../../../common/simulation/collision';
 import {
@@ -22,7 +21,7 @@ import { Table } from '../objects/table';
 import { Rack } from '../rack';
 import { AimAssist } from '../simulation/aim-assist';
 import { settings } from '../store/settings';
-import { subscribeTo } from '../util/subscribe-to';
+import { subscribe, subscribeTo } from '../util/subscribe';
 import { toVec, toVector3 } from '../util/three-interop';
 import type { InputController } from './input-controller';
 

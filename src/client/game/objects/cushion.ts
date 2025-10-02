@@ -7,7 +7,6 @@ import {
   Points,
   PointsMaterial,
 } from 'three';
-import { snapshot, subscribe } from 'valtio';
 import { type Vec } from '../../../common/math';
 import { type Params } from '../../../common/simulation/physics';
 import { PhysicsCushion } from '../../../common/simulation/physics/cushion';
@@ -18,6 +17,7 @@ import { createTableClothNormalTexture } from '../models/table/create-table-clot
 import { createMaterial } from '../rendering/create-material';
 import { settings } from '../store/settings';
 import { themed } from '../store/theme';
+import { snapshot, subscribe } from '../util/subscribe';
 import { toVector3 } from '../util/three-interop';
 
 export class Cushion extends Object3D {

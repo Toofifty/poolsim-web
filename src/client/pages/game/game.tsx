@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { useSnapshot } from 'valtio';
+import { proxy, useSnapshot } from 'valtio';
 import type { LobbyData } from '../../../common/data';
+import { params } from '../../../common/simulation/physics';
 import { Game } from '../../game/game';
 import { OfflineAdapter } from '../../game/network/offline-adapter';
 import { OnlineAdapter } from '../../game/network/online-adapter';
@@ -23,7 +24,8 @@ const bootstrapGame = (lobby: LobbyData | undefined) => {
 
   lastBootstrappedFor = lobby?.id;
   game = new Game(
-    lobby ? new OnlineAdapter(socket, lobby) : new OfflineAdapter()
+    lobby ? new OnlineAdapter(socket, lobby) : new OfflineAdapter(),
+    lobby?.params ? proxy(lobby.params) : params
   );
   return game;
 };

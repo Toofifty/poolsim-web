@@ -1,10 +1,12 @@
 import type { LobbyData, PlayerData } from '../common/data';
+import { defaultParams, type StaticParams } from '../common/simulation/physics';
 
 const MAX_PLAYERS = 2;
 
 export class Lobby {
   private players: PlayerData[] = [];
   private active = false;
+  private params: StaticParams = defaultParams;
 
   constructor(private id: string, private hostId: string) {}
 
@@ -46,6 +48,10 @@ export class Lobby {
     return false;
   }
 
+  public setParams(params: StaticParams) {
+    this.params = params;
+  }
+
   public acceptingPlayers() {
     return !this.isGameStarted() && this.players.length < 2;
   }
@@ -69,6 +75,7 @@ export class Lobby {
       hostId: this.hostId,
       players: this.players,
       started: this.isGameStarted(),
+      params: this.params,
     };
   }
 }

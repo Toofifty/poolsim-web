@@ -1,11 +1,15 @@
 import { CylinderGeometry, Mesh } from 'three';
-import { params } from '../../../../common/simulation/physics/params';
+import type { Params } from '../../../../common/simulation/physics';
 import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
 import type { ThemeObject } from '../../store/theme';
 import { createRoundedRect, subtract } from '../util';
 
-export const createTableRailMesh = (pockets: Pocket[], theme: ThemeObject) => {
+export const createTableRailMesh = (
+  params: Params,
+  pockets: Pocket[],
+  theme: ThemeObject
+) => {
   const { ball, cushion, pocket, table } = params;
 
   const height = cushion.height * 2;

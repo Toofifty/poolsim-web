@@ -31,7 +31,7 @@ export class Table extends Object3D {
         this.remove(this.rail);
       }
 
-      this.rail = createTableRailMesh(this.pockets, theme);
+      this.rail = createTableRailMesh(this.params, this.pockets, theme);
       this.add(this.rail);
 
       if (this.diamonds) {

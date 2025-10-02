@@ -105,6 +105,20 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('update-params', ([id, params]) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      if (!lobby.isHost(socket.id)) {
+        throw new Error('Only the lobby host can change params');
+      }
+      lobby.setParams(params);
+      io.to(id).emit('lobby-update', lobby.getData());
+    });
+  });
+
   socket.on('start-game', (id) => {
     withErrorHandling(() => {
       const lobby = lobbies[id];

@@ -9,7 +9,7 @@ import { createCueMeshes } from '../models/cue/create-cue-meshes';
 import { gameStore } from '../store/game';
 import { settings } from '../store/settings';
 import { makeTheme } from '../store/theme';
-import { subscribeTo } from '../util/subscribe-to';
+import { subscribeTo } from '../util/subscribe';
 import type { Ball } from './ball';
 
 export type SerializedCue = {

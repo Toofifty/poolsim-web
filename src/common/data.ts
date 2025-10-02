@@ -5,7 +5,7 @@ export type LobbyData = {
   hostId: string;
   players: PlayerData[];
   started: boolean;
-  params?: Params;
+  params: Params;
 };
 
 export type PlayerData = {

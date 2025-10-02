@@ -1,5 +1,27 @@
-import { subscribe } from 'valtio';
+import {
+  snapshot as valtioSnapshot,
+  subscribe as valtioSubscribe,
+  type Snapshot,
+} from 'valtio';
 import type { DeepKeyOf } from '../../util/types';
+
+export const snapshot: typeof valtioSnapshot = <T extends object>(
+  proxyObject: T
+) => {
+  try {
+    return valtioSnapshot(proxyObject);
+  } catch {
+    return proxyObject as Snapshot<T>;
+  }
+};
+
+export const subscribe: typeof valtioSubscribe = (...args) => {
+  try {
+    return valtioSubscribe(...args);
+  } catch {
+    return () => {};
+  }
+};
 
 export const subscribeTo = <T extends object>(
   proxyObject: T,

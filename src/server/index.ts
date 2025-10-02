@@ -76,10 +76,32 @@ io.on('connection', (socket) => {
       if (!lobby) {
         throw new Error('Lobby does not exist!');
       }
-      lobby.join(socket.id);
+      const playerData = lobby.join(socket.id);
       socket.join(id);
       pushLobbies();
       io.to(id).emit('lobby-update', lobby.getData());
+      socket.broadcast.to(id).emit('lobby-player-join', playerData);
+    });
+  });
+
+  socket.on('leave-lobby', (id) => {
+    withErrorHandling(() => {
+      const lobby = lobbies[id];
+      if (!lobby) {
+        throw new Error('Lobby does not exist!');
+      }
+      const playerData = lobby.getPlayer(socket.id);
+      if (playerData) {
+        socket.leave(id);
+        if (lobby.leave(socket.id)) {
+          console.log('destroy lobby', id);
+          delete lobbies[id];
+        } else {
+          io.to(id).emit('lobby-update', lobby.getData());
+          io.to(id).emit('lobby-player-leave', playerData);
+        }
+        pushLobbies();
+      }
     });
   });
 
@@ -120,14 +142,17 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     Object.entries(lobbies).forEach(([lobbyId, lobby]) => {
-      if (lobby.hasPlayer(socket.id)) {
+      const playerData = lobby.getPlayer(socket.id);
+      if (playerData) {
         socket.leave(lobbyId);
         if (lobby.leave(socket.id)) {
           console.log('destroy lobby', lobbyId);
           delete lobbies[lobbyId];
         } else {
           io.to(lobbyId).emit('lobby-update', lobby.getData());
+          io.to(lobbyId).emit('lobby-player-leave', playerData);
         }
+        pushLobbies();
       }
     });
   });

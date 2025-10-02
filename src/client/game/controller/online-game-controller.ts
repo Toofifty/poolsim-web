@@ -2,6 +2,7 @@ import type { TypedEventListenerOrEventListenerObject } from 'typescript-event-t
 import { AimAssistMode, type Params } from '../../../common/simulation/physics';
 import type { SerializedTableState } from '../../../common/simulation/table-state';
 import { assert } from '../../../common/util';
+import { Game } from '../game';
 import type {
   NetworkAdapter,
   NetworkEventMap,
@@ -73,6 +74,14 @@ export class OnlineGameController extends BaseGameController {
     this.adapter.addEventListener('update-cue', this.onNetworkUpdateCue);
     this.addEventListener('shoot', this.onGameShoot);
     this.adapter.addEventListener('shoot', this.onNetworkShoot);
+    this.adapter.addEventListener(
+      'lobby-player-join',
+      this.onNetworkLobbyPlayerJoin
+    );
+    this.adapter.addEventListener(
+      'lobby-player-leave',
+      this.onNetworkLobbyPlayerLeave
+    );
   }
 
   public disconnect() {
@@ -109,6 +118,14 @@ export class OnlineGameController extends BaseGameController {
     this.adapter.removeEventListener('update-cue', this.onNetworkUpdateCue);
     this.removeEventListener('shoot', this.onGameShoot);
     this.adapter.removeEventListener('shoot', this.onNetworkShoot);
+    this.adapter.removeEventListener(
+      'lobby-player-join',
+      this.onNetworkLobbyPlayerJoin
+    );
+    this.adapter.removeEventListener(
+      'lobby-player-leave',
+      this.onNetworkLobbyPlayerLeave
+    );
   }
 
   // listeners
@@ -182,6 +199,14 @@ export class OnlineGameController extends BaseGameController {
     });
   };
 
+  private onNetworkLobbyPlayerJoin: NetworkEventListener<'lobby-player-join'> =
+    () => {
+      this.setPlayState(this.playState);
+    };
+
+  private onNetworkLobbyPlayerLeave: NetworkEventListener<'lobby-player-leave'> =
+    () => {};
+
   // end listeners
 
   private get isHost() {
@@ -232,6 +257,11 @@ export class OnlineGameController extends BaseGameController {
     }
 
     if (this.state.isGameOver) {
+      if (this.shouldSwitchTurn()) {
+        Game.audio.play('sad_trumpet', undefined, 1);
+      } else {
+        Game.audio.play('win');
+      }
       this.setupPrevious();
       this.startGame();
       return;

@@ -1,4 +1,5 @@
 import type { TypedEventTarget } from 'typescript-event-target';
+import type { PlayerData } from '../../../common/data';
 import type {
   RuleSet,
   SerializedPhysicsBall,
@@ -15,6 +16,8 @@ export type NetworkEventMap = {
   ['update-ball-in-hand']: CustomEvent<SerializedPhysicsBall>;
   ['update-cue']: CustomEvent<SerializedCue>;
   ['shoot']: CustomEvent<SerializedCue>;
+  ['lobby-player-join']: CustomEvent<PlayerData>;
+  ['lobby-player-leave']: CustomEvent<PlayerData>;
 };
 
 export interface NetworkAdapter extends TypedEventTarget<NetworkEventMap> {

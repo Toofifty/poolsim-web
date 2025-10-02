@@ -2,7 +2,6 @@ import { subscribe } from 'valtio';
 import { vec } from '../../../common/math';
 import { AimAssistMode, type Params } from '../../../common/simulation/physics';
 import { AI } from '../ai';
-import { Game } from '../game';
 import type { Ball } from '../objects/ball';
 import { gameStore } from '../store/game';
 import { Players, settings } from '../store/settings';
@@ -121,11 +120,6 @@ export class OfflineGameController extends BaseGameController {
     }
 
     if (this.state.isGameOver) {
-      if (this.shouldSwitchTurn()) {
-        Game.audio.play('sad_trumpet', undefined, 1);
-      } else {
-        Game.audio.play('win');
-      }
       this.setupPrevious();
       this.startGame();
       return;

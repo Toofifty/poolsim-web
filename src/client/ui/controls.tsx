@@ -1,4 +1,5 @@
 import { ActionIcon, Button } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { IconChevronUp, IconSettings } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
@@ -18,6 +19,7 @@ import './controls.scss';
 import { OverlayParamEditor } from './overlay-param-editor';
 import { PowerBar } from './power-bar';
 import { Surface } from './surface';
+import { useIsMobile } from './use-media-query';
 
 const getStateName = (state: PlayState | undefined) => {
   switch (state) {
@@ -49,6 +51,7 @@ export const Controls = () => {
   const isHost = !lobby || lobby?.hostId === socket.id;
   const isMultiplayer = !!lobby;
 
+  const isMobile = useIsMobile();
   const [showUI, setShowUI] = useState(false);
 
   const localParams = useSnapshot(params);
@@ -65,7 +68,15 @@ export const Controls = () => {
 
   return (
     <div className="controls">
-      {!isHost && <OverlayParamEditor params={localParams} onEdit={onEdit} />}
+      {isHost && <OverlayParamEditor params={localParams} onEdit={onEdit} />}
+      <Notifications
+        position="top-center"
+        classNames={{ notification: 'surface-effects' }}
+        // ui-container inset
+        top={isMobile ? 4 : 16}
+        mt={showUI ? 108 : 50}
+        pt="sm"
+      />
       <div className="group">
         <ActionIcon
           className="surface button icon"

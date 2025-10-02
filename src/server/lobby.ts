@@ -8,7 +8,7 @@ export class Lobby {
 
   constructor(private id: string, private hostId: string) {}
 
-  public hasPlayer(playerId: string) {
+  public getPlayer(playerId: string) {
     return this.players.find(({ id }) => id === playerId);
   }
 
@@ -24,13 +24,15 @@ export class Lobby {
         id: playerId,
         ...playerData,
       };
-      return;
+      return this.players[index];
     }
 
     this.players.push({
       id: playerId,
       ...(playerData ?? { name: `Player ${this.players.length + 1}` }),
     });
+
+    return this.players.at(-1)!;
   }
 
   public leave(playerId: string) {
@@ -66,6 +68,7 @@ export class Lobby {
       id: this.id,
       hostId: this.hostId,
       players: this.players,
+      started: this.isGameStarted(),
     };
   }
 }

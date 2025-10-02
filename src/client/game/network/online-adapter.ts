@@ -29,6 +29,7 @@ export class OnlineAdapter
       });
     };
 
+    // re-emit events from network
     bind('setup-table');
     bind('reset-cue-ball');
     bind('set-game-state');
@@ -36,6 +37,9 @@ export class OnlineAdapter
     bind('update-ball-in-hand');
     bind('update-cue');
     bind('shoot');
+    // re-sync players joining after the game has started
+    bind('lobby-player-join');
+    bind('lobby-player-leave');
   }
 
   get isHost() {

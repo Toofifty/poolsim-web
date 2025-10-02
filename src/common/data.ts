@@ -4,6 +4,7 @@ export type LobbyData = {
   id: string;
   hostId: string;
   players: PlayerData[];
+  started: boolean;
   params?: Params;
 };
 

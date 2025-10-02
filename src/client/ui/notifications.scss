@@ -1,0 +1,20 @@
+@use './var' as *;
+
+.mantine-Notifications-root {
+  pointer-events: none;
+}
+
+.mantine-Notifications-notification {
+  padding: 16px 32px !important;
+  color: white;
+  pointer-events: initial;
+
+  &:before {
+    display: none;
+  }
+
+  .mantine-Notification-description {
+    font-size: 1em;
+    color: rgba(255, 255, 255, 0.9);
+  }
+}

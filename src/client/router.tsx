@@ -1,6 +1,6 @@
 import { Flex, Loader } from '@mantine/core';
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
 import { PageContainer } from './ui/page-container';
 import { Surface } from './ui/surface';
 import { LobbyProvider } from './util/lobby-provider';
@@ -10,9 +10,19 @@ const Lobby = lazy(() => import('./pages/lobby'));
 const Game = lazy(() => import('./pages/game'));
 
 const router = createBrowserRouter([
-  { path: '/', element: <Home /> },
-  { path: '/lobby/:id', element: <Lobby /> },
-  { path: '/game', element: <Game /> },
+  {
+    path: '/',
+    element: (
+      <LobbyProvider>
+        <Outlet />
+      </LobbyProvider>
+    ),
+    children: [
+      { path: '', element: <Home /> },
+      { path: '/lobby/:id', element: <Lobby /> },
+      { path: '/game', element: <Game /> },
+    ],
+  },
 ]);
 
 export const Router = () => (
@@ -27,8 +37,6 @@ export const Router = () => (
       </PageContainer>
     }
   >
-    <LobbyProvider>
-      <RouterProvider router={router} />
-    </LobbyProvider>
+    <RouterProvider router={router} />
   </Suspense>
 );

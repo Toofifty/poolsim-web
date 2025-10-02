@@ -1,4 +1,5 @@
 import { Button, Flex, Group, Loader, Stack, Text, Title } from '@mantine/core';
+import { notifications, Notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
@@ -23,8 +24,21 @@ export const HomePage = () => {
 
   return (
     <PageContainer>
+      <Notifications
+        position="top-center"
+        classNames={{ notification: 'surface-effects' }}
+      />
       <Stack align="center">
-        <Title order={1}>Pool!</Title>
+        <Title
+          order={1}
+          onClick={() => {
+            notifications.show({
+              message: 'Well done! You clicked the title!',
+            });
+          }}
+        >
+          Pool!
+        </Title>
         <Surface p="lg" w="100%">
           <Stack align="stretch">
             <Button size="lg" w="100%" onClick={() => navigate('/game')}>

@@ -1,6 +1,7 @@
 import { Button, Flex, Group, Stack, Text, Title } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { useEffect } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { defaultParams } from '../../../common/simulation/physics';
 import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
@@ -13,6 +14,7 @@ import { useRedirectOnStart } from './use-redirect-on-start';
 export const LobbyPage = () => {
   const { id } = useParams<{ id: string }>();
   const { lobby, setId } = useLobby();
+  const navigate = useNavigate();
 
   useRedirectOnStart();
 
@@ -32,6 +34,10 @@ export const LobbyPage = () => {
 
   return (
     <PageContainer>
+      <Notifications
+        position="top-center"
+        classNames={{ notification: 'surface-effects' }}
+      />
       <Group wrap="nowrap" align="stretch">
         <Stack align="center" w="400px">
           <Surface p="lg" w="100%">
@@ -60,7 +66,15 @@ export const LobbyPage = () => {
               >
                 Preferences
               </Button>
-              <Button size="lg" w="100%" c="red" disabled>
+              <Button
+                size="lg"
+                w="100%"
+                c="red"
+                onClick={() => {
+                  socket.emit('leave-lobby', lobby.id);
+                  navigate('/');
+                }}
+              >
                 Leave lobby
               </Button>
             </Stack>

@@ -1,10 +1,12 @@
 import { createTheme, MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import { Router } from './router.tsx';
 import './ui/button.scss';
+import './ui/notifications.scss';
 import { Preferences } from './ui/preferences.tsx';
 
 const theme = createTheme({

@@ -234,7 +234,7 @@ export abstract class BaseGameController
   public setupDebugGame(): void {
     this.setupTable({
       rack: Rack.generateDebugGame(),
-      ruleSet: RuleSet._9Ball,
+      ruleSet: RuleSet.Debug,
     });
   }
 

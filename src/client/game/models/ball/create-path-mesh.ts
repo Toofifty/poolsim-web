@@ -9,17 +9,23 @@ import { BallState } from '../../../../common/simulation/physics/ball';
 export const getColor = (state: BallState) => {
   switch (state) {
     case BallState.Airborne:
-      return new Color(0x00ffff);
+      // orange
+      return new Color(0xff8800);
     case BallState.Sliding:
-      return new Color(0xff0000);
+      // yellow
+      return new Color(0xffff00);
     case BallState.Rolling:
+      // green
       return new Color(0x00ff00);
     case BallState.Spinning:
+      // blue
       return new Color(0x0000ff);
     case BallState.Stationary:
+      // white
       return new Color(0xffffff);
     case BallState.Pocketed:
-      return new Color(0xff00ff);
+      // red
+      return new Color(0xff0000);
     default:
       return new Color(0x000000);
   }

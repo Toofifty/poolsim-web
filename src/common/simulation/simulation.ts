@@ -20,6 +20,10 @@ export type RunSimulationStepOptions = {
   state: TableState;
   stepIndex?: number;
   profiler?: IProfiler;
+  /** Set to false to prevent extra collision projections on first contact */
+  fixCollisionOverlap?: boolean;
+  /** Write to this result instead of creating a new one */
+  result?: Result;
 };
 
 export interface ISimulation {
@@ -40,8 +44,9 @@ export class Simulation implements ISimulation {
     state,
     stepIndex = -1,
     profiler = Profiler.none,
+    fixCollisionOverlap,
+    result = new StepResult(),
   }: RunSimulationStepOptions) {
-    const result = new StepResult();
     trackPath &&= stepIndex % this.params.simulation.trackingPointDist === 0;
 
     const endBallUpdate = profiler.start('ballUpdate');
@@ -63,11 +68,11 @@ export class Simulation implements ISimulation {
       for (let j = i + 1; j < activeBalls.length; j++) {
         const other = activeBalls[j];
         // dont fix overlap with evolution physics enabled
-        const collision = ball.collideBall(other);
+        const collision = ball.collideBall(other, fixCollisionOverlap);
         if (collision) {
           if (collision.initiator.id === 0) {
             if (result.firstStruck === undefined) {
-              result.firstStruck = collision.other.id;
+              result.setFirstStruck(collision.other.id);
             }
             result.cueBallCollisions++;
           } else {
@@ -85,7 +90,7 @@ export class Simulation implements ISimulation {
       const ball = activeBalls[i];
       for (let j = 0; j < state.cushions.length; j++) {
         const cushion = state.cushions[j];
-        const collision = ball.collideCushion(cushion);
+        const collision = ball.collideCushion(cushion, fixCollisionOverlap);
         if (collision) {
           if (collision.initiator.id === 0) {
             result.cueBallCushionCollisions++;
@@ -140,18 +145,17 @@ export class Simulation implements ISimulation {
       (shot.angle < -Math.PI / 2 || shot.angle > Math.PI / 2);
 
     for (let i = 0; i < this.params.simulation.maxIterations; i++) {
-      const stepResult = profiler.profile('step', () =>
+      profiler.profile('step', () =>
         this.step({
           simulated: true,
           trackPath,
           dt: 1 / this.params.simulation.updatesPerSecond,
           state: copiedState,
           stepIndex: i,
+          fixCollisionOverlap: !stopAtFirstContact && !stopAtFirstBallContact,
+          result,
         })
       );
-      profiler.profile('add-result', () => {
-        result.add(stepResult);
-      });
 
       if (result.hitFoulBall || result.hasOutOfBoundsBall()) {
         break;
@@ -177,6 +181,11 @@ export class Simulation implements ISimulation {
         break;
       }
     }
+
+    // add final tracking points
+    copiedState.balls.forEach((ball) => {
+      result.addTrackingPoint(ball);
+    });
 
     end();
     return result;

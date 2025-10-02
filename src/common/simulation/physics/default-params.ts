@@ -37,7 +37,7 @@ export const defaultParams = {
     /** g */
     gravity: 9.81,
     spinMultiplier: 2,
-    projectionOpacity: 0.25,
+    projectionOpacity: 0.75,
   },
   cushion: {
     /** h = 1.2R */
@@ -80,7 +80,7 @@ export const defaultParams = {
   simulation: {
     maxIterations: 10_000,
     updatesPerSecond: 300,
-    trackingPointDist: 10,
+    trackingPointDist: 2,
     useWorkerForAimAssist: true,
     useWorkerForAI: true,
   },

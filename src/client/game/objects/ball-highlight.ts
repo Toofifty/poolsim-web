@@ -1,5 +1,6 @@
-import { Mesh, MeshBasicMaterial, Object3D, TorusGeometry } from 'three';
+import { Mesh, Object3D, TorusGeometry } from 'three';
 import { Game } from '../game';
+import { createMaterial } from '../rendering/create-material';
 import type { Ball } from './ball';
 
 export class BallHighlight extends Object3D {
@@ -12,8 +13,8 @@ export class BallHighlight extends Object3D {
     this.billboard = new Object3D();
 
     this.ring = new Mesh(
-      new TorusGeometry(ball.radius * 1.05, ball.radius * 0.1),
-      new MeshBasicMaterial({ color: 0xffffff })
+      new TorusGeometry(ball.radius * 1.2, ball.radius * 0.1),
+      createMaterial({ roughness: 0.1, metalness: 0 })
     );
     this.ring.renderOrder = 9999;
     this.billboard.add(this.ring);

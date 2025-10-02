@@ -4,7 +4,6 @@ import {
   Material,
   Mesh,
   Object3D,
-  Quaternion,
   Vector3,
 } from 'three';
 import type { Line2 } from 'three/examples/jsm/Addons.js';
@@ -12,8 +11,8 @@ import { snapshot } from 'valtio';
 import { vec, type Quat, type Vec } from '../../../common/math';
 import { defaultParams, type Params } from '../../../common/simulation/physics';
 import {
-  BallState,
   PhysicsBall,
+  type PhysicsBallSnapshot,
 } from '../../../common/simulation/physics/ball';
 import type { Shot } from '../../../common/simulation/shot';
 import { Game } from '../game';
@@ -50,8 +49,8 @@ export class Ball {
   public color: Color;
 
   // simulation
-  private collisionPoints: Vector3[] = [];
-  private collisionOrientations: Quaternion[] = [];
+  private collisionPoints: Vec[] = [];
+  private collisionOrientations: Quat[] = [];
   private trackingPoints: TrackingPoint[] = [];
   /** Signifies the final collision is invalid */
   public invalidCollision = false;
@@ -157,14 +156,23 @@ export class Ball {
   }
 
   public addCollisionPoint(position: Vec, orientation: Quat) {
-    const p = toVector3(position);
-    const o = toQuaternion(orientation);
-    this.collisionPoints.push(p);
-    this.collisionOrientations.push(o);
+    const lastCollisionPoint = this.collisionPoints.at(-1);
+    if (
+      (!lastCollisionPoint || !vec.eq(lastCollisionPoint, position, 1e-3)) &&
+      !vec.eq(this.physics.position, position, 1e-3)
+    ) {
+      this.collisionPoints.push(position);
+      this.collisionOrientations.push(orientation);
+    }
   }
 
-  public addTrackingPoint(position: Vec, state: BallState) {
-    this.trackingPoints.push({ position: toVector3(position), state });
+  public addTrackingPoints(points: PhysicsBallSnapshot[]) {
+    this.trackingPoints.push(
+      ...points.map((point) => ({
+        position: toVector3(point.position),
+        state: point.state,
+      }))
+    );
   }
 
   public updateImpactArrow(position: Vec, velocity: Vec) {
@@ -200,18 +208,14 @@ export class Ball {
     for (let i = 0; i < this.collisionPoints.length; i++) {
       const position = this.collisionPoints[i];
       const orientation = this.collisionOrientations[i];
-      if (position.distanceToSquared(thisPosition) < 0.001) {
-        continue;
-      }
-
       const material =
         this.invalidCollision && i === this.collisionPoints.length - 1
           ? INVALID_PROJECTION_MATERIAL
           : this.projectionMaterial;
 
       const mesh = new Mesh(this.geometry, material);
-      mesh.position.copy(position);
-      mesh.rotation.setFromQuaternion(orientation);
+      mesh.position.copy(toVector3(position));
+      mesh.rotation.setFromQuaternion(toQuaternion(orientation));
       this.projectionMeshes.push(mesh);
     }
     this.projectionMeshes.forEach((mesh) => Game.add(mesh));

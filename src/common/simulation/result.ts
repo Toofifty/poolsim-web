@@ -1,3 +1,4 @@
+import { vec } from '../math';
 import type { Collision } from './collision';
 import type { PhysicsBall, PhysicsBallSnapshot } from './physics';
 import type { Shot } from './shot';
@@ -19,9 +20,20 @@ export class Result {
   ballCushionCollisions = 0;
 
   collisions: Collision[] = [];
-  trackingPoints: { id: number; snapshot: PhysicsBallSnapshot }[] = [];
+  trackingPointMap: Map<number, PhysicsBallSnapshot[]> = new Map();
 
-  constructor(public shot?: Shot, public state?: TableState) {}
+  constructor(public shot?: Shot, public state?: TableState) {
+    state?.balls.forEach((ball) => {
+      this.trackingPointMap.set(ball.id, [ball.snapshot()]);
+    });
+  }
+
+  public setFirstStruck(id: number) {
+    this.firstStruck = id;
+    if (this.state && this.state.lowestActiveBallId !== id) {
+      this.hitFoulBall = true;
+    }
+  }
 
   public add(other: Result) {
     if (
@@ -45,7 +57,15 @@ export class Result {
     this.ballBallCollisions += other.ballBallCollisions;
     this.ballCushionCollisions += other.ballCushionCollisions;
     this.collisions.push(...other.collisions);
-    this.trackingPoints.push(...other.trackingPoints);
+
+    for (const [ballId, trackingPoints] of other.trackingPointMap) {
+      if (!this.trackingPointMap.has(ballId)) {
+        this.trackingPointMap.set(ballId, trackingPoints);
+      } else {
+        this.trackingPointMap.get(ballId)?.push(...trackingPoints);
+      }
+    }
+
     return this;
   }
 
@@ -64,10 +84,16 @@ export class Result {
   }
 
   public addTrackingPoint(ball: PhysicsBall) {
-    this.trackingPoints.push({
-      id: ball.id,
-      snapshot: ball.snapshot(),
-    });
+    const trackingPoints = this.trackingPointMap.get(ball.id);
+    const lastPoint = trackingPoints?.at(-1)!;
+    // do not add tracking points if the ball hasn't moved
+    if (
+      trackingPoints &&
+      lastPoint &&
+      !vec.eq(lastPoint.position, ball.position, 1e-3)
+    ) {
+      trackingPoints.push(ball.snapshot());
+    }
   }
 }
 

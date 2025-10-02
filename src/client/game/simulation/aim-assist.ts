@@ -1,3 +1,4 @@
+import { vec } from '../../../common/math';
 import { AimAssistMode, type Params } from '../../../common/simulation/physics';
 import type { Shot } from '../../../common/simulation/shot';
 import {
@@ -53,6 +54,7 @@ export class AimAssist {
     const firstContact = this.mode === AimAssistMode.FirstContact;
     const firstBallContact = this.mode === AimAssistMode.FirstBallContact;
     const profiler = settings.enableProfiler ? Game.profiler : undefined;
+    const initialSnapshots = state.balls.map((ball) => ball.snapshot());
 
     await (profiler ?? Profiler.none).profile('aim-update', async () => {
       this.clear();
@@ -116,16 +118,31 @@ export class AimAssist {
       }
 
       result.collisions.forEach((collision, i) => {
+        if (
+          collision.initiator.id !== 0 &&
+          (firstContact || firstBallContact)
+        ) {
+          // do not add collisions for target balls
+          return;
+        }
+
         const initiator = this.ballMap.get(collision.initiator.id)!;
-        initiator.addCollisionPoint(
-          collision.snapshots.initiator.position,
-          collision.snapshots.initiator.orientation
-        );
+        if (!firstBallContact || collision.type !== 'ball-cushion') {
+          initiator.addCollisionPoint(
+            collision.snapshots.initiator.position,
+            collision.snapshots.initiator.orientation
+          );
+        }
+
         if (hasFoul && collision.type !== 'ball-cushion') {
           initiator.invalidCollision = true;
         }
 
-        if (collision.type === 'ball-ball') {
+        if (
+          collision.type === 'ball-ball' &&
+          !firstContact &&
+          !firstBallContact
+        ) {
           const other = this.ballMap.get(collision.other.id)!;
           other.addCollisionPoint(
             collision.snapshots.other.position,
@@ -135,17 +152,26 @@ export class AimAssist {
       });
 
       // add tracking points
-      result.trackingPoints.forEach(({ id, snapshot }) => {
-        this.ballMap
-          .get(id)!
-          .addTrackingPoint(snapshot.position, snapshot.state);
-      });
+      for (const [ballId, trackingPoints] of result.trackingPointMap) {
+        if (trackingPoints.length > 1) {
+          this.ballMap.get(ballId)!.addTrackingPoints(trackingPoints);
+        }
+      }
 
       // add final resting positions
-      result.state?.balls.forEach((ball) => {
-        const { position, orientation, state } = ball.snapshot();
-        this.ballMap.get(ball.id)!.addCollisionPoint(position, orientation);
-        this.ballMap.get(ball.id)!.addTrackingPoint(position, state);
+      result.state?.balls.forEach((ball, i) => {
+        if (i !== 0 && (firstContact || firstBallContact)) {
+          // do not add resting positions for target balls
+          return;
+        }
+
+        const initial = initialSnapshots[i];
+        const snapshot = ball.snapshot();
+        if (!vec.eq(initial.position, snapshot.position, 1e-3)) {
+          this.ballMap
+            .get(ball.id)!
+            .addCollisionPoint(snapshot.position, snapshot.orientation);
+        }
       });
     });
     profiler?.dump();

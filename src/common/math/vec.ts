@@ -19,6 +19,10 @@ export const vec = {
   lenSq: (v: Vec) => v[0] * v[0] + v[1] * v[1] + v[2] * v[2],
   len: (v: Vec) => Math.sqrt(vec.lenSq(v)),
   isZero: (v: Vec) => v[0] + v[1] + v[2] === 0,
+  eq: (v1: Vec, v2: Vec, tolerance = 0) =>
+    Math.abs(v1[0] - v2[0]) <= tolerance &&
+    Math.abs(v1[1] - v2[1]) <= tolerance &&
+    Math.abs(v1[2] - v2[2]) <= tolerance,
 
   dist: (v1: Vec, v2: Vec) =>
     Math.sqrt(
@@ -26,6 +30,10 @@ export const vec = {
         (v1[1] - v2[1]) * (v1[1] - v2[1]) +
         (v1[2] - v2[2]) * (v1[2] - v2[2])
     ),
+  distSq: (v1: Vec, v2: Vec) =>
+    (v1[0] - v2[0]) * (v1[0] - v2[0]) +
+    (v1[1] - v2[1]) * (v1[1] - v2[1]) +
+    (v1[2] - v2[2]) * (v1[2] - v2[2]),
   dot: (v1: Vec, v2: Vec) => v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2],
   cross: (v1: Vec, v2: Vec): Vec => [
     v1[1] * v2[2] - v1[2] * v2[1],

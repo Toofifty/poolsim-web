@@ -10,7 +10,8 @@ import type { PhysicsPocket } from '../pocket';
 
 export const collideBallBall = (
   b1: PhysicsBall,
-  b2: PhysicsBall
+  b2: PhysicsBall,
+  fixOverlap = true
 ): BallBallCollision | undefined => {
   if (b1 === b2) return undefined;
 
@@ -26,7 +27,7 @@ export const collideBallBall = (
     const rv = vec.dot(vec.sub(b1.v, b2.v), normal);
 
     const overlap = b1.radius + b2.radius - dist;
-    if (overlap > 0) {
+    if (overlap > 0 && fixOverlap) {
       const correction = vec.mult(normal, (overlap * 1.1) / 2);
       vec.madd(b1.r, correction);
       vec.msub(b2.r, correction);
@@ -119,7 +120,8 @@ const applyBallCollisionSpin = (
 
 export const collideBallCushion = (
   b: PhysicsBall,
-  c: PhysicsCushion
+  c: PhysicsCushion,
+  fixOverlap = true
 ): BallCushionCollision | undefined => {
   if (!c.inBounds(b.r)) {
     return undefined;
@@ -136,7 +138,9 @@ export const collideBallCushion = (
     const normal = vec.norm(diff);
 
     const overlap = b.radius - dist;
-    vec.madd(b.r, vec.mult(normal, overlap));
+    if (fixOverlap) {
+      vec.madd(b.r, vec.mult(normal, overlap));
+    }
 
     const rv = vec.dot(b.v, normal);
     if (rv > 0) {

@@ -288,14 +288,18 @@ export class PhysicsBall {
     this.minimize();
   }
 
-  public collideBall(other: PhysicsBall): BallBallCollision | undefined {
-    return collideBallBall(this, other);
+  public collideBall(
+    other: PhysicsBall,
+    fixOverlap = true
+  ): BallBallCollision | undefined {
+    return collideBallBall(this, other, fixOverlap);
   }
 
   public collideCushion(
-    cushion: PhysicsCushion
+    cushion: PhysicsCushion,
+    fixOverlap = true
   ): BallCushionCollision | undefined {
-    return collideBallCushion(this, cushion);
+    return collideBallCushion(this, cushion, fixOverlap);
   }
 
   public collidePocket(pocket: PhysicsPocket): BallPocketCollision | undefined {

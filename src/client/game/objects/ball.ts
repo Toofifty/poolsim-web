@@ -82,7 +82,8 @@ export class Ball {
     this.highlight.update();
     this.debug = new BallDebug(this);
     this.debug.update();
-    this.parent.add(this.highlight, this.debug);
+    this.parent.add(this.debug);
+    Game.add(this.highlight);
 
     this.createMesh();
     this.updateMesh();
@@ -243,6 +244,7 @@ export class Ball {
     }
 
     this.highlight.dispose();
+    Game.remove(this.highlight);
     this.debug.dispose();
 
     this.parent.traverse((obj) => Game.dispose(obj));

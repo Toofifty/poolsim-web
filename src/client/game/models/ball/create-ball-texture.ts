@@ -14,7 +14,7 @@ export function createBallTexture(
     number: number;
   }
 ): CanvasTexture {
-  const tsize = settings.highDetail ? 256 : 64;
+  const tsize = settings.highDetail ? 256 : 128;
 
   const canvas = document.createElement('canvas');
   canvas.width = tsize * 2;

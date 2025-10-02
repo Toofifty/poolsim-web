@@ -6,7 +6,7 @@ export class BallHighlight extends Object3D {
   private billboard: Object3D;
   private ring: Mesh;
 
-  constructor(ball: Ball) {
+  constructor(private ball: Ball) {
     super();
 
     this.billboard = new Object3D();
@@ -22,6 +22,7 @@ export class BallHighlight extends Object3D {
 
   public update() {
     this.billboard.quaternion.copy(Game.instance.camera.quaternion);
+    this.position.copy(this.ball.position);
   }
 
   public dispose() {

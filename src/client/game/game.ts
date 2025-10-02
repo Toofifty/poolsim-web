@@ -49,6 +49,7 @@ import { toVector2 } from './util/three-interop';
 export class Game {
   // rendering
   public scene!: Scene;
+  public overlay!: Scene;
   public renderer!: WebGLRenderer;
   public composer!: EffectComposer;
   public camera!: Camera;
@@ -89,6 +90,7 @@ export class Game {
     document.body.appendChild(this.stats.dom);
 
     this.scene = new Scene();
+    this.overlay = new Scene();
 
     const aspect = window.innerWidth / window.innerHeight;
 
@@ -115,6 +117,7 @@ export class Game {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.toneMapping = ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.5;
+    this.renderer.autoClear = false;
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.maxPolarAngle = Math.PI / 2;
@@ -280,15 +283,15 @@ export class Game {
       return;
     }
 
-    createCeilingLight(0, -spy, settings.highDetail ? 10 : 20);
-    createCeilingLight(0, spy, settings.highDetail ? 10 : 20);
-
     if (settings.highDetail) {
-      createCeilingLight(-sp * 2, -spy, settings.highDetail ? 10 : 20);
-      createCeilingLight(sp * 2, -spy, settings.highDetail ? 10 : 20);
+      createCeilingLight(-sp * 2, -spy, 20);
+      createCeilingLight(sp * 2, -spy, 20);
 
-      createCeilingLight(-sp * 2, spy, settings.highDetail ? 10 : 20);
-      createCeilingLight(sp * 2, spy, settings.highDetail ? 10 : 20);
+      createCeilingLight(-sp * 2, spy, 20);
+      createCeilingLight(sp * 2, spy, 20);
+    } else {
+      createCeilingLight(0, -spy, 20);
+      createCeilingLight(0, spy, 20);
     }
   }
 
@@ -296,6 +299,9 @@ export class Game {
     const light = new AmbientLight(0xffffff);
     light.intensity = settings.highDetail ? 0.5 : 1.5;
     this.scene.add(light);
+
+    const overlayLight = new AmbientLight(0xffffff, 10);
+    this.overlay.add(overlayLight);
   }
 
   private setupSky() {
@@ -320,11 +326,11 @@ export class Game {
   }
 
   public static add(obj: Object3D) {
-    this.instance.scene.add(obj);
+    this.instance.overlay.add(obj);
   }
 
   public static remove(obj: Object3D) {
-    this.instance.scene.remove(obj);
+    this.instance.overlay.remove(obj);
   }
 
   public static resetCamera() {
@@ -404,7 +410,10 @@ export class Game {
     // run lerps
     this.lerps.forEach((lerp) => lerp(dt));
 
+    this.renderer.clear();
     this.composer.render();
+    this.renderer.clearDepth();
+    this.renderer.render(this.overlay, this.camera);
     this.stats.end();
   }
 }

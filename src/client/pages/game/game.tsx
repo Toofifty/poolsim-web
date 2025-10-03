@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { notifications } from '@mantine/notifications';
+import { useEffect, useMemo } from 'react';
 import { proxy, useSnapshot } from 'valtio';
 import type { LobbyData } from '../../../common/data';
 import { params } from '../../../common/simulation/physics';
@@ -9,7 +10,7 @@ import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
 import { Canvas } from '../../ui/canvas';
 import { Controls } from '../../ui/controls';
-import { MobileControls } from '../../ui/mobile-controls';
+import { QuickControls } from '../../ui/quick-controls';
 import { SpinControl } from '../../ui/spin-control';
 import { UIContainer } from '../../ui/ui-container';
 import { useLobby } from '../../util/use-lobby';
@@ -38,13 +39,27 @@ export const GamePage = () => {
     return bootstrapGame(lobby);
   }, [lobby]);
 
+  useEffect(() => {
+    if (window.innerHeight > window.innerWidth) {
+      notifications.show({
+        message: 'Rotate your device for the best experience',
+      });
+    }
+  }, []);
+
   return (
     <>
       {canvasEnabled && <Canvas game={game} />}
-      <UIContainer>
+      <UIContainer
+        bottom={
+          <>
+            <span />
+            <QuickControls />
+            <SpinControl />
+          </>
+        }
+      >
         <Controls />
-        <MobileControls />
-        <SpinControl />
       </UIContainer>
     </>
   );

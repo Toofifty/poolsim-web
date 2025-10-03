@@ -4,6 +4,22 @@
   pointer-events: none;
   margin-top: env(safe-area-inset-top);
   margin-bottom: env(safe-area-inset-bottom);
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+
+  &__bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    overflow-x: auto;
+
+    > * {
+      flex: 1;
+    }
+  }
 }
 
 @media (max-width: 1200px) {

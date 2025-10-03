@@ -55,7 +55,7 @@ export const Preferences = () => {
       centered
     >
       <Modal.Overlay />
-      <Modal.Content className="surface" p="lg" miw="600px">
+      <Modal.Content className="surface" p="lg" miw="700px">
         <Stack>
           <Title order={2}>Preferences</Title>
           <Divider style={{ borderTop: '1px solid #FFF2' }} />

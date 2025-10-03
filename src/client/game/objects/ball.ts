@@ -10,6 +10,7 @@ import type { Line2 } from 'three/examples/jsm/Addons.js';
 import { vec, type Quat, type Vec } from '../../../common/math';
 import { defaultParams, type Params } from '../../../common/simulation/physics';
 import {
+  BallState,
   PhysicsBall,
   type PhysicsBallSnapshot,
 } from '../../../common/simulation/physics/ball';
@@ -142,6 +143,7 @@ export class Ball {
     vec.mmult(this.physics.velocity, 0);
     vec.mmult(this.physics.angularVelocity, 0);
 
+    this.physics.state = BallState.Stationary;
     this.updateMesh();
     this.debug.update();
   }

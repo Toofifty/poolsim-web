@@ -114,6 +114,7 @@ export class Game {
     this.camera.lookAt(0, 0, 0);
 
     this.renderer = new WebGLRenderer({ antialias: true });
+    this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFSoftShadowMap;
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -212,6 +213,9 @@ export class Game {
       switch (e.key) {
         case 'l':
           settings.lockCue = !settings.lockCue;
+          return;
+        case 'r':
+          Game.resetCamera();
           return;
         case 'Shift':
           this.controls.enableZoom = true;

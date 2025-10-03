@@ -283,6 +283,7 @@ export abstract class BaseGameController
    */
   protected resetCueBall(): void {
     this.balls[0].place(-this.params.table.length / 4, 0);
+    this.cue.attachTo(this.balls[0]);
     this.dispatchTypedEvent('reset-cue-ball', new Event('reset-cue-ball'));
   }
 

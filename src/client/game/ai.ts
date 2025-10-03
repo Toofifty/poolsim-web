@@ -21,7 +21,7 @@ export class AI {
   private angleSteps = 120;
   private forceSteps = 10;
   // todo: only vary lift, sideSpin, topSpin if other shots fail
-  private liftSteps = 7;
+  private liftSteps = 4;
   /** must be odd */
   private sideSpinSteps = 1;
   private accuracy = 100;
@@ -181,8 +181,18 @@ export class AI {
       return -Infinity;
     }
 
+    if (result.state?.isBreak) {
+      return (
+        ((result.shot?.force ?? 0) -
+          (result.shot?.lift ?? 0) +
+          Math.random() -
+          0.5) *
+        100
+      );
+    }
+
     if (result.state?.isGameOver) {
-      return 1000 - result.collisions.length;
+      return 200 - result.collisions.length;
     }
 
     return result.ballsPotted * 100 - result.collisions.length;

@@ -62,7 +62,7 @@ export class TableState {
 
   public get activeBalls() {
     // todo: optimise (filter/new array may be slow)
-    return this.balls.filter((ball) => !ball.isPocketed);
+    return this.balls.filter((ball) => !ball.isPocketed && !ball.isOutOfBounds);
   }
 
   public get settled() {

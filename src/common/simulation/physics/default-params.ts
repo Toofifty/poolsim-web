@@ -36,7 +36,7 @@ export const defaultParams = {
     frictionCushion: 0.2,
     /** g */
     gravity: 9.81,
-    spinMultiplier: 2,
+    spinMultiplier: 4,
     projectionOpacity: 0.75,
   },
   cushion: {
@@ -69,8 +69,8 @@ export const defaultParams = {
     diamondWidth: 0.015,
   },
   cue: {
-    defaultForce: 0.75,
-    maxForce: 3,
+    defaultForce: 2,
+    maxForce: 5,
     length: 1.4732,
     tipRadius: 0.006,
     handleRadius: 0.01,

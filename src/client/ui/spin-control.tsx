@@ -1,4 +1,4 @@
-import { ActionIcon, Stack, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Stack } from '@mantine/core';
 import {
   IconArrowsHorizontal,
   IconArrowsVertical,
@@ -52,23 +52,24 @@ export const SpinControl = () => {
 
   return (
     <div className="spin-control__container">
-      <Tooltip
-        // force rerender
-        key={visible ? 'visible' : 'not-visible'}
-        label={visible ? 'Close spin control' : 'Open spin control'}
-      >
+      {visible ? (
         <ActionIcon
           className="surface button icon"
           size="40"
           onClick={() => setVisible((v) => !v)}
         >
-          {visible ? (
-            <IconChevronRight size={16} />
-          ) : (
-            <IconRotate360 size={16} />
-          )}
+          <IconChevronRight size={16} />
         </ActionIcon>
-      </Tooltip>
+      ) : (
+        <Button
+          className="surface button"
+          size="40"
+          onClick={() => setVisible((v) => !v)}
+          rightSection={<IconRotate360 size="16" />}
+        >
+          Spin
+        </Button>
+      )}
       {visible && (
         <Surface className="spin-control" p="md">
           <Stack justify="space-evenly">

@@ -140,11 +140,9 @@ export class PhysicsBall {
       vec.madd(this.w, dw);
     }
 
-    // contribute less to velocity based on where the cue ball is hit
-    const vContribution =
-      Math.cos((shot.topSpin * Math.PI) / 2) *
-      Math.cos((shot.sideSpin * Math.PI) / 2);
-    const dv = vec.mult(direction, vContribution * vec.len(shot.velocity));
+    const dv = vec.mult(direction, vec.len(shot.velocity));
+    // contribute less to vertical velocity based on where the cue ball is hit
+    dv[2] *= Math.cos((shot.sideSpin * Math.PI) / 2);
     vec.madd(this.v, dv);
   }
 

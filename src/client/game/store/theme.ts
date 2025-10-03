@@ -61,7 +61,7 @@ const getTableTheme = (): ThemeObject['table'] => {
     case 'green':
       return {
         ...base,
-        colorCloth: new Color(0x227722),
+        colorCloth: new Color(0x226622),
         colorRail: new Color(0x683104),
       };
     case 'pink':

@@ -1,12 +1,12 @@
 import { vec } from '../math';
 import type { Collision } from './collision';
-import type { PhysicsBall, PhysicsBallSnapshot } from './physics';
+import { type PhysicsBall, type PhysicsBallSnapshot } from './physics';
 import type { Shot } from './shot';
-import type { TableState } from './table-state';
+import { type TableState } from './table-state';
 
 export class Result {
   stepIterations = 1;
-  ballsPotted = 0;
+  ballsPotted: number[] = [];
   pottedCueBall = false;
   hitFoulBall = false;
   /** e.g. shot backwards on break */
@@ -30,24 +30,14 @@ export class Result {
 
   public setFirstStruck(id: number) {
     this.firstStruck = id;
-    if (this.state && this.state.lowestActiveBallId !== id) {
+    if (this.state && !this.state.getTargetableBalls().has(id)) {
       this.hitFoulBall = true;
     }
   }
 
   public add(other: Result) {
-    if (
-      this.state &&
-      this.state.is9Ball &&
-      this.firstStruck === undefined &&
-      other.firstStruck !== undefined
-    ) {
-      // adding a strike - if it's not the lowest ball, it is a foul
-      this.hitFoulBall = this.state.lowestActiveBallId !== other.firstStruck;
-    }
-
     this.stepIterations += other.stepIterations;
-    this.ballsPotted += other.ballsPotted;
+    this.ballsPotted.push(...other.ballsPotted);
     this.pottedCueBall ||= other.pottedCueBall;
     this.hitFoulBall ||= other.hitFoulBall;
     this.invalidShot ||= other.invalidShot;

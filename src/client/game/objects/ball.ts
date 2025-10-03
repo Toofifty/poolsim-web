@@ -1,11 +1,4 @@
-import {
-  BufferGeometry,
-  Color,
-  Material,
-  Mesh,
-  Object3D,
-  Vector3,
-} from 'three';
+import { BufferGeometry, Color, Material, Mesh, Object3D } from 'three';
 import type { Line2 } from 'three/examples/jsm/Addons.js';
 import { vec, type Quat, type Vec } from '../../../common/math';
 import { defaultParams, type Params } from '../../../common/simulation/physics';
@@ -55,7 +48,6 @@ export class Ball {
   private trackingPoints: TrackingPoint[] = [];
   /** Signifies the final collision is invalid */
   public invalidCollision = false;
-  private impactVelocity?: Vector3;
 
   public parent!: Object3D;
   private mesh!: Mesh;
@@ -178,11 +170,11 @@ export class Ball {
     this.impactArrow.ref = {
       position: toVector3(position),
     };
-    this.impactVelocity = toVector3(velocity);
+    this.impactArrow.setVector(toVector3(velocity));
   }
 
   public clearImpactArrow() {
-    this.impactVelocity = undefined;
+    this.impactArrow.visible = false;
   }
 
   public sync() {
@@ -226,15 +218,8 @@ export class Ball {
     }
 
     if (this.trackingPoints.length > 1) {
-      this.trackingLine = createPathMesh(this.trackingPoints);
+      this.trackingLine = createPathMesh(this.trackingPoints, this.color);
       Game.add(this.trackingLine);
-    }
-
-    // impact arrow
-    if (this.impactVelocity && !this.invalidCollision) {
-      this.impactArrow.setVector(this.impactVelocity);
-    } else {
-      this.impactArrow.visible = false;
     }
   }
 

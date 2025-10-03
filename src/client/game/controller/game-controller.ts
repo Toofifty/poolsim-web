@@ -9,7 +9,10 @@ import {
 } from '../../../common/simulation/physics';
 import { Result } from '../../../common/simulation/result';
 import { Simulation } from '../../../common/simulation/simulation';
-import { TableState } from '../../../common/simulation/table-state';
+import {
+  EightBallState,
+  TableState,
+} from '../../../common/simulation/table-state';
 import { createCushions } from '../factory/cushion';
 import { createPockets } from '../factory/pocket';
 import { Game } from '../game';
@@ -68,6 +71,8 @@ export interface GameController
 
   // gameplay
   shoot(): void;
+  // todo: dedupe (this is just for mobile ui for now)
+  uiShoot(): void;
   update(dt: number): void;
 }
 
@@ -237,6 +242,7 @@ export abstract class BaseGameController
     ruleSet: RuleSet;
   }): void {
     this.setBalls(rack.map((proto) => new Ball(this.params, proto)));
+    this.state.reset();
     this.state.ruleSet = ruleSet;
     this.dispatchTypedEvent(
       'setup-table',
@@ -288,6 +294,11 @@ export abstract class BaseGameController
   }
 
   public abstract shoot(): void;
+
+  public uiShoot() {
+    this.shoot();
+    this.dispatchTypedEvent('shoot', new Event('shoot'));
+  }
 
   /**
    * @emits set-game-state
@@ -471,7 +482,7 @@ export abstract class BaseGameController
     }
 
     const highlightedBalls = this.shouldHighlightTargetBalls()
-      ? this.state.targetableBalls
+      ? this.state.getTargetableBalls()
       : new Set();
     this.balls.forEach((ball) => {
       ball.sync();
@@ -489,9 +500,21 @@ export abstract class BaseGameController
     }
   }
 
+  /**
+   * Determine whether or not to switch turns.
+   *
+   * Will also assign stripes/solids for 8-ball if appropriate
+   */
   protected shouldSwitchTurn(): boolean {
+    if (
+      this.state.ruleSet === RuleSet._8Ball &&
+      this.state.eightBallState === EightBallState.Open
+    ) {
+    }
+
     return (
-      this.simulationResult.hasFoul() || this.simulationResult.ballsPotted === 0
+      this.simulationResult.hasFoul() ||
+      this.simulationResult.ballsPotted.length === 0
     );
   }
 

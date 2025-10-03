@@ -4,7 +4,9 @@ import {
   LineGeometry,
   LineMaterial,
 } from 'three/examples/jsm/Addons.js';
+import { defaultParams } from '../../../../common/simulation/physics';
 import { BallState } from '../../../../common/simulation/physics/ball';
+import { settings } from '../../store/settings';
 
 export const getColor = (state: BallState) => {
   switch (state) {
@@ -34,19 +36,24 @@ export const getColor = (state: BallState) => {
 const material = new LineMaterial({
   linewidth: 4,
   vertexColors: true,
-  dashed: false,
+  dashed: true,
+  dashScale: 50,
+  transparent: true,
+  opacity: defaultParams.ball.projectionOpacity,
 });
 
 export type TrackingPoint = { position: Vector3; state: BallState };
 
-export const createPathMesh = (points: TrackingPoint[]) => {
+export const createPathMesh = (points: TrackingPoint[], ballColor: Color) => {
+  const { physicsGuidelines } = settings;
+
   const positions: number[] = [];
   const colors: number[] = [];
 
   for (let i = 0; i < points.length; i++) {
     const { position, state } = points[i];
     positions.push(position.x, position.y, position.z);
-    const color = getColor(state);
+    const color = physicsGuidelines ? getColor(state) : ballColor;
     colors.push(color.r, color.g, color.b);
   }
 

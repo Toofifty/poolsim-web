@@ -114,7 +114,7 @@ export class Simulation implements ISimulation {
           if (collision.initiator.id === 0) {
             result.pottedCueBall = true;
           } else {
-            result.ballsPotted++;
+            result.ballsPotted.push(ball.id);
           }
           result.collisions.push(collision);
         }

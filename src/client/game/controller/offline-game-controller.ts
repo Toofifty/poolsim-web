@@ -59,12 +59,12 @@ export class OfflineGameController extends BaseGameController {
       }
     });
 
-    this.setup9Ball();
+    this.setup8Ball();
     this.startGame();
   }
 
   public startGame(): void {
-    this.state.isBreak = true;
+    this.state.reset();
     switch (settings.players) {
       case Players.AIVsAI:
         this.setPlayState(PlayState.AIShoot);

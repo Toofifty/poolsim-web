@@ -13,7 +13,7 @@ export class BallHighlight extends Object3D {
     this.billboard = new Object3D();
 
     this.ring = new Mesh(
-      new TorusGeometry(ball.radius * 1.2, ball.radius * 0.1),
+      new TorusGeometry(ball.radius, ball.radius * 0.1),
       createMaterial({ roughness: 0.1, metalness: 0 })
     );
     this.ring.renderOrder = 9999;

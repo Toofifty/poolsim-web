@@ -8,10 +8,22 @@ import {
   type SerializedPhysicsPocket,
 } from './physics';
 
+export enum EightBallState {
+  Open,
+  Player1Solids,
+  Player1Stripes,
+}
+
+export enum Player {
+  One,
+  Two,
+}
+
 export type SerializedTableState = {
   balls: SerializedPhysicsBall[];
   ruleSet: RuleSet;
   isBreak: boolean;
+  eightBallState: EightBallState;
 };
 export type FullSerializedTableState = SerializedTableState & {
   cushions: SerializedPhysicsCushion[];
@@ -30,20 +42,36 @@ export class TableState {
   public cushions: PhysicsCushion[] = [];
   public pockets: PhysicsPocket[] = [];
   public ruleSet: RuleSet = RuleSet._9Ball;
+  public eightBallState = EightBallState.Open;
   public isBreak: boolean;
+
+  /**
+   * Unlike play state, this is specifically NOT
+   * inverted on non-hosts, and is also used the
+   * same for local (or vs AI) games
+   */
+  public currentPlayer: Player;
 
   constructor(
     balls: PhysicsBall[],
     cushions: PhysicsCushion[],
     pockets: PhysicsPocket[],
     ruleSet: RuleSet,
-    isBreak = true
+    isBreak = true,
+    eightBallState: EightBallState = EightBallState.Open
   ) {
+    this.currentPlayer = Math.random() > 0.5 ? Player.One : Player.Two;
     this.balls = balls;
     this.cushions = cushions;
     this.pockets = pockets;
     this.ruleSet = ruleSet;
     this.isBreak = isBreak;
+    this.eightBallState = isBreak ? EightBallState.Open : eightBallState;
+  }
+
+  public reset() {
+    this.isBreak = true;
+    this.eightBallState = EightBallState.Open;
   }
 
   public clone() {
@@ -52,7 +80,8 @@ export class TableState {
       this.cushions,
       this.pockets,
       this.ruleSet,
-      this.isBreak
+      this.isBreak,
+      this.eightBallState
     );
   }
 
@@ -90,20 +119,35 @@ export class TableState {
     return Math.min(...activeIds);
   }
 
-  public get targetableBalls() {
+  private getBallIds(indices: number[]) {
+    return indices.map((i) => this.balls[i]?.id);
+  }
+
+  public getTargetableBalls(): Set<number> {
     if (this.ruleSet === RuleSet._9Ball) {
       return new Set([this.lowestActiveBallId]);
     }
 
+    if (this.ruleSet === RuleSet._8Ball) {
+      if (this.isBreak) {
+        // allowed to hit only first 2 rows on break
+        return new Set(this.getBallIds([1, 2, 3]));
+      }
+
+      if (this.eightBallState === EightBallState.Open) {
+        return new Set(
+          this.balls
+            .map((ball) => {
+              if (ball.isPocketed || ball.isOutOfBounds) return undefined;
+              if (ball.id === 0 || ball.id === 8) return undefined;
+              return ball.id;
+            })
+            .filter((v) => v !== undefined)
+        );
+      }
+    }
+
     return new Set();
-  }
-
-  public get is8Ball() {
-    return this.ruleSet === RuleSet._8Ball;
-  }
-
-  public get is9Ball() {
-    return this.ruleSet === RuleSet._9Ball;
   }
 
   public hasOutOfBoundsBall() {
@@ -115,6 +159,7 @@ export class TableState {
       ruleSet: this.ruleSet,
       isBreak: this.isBreak,
       balls: this.balls.map((b) => b.serialize()),
+      eightBallState: this.eightBallState,
     } satisfies SerializedTableState;
   }
 

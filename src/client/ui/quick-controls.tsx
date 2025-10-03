@@ -18,7 +18,7 @@ export const QuickControls = () => {
   const [resettingCamera, setResettingCamera] = useState(false);
 
   const onShoot = () => {
-    Game.instance.controller.shoot();
+    Game.instance.controller.uiShoot();
   };
 
   useEffect(() => {

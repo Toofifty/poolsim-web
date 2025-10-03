@@ -36,6 +36,7 @@ export const Preferences = () => {
     ortho,
     highDetail,
     highlightTargetBalls,
+    physicsGuidelines,
     // debug
     lockCue,
     pauseSimulation,
@@ -93,6 +94,12 @@ export const Preferences = () => {
               onChange={(e) =>
                 (settings.highlightTargetBalls = e.target.checked)
               }
+            />
+          </Item>
+          <Item title="Show physics state in guidelines">
+            <Checkbox
+              checked={physicsGuidelines}
+              onChange={(e) => (settings.physicsGuidelines = e.target.checked)}
             />
           </Item>
           <Title mt="lg" order={3}>

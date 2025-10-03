@@ -216,7 +216,7 @@ export class OnlineGameController extends BaseGameController {
   public startGame(): void {
     if (!this.isHost) return;
 
-    this.state.isBreak = true;
+    this.state.reset();
     this.setPlayState(
       Math.random() > 0.5 ? PlayState.PlayerShoot : PlayState.OpponentShoot
     );

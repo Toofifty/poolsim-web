@@ -195,6 +195,6 @@ export class AI {
       return 200 - result.collisions.length;
     }
 
-    return result.ballsPotted * 100 - result.collisions.length;
+    return result.ballsPotted.length * 100 - result.collisions.length;
   }
 }

@@ -1,4 +1,3 @@
-import { Button } from '@mantine/core';
 import { useEffect } from 'react';
 import { useSnapshot } from 'valtio';
 import { params as staticParams } from '../../common/simulation/physics';
@@ -10,7 +9,7 @@ import { useMouseInputs } from './use-mouse-inputs';
 
 export const PowerBar = () => {
   const { cueForce } = useSnapshot(gameStore);
-  const { controlMode, distanceBasedPower } = useSnapshot(settings);
+  const { controlMode } = useSnapshot(settings);
 
   // todo: useSnapshot(params);
   const params = staticParams;
@@ -35,24 +34,14 @@ export const PowerBar = () => {
   }, []);
 
   return (
-    <>
-      {controlMode === 'cursor' && (
-        <Button
-          variant={distanceBasedPower ? 'filled' : 'default'}
-          onClick={() => (settings.distanceBasedPower = !distanceBasedPower)}
-        >
-          Auto
-        </Button>
-      )}
-      <div className="power-bar">
-        <div className="power-bar__click-area" {...props}>
-          <div
-            className="power-bar__current-power"
-            style={{ width: `${(cueForce / params.cue.maxForce) * 100}%` }}
-          />
-          <span className="power-bar__power-num">{cueForce.toFixed(2)}m/s</span>
-        </div>
+    <div className="power-bar">
+      <div className="power-bar__click-area" {...props}>
+        <div
+          className="power-bar__current-power"
+          style={{ width: `${(cueForce / params.cue.maxForce) * 100}%` }}
+        />
+        <span className="power-bar__power-num">{cueForce.toFixed(2)}m/s</span>
       </div>
-    </>
+    </div>
   );
 };

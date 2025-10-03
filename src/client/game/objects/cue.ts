@@ -2,12 +2,10 @@ import { Mesh, Object3D, Vector3 } from 'three';
 import { vec, type Vec } from '../../../common/math';
 import { defaultParams, type Params } from '../../../common/simulation/physics';
 import { Shot } from '../../../common/simulation/shot';
-import { constrain } from '../../../common/util';
 import { dlerp, dlerpAngle } from '../dlerp';
 import { Game } from '../game';
 import { createCueMeshes } from '../models/cue/create-cue-meshes';
 import { gameStore } from '../store/game';
-import { settings } from '../store/settings';
 import { makeTheme } from '../store/theme';
 import { subscribeTo } from '../util/subscribe';
 import type { Ball } from './ball';
@@ -106,11 +104,6 @@ export class Cue {
     const angle = Math.atan2(point[1] - position[1], point[0] - position[0]);
     this.anchor.rotation.z = angle - Math.PI / 2;
     this.object.position.y = this.restingPositionY;
-
-    if (settings.distanceBasedPower) {
-      const dist = vec.dist(position, point);
-      this.force = constrain(dist * 2, 0, this.params.cue.maxForce);
-    }
   }
 
   public get position() {

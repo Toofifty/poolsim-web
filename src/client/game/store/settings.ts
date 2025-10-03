@@ -28,7 +28,6 @@ export const settings = proxy({
     highDetail: false,
     ortho: false,
     highlightTargetBalls: true,
-    distanceBasedPower: true,
 
     canvasEnabled: true,
     debugLights: false,

@@ -36,7 +36,6 @@ export const Preferences = () => {
     ortho,
     highDetail,
     highlightTargetBalls,
-    distanceBasedPower,
     // debug
     lockCue,
     pauseSimulation,
@@ -94,12 +93,6 @@ export const Preferences = () => {
               onChange={(e) =>
                 (settings.highlightTargetBalls = e.target.checked)
               }
-            />
-          </Item>
-          <Item title="Auto shot power">
-            <Checkbox
-              checked={distanceBasedPower}
-              onChange={(e) => (settings.distanceBasedPower = e.target.checked)}
             />
           </Item>
           <Title mt="lg" order={3}>

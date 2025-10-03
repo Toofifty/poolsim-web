@@ -33,6 +33,7 @@ import {
   SSAOPass,
   SSRPass,
 } from 'three/examples/jsm/Addons.js';
+import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
 import { subscribe } from 'valtio';
 import type { Vec } from '../../common/math';
 import { type Params } from '../../common/simulation/physics';
@@ -112,7 +113,7 @@ export class Game {
         -frustumHeight / 2
       );
     } else {
-      this.camera = new PerspectiveCamera(50, aspect, 0.1, 400);
+      this.camera = new PerspectiveCamera(50, aspect, 0.01, 10);
     }
 
     this.camera.position.z = 2;
@@ -148,11 +149,13 @@ export class Game {
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
 
-    const ssao = new SSAOPass(this.scene, this.camera);
-    ssao.kernelRadius = 1;
-    ssao.minDistance = 0.001;
-    ssao.maxDistance = 0.1;
-    this.composer.addPass(ssao);
+    if (settings.detail !== GraphicsDetail.Low) {
+      const ssao = new SSAOPass(this.scene, this.camera);
+      ssao.kernelRadius = 0.01;
+      ssao.minDistance = 0.001;
+      ssao.maxDistance = 0.01;
+      this.composer.addPass(ssao);
+    }
 
     if (settings.detail === GraphicsDetail.High) {
       const ssr = new SSRPass({
@@ -184,6 +187,10 @@ export class Game {
     this.composer.addPass(this.outlinePass);
 
     this.composer.addPass(new OutputPass());
+
+    if (settings.detail !== GraphicsDetail.Low) {
+      this.composer.addPass(new FXAAPass());
+    }
 
     this.mouseRaycaster = new Raycaster();
     Game.debug = new Debug();

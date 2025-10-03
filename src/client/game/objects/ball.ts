@@ -21,6 +21,7 @@ import { toQuaternion, toVector3 } from '../util/three-interop';
 import { Arrow } from './arrow';
 import { BallDebug } from './ball-debug';
 import { BallHighlight } from './ball-highlight';
+import { BallFirstContact } from './util/ball-first-contact';
 
 export type BallProto = {
   id: number;
@@ -56,7 +57,9 @@ export class Ball {
   private trackingLine?: Line2;
   private geometry!: BufferGeometry;
   private projectionMaterial!: Material;
+
   private impactArrow!: Arrow;
+  private firstContact?: BallFirstContact;
 
   public highlight: BallHighlight;
   private debug: BallDebug;
@@ -74,6 +77,10 @@ export class Ball {
     this.highlight.update();
     this.debug = new BallDebug(this);
     this.debug.update();
+
+    if (id === 0) {
+      this.firstContact = new BallFirstContact(this);
+    }
 
     this.createMesh();
     this.updateMesh();
@@ -179,6 +186,7 @@ export class Ball {
 
   public sync() {
     this.updateMesh();
+    this.firstContact?.update();
     this.highlight.update();
     this.impactArrow.update();
     this.debug.update();
@@ -195,20 +203,32 @@ export class Ball {
     // ball collision projections
     this.projectionMeshes.forEach((mesh) => Game.remove(mesh));
     this.projectionMeshes = [];
-    for (let i = 0; i < this.collisionPoints.length; i++) {
-      const position = this.collisionPoints[i];
-      const orientation = this.collisionOrientations[i];
-      const material =
-        this.invalidCollision && i === this.collisionPoints.length - 1
-          ? INVALID_PROJECTION_MATERIAL
-          : this.projectionMaterial;
-
-      const mesh = new Mesh(this.geometry, material);
-      mesh.position.copy(toVector3(position));
-      mesh.rotation.setFromQuaternion(toQuaternion(orientation));
-      this.projectionMeshes.push(mesh);
+    if (this.firstContact) {
+      this.firstContact.visible = false;
     }
-    this.projectionMeshes.forEach((mesh) => Game.add(mesh));
+
+    if (this.firstContact && this.collisionPoints.length === 1) {
+      // first contact ring
+      const point = this.collisionPoints[0];
+      this.firstContact.setPosition(point);
+      this.firstContact.setInvalid(this.invalidCollision);
+      this.firstContact.visible = true;
+    } else {
+      for (let i = 0; i < this.collisionPoints.length; i++) {
+        const position = this.collisionPoints[i];
+        const orientation = this.collisionOrientations[i];
+        const material =
+          this.invalidCollision && i === this.collisionPoints.length - 1
+            ? INVALID_PROJECTION_MATERIAL
+            : this.projectionMaterial;
+
+        const mesh = new Mesh(this.geometry, material);
+        mesh.position.copy(toVector3(position));
+        mesh.rotation.setFromQuaternion(toQuaternion(orientation));
+        this.projectionMeshes.push(mesh);
+        this.projectionMeshes.forEach((mesh) => Game.add(mesh));
+      }
+    }
 
     // ball tracking line
     if (this.trackingLine) {
@@ -219,7 +239,7 @@ export class Ball {
 
     if (this.trackingPoints.length > 1) {
       this.trackingLine = createPathMesh(this.trackingPoints, this.color);
-      Game.add(this.trackingLine);
+      Game.add(this.trackingLine, { outline: true });
     }
   }
 
@@ -230,6 +250,8 @@ export class Ball {
       Game.dispose(this.trackingLine);
     }
 
+    this.firstContact?.dispose();
+    this.impactArrow.dispose();
     this.highlight.dispose();
     this.debug.dispose();
 

@@ -1,5 +1,8 @@
 import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from 'three';
-import { TypedEventTarget } from 'typescript-event-target';
+import {
+  TypedEventTarget,
+  type TypedEventListenerOrEventListenerObject,
+} from 'typescript-event-target';
 import { vec, type Vec } from '../../../common/math';
 import type { Collision } from '../../../common/simulation/collision';
 import {
@@ -11,6 +14,7 @@ import { Result } from '../../../common/simulation/result';
 import { Simulation } from '../../../common/simulation/simulation';
 import {
   EightBallState,
+  Player,
   TableState,
 } from '../../../common/simulation/table-state';
 import { createCushions } from '../factory/cushion';
@@ -41,6 +45,7 @@ export enum PlayState {
 }
 
 export type GameControllerEventMap = {
+  // for network
   ['setup-table']: CustomEvent<{ rack: BallProto[]; ruleSet: RuleSet }>;
   ['reset-cue-ball']: Event;
   ['set-game-state']: Event;
@@ -48,7 +53,16 @@ export type GameControllerEventMap = {
   ['update-ball-in-hand']: Event;
   ['update-cue']: Event;
   ['shoot']: Event;
+
+  // for UI
+  ['8-ball-state-change']: CustomEvent<{
+    state: EightBallState;
+    isPlayer1: boolean;
+  }>;
 };
+
+export type GameEventListener<K extends keyof GameControllerEventMap> =
+  TypedEventListenerOrEventListenerObject<GameControllerEventMap, K>;
 
 export interface GameController
   extends TypedEventTarget<GameControllerEventMap> {
@@ -457,7 +471,11 @@ export abstract class BaseGameController
   }
 
   protected shouldHighlightTargetBalls() {
-    return false;
+    return (
+      settings.highlightTargetBalls &&
+      (this.playState === PlayState.PlayerShoot ||
+        this.playState === PlayState.PlayerBallInHand)
+    );
   }
 
   public update(dt: number): void {
@@ -500,18 +518,56 @@ export abstract class BaseGameController
     }
   }
 
+  protected update8BallState() {
+    if (
+      this.state.ruleSet === RuleSet._8Ball &&
+      !this.state.isBreak &&
+      this.state.eightBallState === EightBallState.Open &&
+      !this.simulationResult.hasFoul()
+    ) {
+      let pottedSolid = false;
+      let pottedStripe = false;
+      this.simulationResult.ballsPotted.forEach((id) => {
+        if (id < 8) pottedSolid = true;
+        if (id > 8) pottedStripe = true;
+      });
+      const isPlayer1 = this.state.currentPlayer === Player.One;
+      if (pottedSolid && !pottedStripe) {
+        this.state.eightBallState = isPlayer1
+          ? EightBallState.Player1Solids
+          : EightBallState.Player1Stripes;
+        this.dispatchTypedEvent(
+          '8-ball-state-change',
+          new CustomEvent('8-ball-state-change', {
+            detail: {
+              state: this.state.eightBallState,
+              isPlayer1,
+            },
+          })
+        );
+      } else if (!pottedSolid && pottedStripe) {
+        this.state.eightBallState = isPlayer1
+          ? EightBallState.Player1Stripes
+          : EightBallState.Player1Solids;
+        this.dispatchTypedEvent(
+          '8-ball-state-change',
+          new CustomEvent('8-ball-state-change', {
+            detail: {
+              state: this.state.eightBallState,
+              isPlayer1,
+            },
+          })
+        );
+      }
+    }
+  }
+
   /**
    * Determine whether or not to switch turns.
    *
    * Will also assign stripes/solids for 8-ball if appropriate
    */
   protected shouldSwitchTurn(): boolean {
-    if (
-      this.state.ruleSet === RuleSet._8Ball &&
-      this.state.eightBallState === EightBallState.Open
-    ) {
-    }
-
     return (
       this.simulationResult.hasFoul() ||
       this.simulationResult.ballsPotted.length === 0

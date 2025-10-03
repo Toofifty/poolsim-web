@@ -57,9 +57,6 @@ export class AimAssist {
     const initialSnapshots = state.balls.map((ball) => ball.snapshot());
 
     await (profiler ?? Profiler.none).profile('aim-update', async () => {
-      this.clear();
-      this.lastShotKey = shot.key;
-
       const result = await this.simulation.run({
         shot,
         state,
@@ -69,12 +66,17 @@ export class AimAssist {
         stopAtFirstBallContact: firstBallContact,
       });
 
+      this.clear();
+      this.lastShotKey = shot.key;
       const hasFoul = result.hasFoul();
 
       if (firstContact) {
+        // first cue ball collision
         const firstCollision = result.collisions.find(
           (collision) =>
-            collision.type === 'ball-ball' || collision.type === 'ball-cushion'
+            collision.initiator.id === 0 &&
+            (collision.type === 'ball-ball' ||
+              collision.type === 'ball-cushion')
         );
         if (
           firstCollision &&
@@ -171,6 +173,10 @@ export class AimAssist {
           this.ballMap
             .get(ball.id)!
             .addCollisionPoint(snapshot.position, snapshot.orientation);
+        }
+
+        if (i === 0 && firstBallContact) {
+          this.ballMap.get(ball.id)!.invalidCollision = hasFoul;
         }
       });
     });

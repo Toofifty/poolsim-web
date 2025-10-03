@@ -4,7 +4,6 @@ import {
   LineGeometry,
   LineMaterial,
 } from 'three/examples/jsm/Addons.js';
-import { defaultParams } from '../../../../common/simulation/physics';
 import { BallState } from '../../../../common/simulation/physics/ball';
 import { settings } from '../../store/settings';
 
@@ -36,10 +35,6 @@ export const getColor = (state: BallState) => {
 const material = new LineMaterial({
   linewidth: 4,
   vertexColors: true,
-  dashed: true,
-  dashScale: 50,
-  transparent: true,
-  opacity: defaultParams.ball.projectionOpacity,
 });
 
 export type TrackingPoint = { position: Vector3; state: BallState };

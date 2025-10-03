@@ -59,11 +59,11 @@ const theme = createTheme({
   },
 });
 
-if (settings.detail !== GraphicsDetail.High) {
+if (settings.detail === GraphicsDetail.Low) {
   document.body.classList.add('no-blur');
 }
 subscribe(settings, () => {
-  if (settings.detail !== GraphicsDetail.High) {
+  if (settings.detail === GraphicsDetail.Low) {
     document.body.classList.add('no-blur');
   } else {
     document.body.classList.remove('no-blur');

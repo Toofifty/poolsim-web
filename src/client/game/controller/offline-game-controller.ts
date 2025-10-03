@@ -59,7 +59,7 @@ export class OfflineGameController extends BaseGameController {
       }
     });
 
-    this.setup9Ball();
+    this.setup8Ball();
     this.startGame();
   }
 
@@ -134,6 +134,8 @@ export class OfflineGameController extends BaseGameController {
       return;
     }
 
+    this.update8BallState();
+
     if (settings.players === Players.PlayerVsPlayer) {
       switch (this.playState) {
         case PlayState.PlayerInPlay:
@@ -202,9 +204,5 @@ export class OfflineGameController extends BaseGameController {
 
   protected shouldShowAimAssist(): boolean {
     return this.params.game.aimAssist !== AimAssistMode.Off;
-  }
-
-  protected shouldHighlightTargetBalls(): boolean {
-    return settings.highlightTargetBalls;
   }
 }

@@ -1,6 +1,14 @@
 import type { TypedEventListenerOrEventListenerObject } from 'typescript-event-target';
-import { AimAssistMode, type Params } from '../../../common/simulation/physics';
-import type { SerializedTableState } from '../../../common/simulation/table-state';
+import {
+  AimAssistMode,
+  RuleSet,
+  type Params,
+} from '../../../common/simulation/physics';
+import {
+  EightBallState,
+  Player,
+  type SerializedTableState,
+} from '../../../common/simulation/table-state';
 import { assert } from '../../../common/util';
 import { Game } from '../game';
 import type {
@@ -8,11 +16,10 @@ import type {
   NetworkEventMap,
 } from '../network/network-adapter';
 import { gameStore } from '../store/game';
-import { settings } from '../store/settings';
 import {
   BaseGameController,
   PlayState,
-  type GameControllerEventMap,
+  type GameEventListener,
 } from './game-controller';
 import type { InputController } from './input-controller';
 
@@ -21,10 +28,7 @@ export type SerializedOnlineGameState = {
   state: SerializedTableState;
 };
 
-type GameEventListener<K extends keyof GameControllerEventMap> =
-  TypedEventListenerOrEventListenerObject<GameControllerEventMap, K>;
-
-type NetworkEventListener<K extends keyof NetworkEventMap> =
+export type NetworkEventListener<K extends keyof NetworkEventMap> =
   TypedEventListenerOrEventListenerObject<NetworkEventMap, K>;
 
 export class OnlineGameController extends BaseGameController {
@@ -37,10 +41,12 @@ export class OnlineGameController extends BaseGameController {
 
     this.connect();
 
-    setTimeout(() => {
-      this.setup9Ball();
-      this.startGame();
-    }, 5000);
+    if (this.isHost) {
+      setTimeout(() => {
+        this.setup9Ball();
+        this.startGame();
+      }, 1000);
+    }
   }
 
   private connect() {
@@ -147,7 +153,7 @@ export class OnlineGameController extends BaseGameController {
 
   private onNetworkSetGameState: NetworkEventListener<'set-game-state'> = ({
     detail,
-  }) => this.setGameState(detail);
+  }) => this.syncGameState(detail);
 
   private onGamePlaceBallInHand: GameEventListener<'place-ball-in-hand'> = ({
     detail: ball,
@@ -210,7 +216,7 @@ export class OnlineGameController extends BaseGameController {
   // end listeners
 
   private get isHost() {
-    return this.adapter.isHost;
+    return this.adapter?.isHost ?? false;
   }
 
   public startGame(): void {
@@ -234,16 +240,28 @@ export class OnlineGameController extends BaseGameController {
   }
 
   protected setPlayState(state: PlayState, noEmit = false): void {
+    if (this.isHost) {
+      // update player in table state before emitting
+      if (
+        state === PlayState.OpponentBallInHand ||
+        state === PlayState.OpponentShoot
+      ) {
+        this.state.currentPlayer = Player.Two;
+      }
+      if (
+        state === PlayState.PlayerBallInHand ||
+        state === PlayState.PlayerShoot
+      ) {
+        this.state.currentPlayer = Player.One;
+      }
+    }
+
     super.setPlayState(state, noEmit);
     gameStore.state = state;
   }
 
   protected shouldShowAimAssist(): boolean {
     return this.params.game.aimAssist !== AimAssistMode.Off;
-  }
-
-  protected shouldHighlightTargetBalls(): boolean {
-    return settings.highlightTargetBalls;
   }
 
   protected updateState(): void {
@@ -267,31 +285,37 @@ export class OnlineGameController extends BaseGameController {
       return;
     }
 
+    this.update8BallState();
+
     switch (this.playState) {
       case PlayState.PlayerInPlay:
         this.state.isBreak = false;
         if (this.shouldPutBallInHand()) {
+          this.cue.reset();
           this.setPlayState(PlayState.OpponentBallInHand);
           break;
         }
-        this.setPlayState(
-          this.shouldSwitchTurn()
-            ? PlayState.OpponentShoot
-            : PlayState.PlayerShoot
-        );
+        if (this.shouldSwitchTurn()) {
+          this.cue.reset();
+          this.setPlayState(PlayState.OpponentShoot);
+        } else {
+          this.setPlayState(PlayState.PlayerShoot);
+        }
         break;
       case PlayState.OpponentInPlay:
         this.state.isBreak = false;
         if (this.shouldPutBallInHand()) {
           this.putBallInHand();
+          this.cue.reset();
           this.setPlayState(PlayState.PlayerBallInHand);
           break;
         }
-        this.setPlayState(
-          this.shouldSwitchTurn()
-            ? PlayState.PlayerShoot
-            : PlayState.OpponentShoot
-        );
+        if (this.shouldSwitchTurn()) {
+          this.cue.reset();
+          this.setPlayState(PlayState.PlayerShoot);
+        } else {
+          this.setPlayState(PlayState.OpponentShoot);
+        }
         break;
       case PlayState.PlayerBallInHand:
         if (!this.ballInHand) {
@@ -327,7 +351,23 @@ export class OnlineGameController extends BaseGameController {
     }
   }
 
-  private setGameState({ playState, state }: SerializedOnlineGameState) {
+  private syncGameState({ playState, state }: SerializedOnlineGameState) {
+    if (
+      this.state.ruleSet === RuleSet._8Ball &&
+      this.state.eightBallState === EightBallState.Open &&
+      state.eightBallState !== EightBallState.Open
+    ) {
+      this.dispatchTypedEvent(
+        '8-ball-state-change',
+        new CustomEvent('8-ball-state-change', {
+          detail: {
+            state: state.eightBallState,
+            isPlayer1: false,
+          },
+        })
+      );
+    }
+
     this.setPlayState(this.invertPlayState(playState));
     this.state.sync(state);
     if (this.playState === PlayState.PlayerBallInHand) {

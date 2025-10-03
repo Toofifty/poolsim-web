@@ -3,7 +3,7 @@ import { params } from '../../common/simulation/physics';
 import type { BallProto } from './objects/ball';
 import { makeTheme } from './store/theme';
 
-const gap = 0;
+const gap = params.ball.radius / 10;
 const tipX = params.table.length / 4;
 const tipY = 0;
 

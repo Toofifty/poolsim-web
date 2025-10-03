@@ -13,32 +13,9 @@ import {
   RuleSet,
   type StaticParams,
 } from '../../common/simulation/physics';
+import { getAimAssistName, getRuleSetName } from '../util/enums';
 import type { DeepKeyOf } from '../util/types';
 import './param-editor.scss';
-
-const getRuleSetName = (ruleSet: RuleSet) => {
-  switch (ruleSet) {
-    case RuleSet._8Ball:
-      return '8 Ball';
-    case RuleSet._9Ball:
-      return '9 Ball';
-    case RuleSet.Debug:
-      return 'Debug';
-  }
-};
-
-const getAimAssistName = (aimAssist: AimAssistMode) => {
-  switch (aimAssist) {
-    case AimAssistMode.Off:
-      return 'Off';
-    case AimAssistMode.FirstContact:
-      return 'First contact';
-    case AimAssistMode.FirstBallContact:
-      return 'First ball contact';
-    case AimAssistMode.Full:
-      return 'Full';
-  }
-};
 
 const Item = ({ title, children }: { title: string; children: ReactNode }) => (
   <Flex gap="lg" justify="space-between" align="center" mb="sm">

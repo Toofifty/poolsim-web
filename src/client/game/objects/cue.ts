@@ -106,6 +106,13 @@ export class Cue {
     this.object.position.y = this.restingPositionY;
   }
 
+  public reset() {
+    this.topSpin = 0;
+    this.sideSpin = 0;
+    this.lift = 0;
+    this.force = this.params.cue.defaultForce;
+  }
+
   public get position() {
     return this.targetBall?.physics.position ?? vec.zero;
   }

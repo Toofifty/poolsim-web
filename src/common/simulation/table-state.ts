@@ -23,6 +23,7 @@ export type SerializedTableState = {
   balls: SerializedPhysicsBall[];
   ruleSet: RuleSet;
   isBreak: boolean;
+  currentPlayer: Player;
   eightBallState: EightBallState;
 };
 export type FullSerializedTableState = SerializedTableState & {
@@ -50,7 +51,7 @@ export class TableState {
    * inverted on non-hosts, and is also used the
    * same for local (or vs AI) games
    */
-  public currentPlayer: Player;
+  public currentPlayer: Player = Player.One;
 
   constructor(
     balls: PhysicsBall[],
@@ -58,15 +59,16 @@ export class TableState {
     pockets: PhysicsPocket[],
     ruleSet: RuleSet,
     isBreak = true,
-    eightBallState: EightBallState = EightBallState.Open
+    eightBallState: EightBallState = EightBallState.Open,
+    currentPlayer: Player = Player.One
   ) {
-    this.currentPlayer = Math.random() > 0.5 ? Player.One : Player.Two;
     this.balls = balls;
     this.cushions = cushions;
     this.pockets = pockets;
     this.ruleSet = ruleSet;
     this.isBreak = isBreak;
     this.eightBallState = isBreak ? EightBallState.Open : eightBallState;
+    this.currentPlayer = currentPlayer;
   }
 
   public reset() {
@@ -81,7 +83,8 @@ export class TableState {
       this.pockets,
       this.ruleSet,
       this.isBreak,
-      this.eightBallState
+      this.eightBallState,
+      this.currentPlayer
     );
   }
 
@@ -123,6 +126,14 @@ export class TableState {
     return indices.map((i) => this.balls[i]?.id);
   }
 
+  private get activeSolidBalls() {
+    return this.activeBalls.filter((ball) => ball.id !== 0 && ball.id < 8);
+  }
+
+  private get activeStripeBalls() {
+    return this.activeBalls.filter((ball) => ball.id !== 0 && ball.id > 8);
+  }
+
   public getTargetableBalls(): Set<number> {
     if (this.ruleSet === RuleSet._9Ball) {
       return new Set([this.lowestActiveBallId]);
@@ -145,9 +156,33 @@ export class TableState {
             .filter((v) => v !== undefined)
         );
       }
+
+      if (
+        (this.currentPlayer === Player.One) ===
+        (this.eightBallState === EightBallState.Player1Solids)
+      ) {
+        // solids
+        const balls = this.activeSolidBalls;
+        return balls.length > 0
+          ? new Set(balls.map((ball) => ball.id))
+          : new Set([8]);
+      }
+
+      if (
+        (this.currentPlayer === Player.One) ===
+        (this.eightBallState === EightBallState.Player1Stripes)
+      ) {
+        // stripes
+        const balls = this.activeStripeBalls;
+        return balls.length > 0
+          ? new Set(balls.map((ball) => ball.id))
+          : new Set([8]);
+      }
     }
 
-    return new Set();
+    return new Set(
+      this.activeBalls.filter((ball) => ball.id !== 0).map((ball) => ball.id)
+    );
   }
 
   public hasOutOfBoundsBall() {
@@ -160,6 +195,7 @@ export class TableState {
       isBreak: this.isBreak,
       balls: this.balls.map((b) => b.serialize()),
       eightBallState: this.eightBallState,
+      currentPlayer: this.currentPlayer,
     } satisfies SerializedTableState;
   }
 
@@ -177,6 +213,8 @@ export class TableState {
     this.balls.forEach((ball, i) => {
       ball.sync(state.balls[i], this.pockets);
     });
+    this.eightBallState = state.eightBallState;
+    this.currentPlayer = state.currentPlayer;
   }
 
   public syncFull(state: FullSerializedTableState) {

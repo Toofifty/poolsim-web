@@ -18,6 +18,8 @@ export class AimAssist {
   private balls: Ball[] = [];
   private ballMap: Map<number, Ball> = new Map();
 
+  private calculating = false;
+
   constructor(private params: Params) {
     this.simulation = params.simulation.useWorkerForAimAssist
       ? new ThreadedSimulation()
@@ -36,9 +38,9 @@ export class AimAssist {
     });
   }
 
-  public clear() {
+  public clear(keepShotKey = false) {
     if (this.lastShotKey === 0n) return;
-    this.lastShotKey = 0n;
+    if (!keepShotKey) this.lastShotKey = 0n;
     this.balls.forEach((ball) => {
       ball.clearCollisionPoints();
       ball.clearImpactArrow();
@@ -47,9 +49,15 @@ export class AimAssist {
   }
 
   public async update(shot: Shot, state: TableState) {
-    if (this.lastShotKey === shot.key || this.mode === AimAssistMode.Off) {
+    if (
+      this.calculating ||
+      this.lastShotKey === shot.key ||
+      this.mode === AimAssistMode.Off
+    ) {
       return;
     }
+    this.calculating = true;
+    this.lastShotKey = shot.key;
 
     const firstContact = this.mode === AimAssistMode.FirstContact;
     const firstBallContact = this.mode === AimAssistMode.FirstBallContact;
@@ -66,8 +74,7 @@ export class AimAssist {
         stopAtFirstBallContact: firstBallContact,
       });
 
-      this.clear();
-      this.lastShotKey = shot.key;
+      this.clear(true);
       const hasFoul = result.hasFoul();
 
       if (firstContact) {
@@ -179,6 +186,7 @@ export class AimAssist {
           this.ballMap.get(ball.id)!.invalidCollision = hasFoul;
         }
       });
+      this.calculating = false;
     });
     profiler?.dump();
   }

@@ -366,7 +366,7 @@ export abstract class BaseGameController
   private playCollisionSounds(collisions: Collision[]) {
     let soundsPlayed = 0;
     collisions.forEach((collision) => {
-      if (collision.type === 'ball-ball' && soundsPlayed < 3) {
+      if (collision.type === 'ball-ball' && soundsPlayed < 1) {
         Game.audio.play(
           'clack_mid',
           toVector3(collision.position),

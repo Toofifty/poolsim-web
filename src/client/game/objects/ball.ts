@@ -218,7 +218,9 @@ export class Ball {
         const position = this.collisionPoints[i];
         const orientation = this.collisionOrientations[i];
         const material =
-          this.invalidCollision && i === this.collisionPoints.length - 1
+          this.invalidCollision &&
+          this.id === 0 &&
+          i === this.collisionPoints.length - 1
             ? INVALID_PROJECTION_MATERIAL
             : this.projectionMaterial;
 

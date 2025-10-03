@@ -3,7 +3,9 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './index.css';
+import { subscribe } from 'valtio';
+import { GraphicsDetail, settings } from './game/store/settings.ts';
+import './index.scss';
 import { Router } from './router.tsx';
 import './ui/button.scss';
 import './ui/notifications.scss';
@@ -55,6 +57,17 @@ const theme = createTheme({
       },
     },
   },
+});
+
+if (settings.detail !== GraphicsDetail.High) {
+  document.body.classList.add('no-blur');
+}
+subscribe(settings, () => {
+  if (settings.detail !== GraphicsDetail.High) {
+    document.body.classList.add('no-blur');
+  } else {
+    document.body.classList.remove('no-blur');
+  }
 });
 
 createRoot(document.getElementById('root')!).render(

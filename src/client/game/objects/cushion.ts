@@ -15,7 +15,7 @@ import { createCushionGeometry } from '../models/cushion/create-cushion-geometry
 import { getControlPoints } from '../models/cushion/get-control-points';
 import { createTableClothNormalTexture } from '../models/table/create-table-cloth-texture';
 import { createMaterial } from '../rendering/create-material';
-import { settings } from '../store/settings';
+import { GraphicsDetail, settings } from '../store/settings';
 import { themed } from '../store/theme';
 import { snapshot, subscribe } from '../util/subscribe';
 import { toVector3 } from '../util/three-interop';
@@ -93,7 +93,7 @@ export class Cushion extends Object3D {
       this.mesh = new Mesh(
         geometry,
         createMaterial({
-          normalMap: settings.highDetail ? normalMap : null,
+          normalMap: settings.detail === GraphicsDetail.High ? normalMap : null,
           color: theme.table.colorCloth,
           roughness: 1,
           metalness: 0,

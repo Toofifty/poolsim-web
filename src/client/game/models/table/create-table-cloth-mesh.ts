@@ -2,7 +2,7 @@ import { ExtrudeGeometry, Mesh, Path } from 'three';
 import type { Params } from '../../../../common/simulation/physics';
 import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
-import { settings } from '../../store/settings';
+import { GraphicsDetail, settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
 import { subscribeTo } from '../../util/subscribe';
 import { createRoundedRectShape, fixUVs } from '../util';
@@ -57,9 +57,10 @@ export const createTableClothMesh = (
     geometry,
     createMaterial({
       map: createTableClothTexture(params, theme),
-      normalMap: settings.highDetail
-        ? createTableClothNormalTexture(params)
-        : null,
+      normalMap:
+        settings.detail === GraphicsDetail.High
+          ? createTableClothNormalTexture(params)
+          : null,
       roughness: 1,
       metalness: 0,
       sheen: 1,

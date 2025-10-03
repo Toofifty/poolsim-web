@@ -1,8 +1,19 @@
 import { CanvasTexture, Color, SRGBColorSpace } from 'three';
-import { settings } from '../../store/settings';
+import { GraphicsDetail, settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
 
 const hex = (color: Color) => '#' + color.getHexString();
+
+const getTextureSize = () => {
+  switch (settings.detail) {
+    case GraphicsDetail.High:
+      return 256;
+    case GraphicsDetail.Medium:
+      return 128;
+    case GraphicsDetail.Low:
+      return 32;
+  }
+};
 
 export function createBallTexture(
   theme: ThemeObject,
@@ -14,7 +25,7 @@ export function createBallTexture(
     number: number;
   }
 ): CanvasTexture {
-  const tsize = settings.highDetail ? 256 : 128;
+  const tsize = getTextureSize();
 
   const canvas = document.createElement('canvas');
   canvas.width = tsize * 2;
@@ -77,7 +88,7 @@ export function createBallTexture(
     ctx.font = `bold ${tsize / 5}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const offsetY = settings.highDetail ? 4 : 1;
+    const offsetY = settings.detail === GraphicsDetail.High ? 4 : 1;
     for (let k = 0; k < 2; k++) {
       ctx.fillText(String(number), tsize / 2 + k * tsize, tsize / 2 + offsetY);
     }

@@ -5,15 +5,25 @@ import {
   type Color,
 } from 'three';
 import { params, type Params } from '../../../../common/simulation/physics';
-import { settings } from '../../store/settings';
+import { GraphicsDetail, settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
 
 const hex = (color: Color) => '#' + color.getHexString();
 
+const getScale = () => {
+  switch (settings.detail) {
+    case GraphicsDetail.High:
+      return 2000;
+    case GraphicsDetail.Medium:
+      return 500;
+    case GraphicsDetail.Low:
+      return 250;
+  }
+};
+
 export const createTableClothTexture = (params: Params, theme: ThemeObject) => {
   const { table, pocket } = params;
-
-  const scale = settings.highDetail ? 2000 : 500;
+  const scale = getScale();
 
   const tableLength = table.length * scale;
   const tableWidth = table.width * scale;
@@ -135,8 +145,7 @@ export const createTableClothNormalTexture = (
   height?: number
 ) => {
   const { table, pocket } = params;
-
-  const scale = settings.highDetail ? 2000 : 1000;
+  const scale = 1000;
   const tableLength = table.length * scale;
   const tableWidth = table.width * scale;
   const pocketCornerRadius = pocket.corner.radius * scale;

@@ -4,6 +4,7 @@ import {
   AmbientLight,
   Camera,
   Clock,
+  Color,
   MathUtils,
   Mesh,
   MOUSE,
@@ -23,6 +24,7 @@ import {
 import {
   EffectComposer,
   OrbitControls,
+  OutlinePass,
   OutputPass,
   RectAreaLightHelper,
   RectAreaLightUniformsLib,
@@ -43,7 +45,8 @@ import { OnlineGameController } from './controller/online-game-controller';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
-import { settings } from './store/settings';
+import { BlackOutlinePass } from './rendering/black-outline-pass';
+import { GraphicsDetail, settings } from './store/settings';
 import { makeTheme } from './store/theme';
 import { toVector2 } from './util/three-interop';
 
@@ -51,8 +54,11 @@ export class Game {
   // rendering
   public scene!: Scene;
   public overlay!: Scene;
+  public outlinedOverlays: Set<Object3D> = new Set();
   public renderer!: WebGLRenderer;
   public composer!: EffectComposer;
+  public overlayComposer!: EffectComposer;
+  public outlinePass!: OutlinePass;
   public camera!: Camera;
   public controls!: OrbitControls;
   public stats!: Stats;
@@ -114,13 +120,16 @@ export class Game {
     this.camera.lookAt(0, 0, 0);
 
     this.renderer = new WebGLRenderer({ antialias: true });
-    this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = PCFSoftShadowMap;
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.toneMapping = ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.5;
     this.renderer.autoClear = false;
+
+    if (settings.detail !== GraphicsDetail.Low) {
+      this.renderer.setPixelRatio(window.devicePixelRatio);
+      this.renderer.shadowMap.type = PCFSoftShadowMap;
+    }
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.maxPolarAngle = Math.PI / 2;
@@ -143,11 +152,9 @@ export class Game {
     ssao.kernelRadius = 1;
     ssao.minDistance = 0.001;
     ssao.maxDistance = 0.1;
-
-    // ssao.output = SSAOPass.OUTPUT.Blur;
     this.composer.addPass(ssao);
 
-    if (settings.highDetail) {
+    if (settings.detail === GraphicsDetail.High) {
       const ssr = new SSRPass({
         renderer: this.renderer,
         scene: this.scene,
@@ -160,6 +167,22 @@ export class Game {
 
       this.composer.addPass(ssr);
     }
+
+    const overlayRender = new RenderPass(this.overlay, this.camera);
+    overlayRender.clear = false;
+    this.composer.addPass(overlayRender);
+
+    this.outlinePass = new BlackOutlinePass(
+      new Vector2(window.innerWidth, window.innerHeight),
+      this.overlay,
+      this.camera
+    );
+    this.outlinePass.visibleEdgeColor = new Color(0x000000);
+    this.outlinePass.hiddenEdgeColor = new Color(0x000000);
+    this.outlinePass.edgeStrength = 2;
+    this.outlinePass.edgeGlow = 0;
+    this.composer.addPass(this.outlinePass);
+
     this.composer.addPass(new OutputPass());
 
     this.mouseRaycaster = new Raycaster();
@@ -280,8 +303,16 @@ export class Game {
     const { lighting } = makeTheme();
 
     if (lighting.theme === 'neon') {
-      createCeilingLight(0, -spy, settings.highDetail ? 2 : 4);
-      createCeilingLight(0, spy, settings.highDetail ? 2 : 4);
+      createCeilingLight(
+        0,
+        -spy,
+        settings.detail === GraphicsDetail.High ? 2 : 4
+      );
+      createCeilingLight(
+        0,
+        spy,
+        settings.detail === GraphicsDetail.High ? 2 : 4
+      );
 
       const lights = createNeonLightStrips(this.params);
       this.scene.add(...lights);
@@ -289,7 +320,7 @@ export class Game {
       return;
     }
 
-    if (settings.highDetail) {
+    if (settings.detail === GraphicsDetail.High) {
       createCeilingLight(-sp * 2, -spy, 20);
       createCeilingLight(sp * 2, -spy, 20);
 
@@ -303,7 +334,7 @@ export class Game {
 
   private setupAmbientLight() {
     const light = new AmbientLight(0xffffff);
-    light.intensity = settings.highDetail ? 0.5 : 1.5;
+    light.intensity = settings.detail === GraphicsDetail.High ? 0.5 : 1;
     this.scene.add(light);
 
     const overlayLight = new AmbientLight(0xffffff, 10);
@@ -331,12 +362,24 @@ export class Game {
     return undefined;
   }
 
-  public static add(obj: Object3D) {
+  public static add(obj: Object3D, { outline }: { outline?: boolean } = {}) {
     this.instance.overlay.add(obj);
+    if (outline) {
+      this.instance.outlinedOverlays.add(obj);
+      this.instance.outlinePass.selectedObjects = [
+        ...this.instance.outlinedOverlays,
+      ];
+    }
   }
 
   public static remove(obj: Object3D) {
     this.instance.overlay.remove(obj);
+    if (this.instance.outlinedOverlays.has(obj)) {
+      this.instance.outlinedOverlays.delete(obj);
+      this.instance.outlinePass.selectedObjects = [
+        ...this.instance.outlinedOverlays,
+      ];
+    }
   }
 
   public static resetCamera() {
@@ -416,10 +459,7 @@ export class Game {
     // run lerps
     this.lerps.forEach((lerp) => lerp(dt));
 
-    this.renderer.clear();
     this.composer.render();
-    this.renderer.clearDepth();
-    this.renderer.render(this.overlay, this.camera);
     this.stats.end();
   }
 }

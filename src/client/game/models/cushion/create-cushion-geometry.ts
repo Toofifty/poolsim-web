@@ -2,6 +2,7 @@ import { BufferGeometry, ExtrudeGeometry, Shape } from 'three';
 import { vec, type Vec } from '../../../../common/math';
 import type { Params } from '../../../../common/simulation/physics';
 import { constrain } from '../../../../common/util';
+import { GraphicsDetail, settings } from '../../store/settings';
 import { generateBoundingBoxUVs } from '../util';
 import { getControlPoints } from './get-control-points';
 
@@ -30,6 +31,7 @@ export const createCushionGeometry = (
     depth: height - rounding,
     bevelSize: rounding,
     bevelThickness: rounding,
+    curveSegments: settings.detail === GraphicsDetail.Low ? 3 : undefined,
   }).translate(0, 0, -ball.radius + rounding);
 
   const dNormal = vec.perp(vec.norm(vec.sub(D, A)));

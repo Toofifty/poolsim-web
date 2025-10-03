@@ -55,7 +55,7 @@ export class Arrow extends Object3D {
     this.setVector(new Vector3(0, 0, 0));
     this.add(this.stem, this.cone);
     this.position.copy(ref.position);
-    Game.add(this);
+    Game.add(this, { outline: true });
   }
 
   public setVector(vector: Vector3) {

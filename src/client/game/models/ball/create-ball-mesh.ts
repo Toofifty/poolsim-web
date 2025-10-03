@@ -10,6 +10,7 @@ import { createBallTexture } from './create-ball-texture';
 
 import type { Params } from '../../../../common/simulation/physics';
 import normalMapUrl from '../../../assets/scratch_normal.png';
+import { GraphicsDetail, settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
 import { subscribeTo } from '../../util/subscribe';
 
@@ -26,7 +27,13 @@ export const createBallMesh = (
     number: number;
   }
 ) => {
-  const geometry = new SphereGeometry(params.ball.radius);
+  // 32 is sphere geo default
+  const segments = settings.detail === GraphicsDetail.Low ? 16 : 32;
+  const geometry = new SphereGeometry(
+    params.ball.radius,
+    segments,
+    segments / 2
+  );
   const texture = createBallTexture(theme, {
     color,
     number,

@@ -27,3 +27,17 @@ $inner-opacity: 0.25;
     0 4px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, $inner-opacity);
 }
+
+.no-blur .surface:not(.mantine-Modal-inner) {
+  backdrop-filter: none;
+  background: rgba(255, 255, 255, 0.2);
+
+  &.mantine-Modal-content {
+    background: #434454;
+  }
+}
+
+.no-blur .surface-effects {
+  backdrop-filter: none;
+  background: rgba(255, 255, 255, 0.2);
+}

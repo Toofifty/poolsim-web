@@ -48,13 +48,10 @@ Play pool in your browser
 ### Multiplayer
 
 - ~~Add online multiplayer~~
-- Custom games (custom properties)
+- ~~Custom games (custom properties)~~
 - Private lobbies
 - Better interactions
-  - Sounds
-    - On your turn
-    - On foul
-    - On win/loss
   - Notifications
-- Handle disconnects
-- Custom params
+- Handle disconnects better
+- Lerp ball in hand
+- Fix host shot sending

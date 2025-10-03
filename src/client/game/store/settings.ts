@@ -1,6 +1,12 @@
 import { proxy, subscribe } from 'valtio';
 import { getIsMobile } from '../../ui/use-media-query';
 
+export enum GraphicsDetail {
+  Low,
+  Medium,
+  High,
+}
+
 export enum Players {
   PlayerVsPlayer,
   PlayerVsAI,
@@ -11,21 +17,20 @@ const readFromStorage = <T>(def: T): T => {
   return JSON.parse(localStorage.getItem('pool:settings') ?? 'null') || def;
 };
 
+const isMobile = typeof window !== 'undefined' && getIsMobile();
+
 export const settings = proxy({
   // not persisted - must also be removed from subscribe below
   players: Players.PlayerVsPlayer,
-  enableZoomPan: typeof window !== 'undefined' && !getIsMobile(),
-  controlMode:
-    typeof window !== 'undefined' && getIsMobile()
-      ? ('touch' as const)
-      : ('cursor' as const),
+  enableZoomPan: !isMobile,
+  controlMode: isMobile ? ('touch' as const) : ('cursor' as const),
   preferencesOpen: false,
   paramEditorOpen: false,
   pauseSimulation: false,
   lockCue: false,
 
   ...readFromStorage({
-    highDetail: false,
+    detail: isMobile ? GraphicsDetail.Low : GraphicsDetail.Medium,
     ortho: false,
     highlightTargetBalls: true,
     physicsGuidelines: true,

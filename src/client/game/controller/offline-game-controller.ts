@@ -59,7 +59,7 @@ export class OfflineGameController extends BaseGameController {
       }
     });
 
-    this.setup8Ball();
+    this.setup9Ball();
     this.startGame();
   }
 

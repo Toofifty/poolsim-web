@@ -3,6 +3,7 @@ import { proxy, subscribe } from 'valtio';
 
 export type TableTheme = 'green' | 'blue' | 'red' | 'pink';
 export type LightingTheme = 'normal' | 'neon';
+export type CueTheme = 'standard' | 'carbon';
 
 export type ThemeObject = {
   balls: {
@@ -20,7 +21,9 @@ export type ThemeObject = {
     colorDiamond: Color;
   };
   cue: {
+    metalness: number;
     colorTip: Color;
+    colorStrip: Color;
     colorShaft: Color;
     colorHandle: Color;
   };
@@ -36,6 +39,7 @@ const readFromStorage = <T>(def: T): T => {
 export const theme = proxy(
   readFromStorage({
     table: 'blue' as TableTheme,
+    cue: 'standard' as CueTheme,
     lighting: 'normal' as LightingTheme,
   })
 );
@@ -79,6 +83,30 @@ const getTableTheme = (): ThemeObject['table'] => {
   }
 };
 
+const getCueTheme = (): ThemeObject['cue'] => {
+  const base = {
+    metalness: 0,
+    colorTip: new Color(0x8888ff),
+    colorStrip: new Color(0xffffff),
+    colorShaft: new Color(0xdab573),
+    colorHandle: new Color(0x500003),
+  };
+
+  switch (theme.cue) {
+    case 'standard':
+      return base;
+    case 'carbon':
+      return {
+        ...base,
+        metalness: 0.5,
+        colorShaft: new Color(0x444444),
+        colorHandle: new Color(0x000000),
+      };
+    default:
+      return base;
+  }
+};
+
 export const makeTheme = (): ThemeObject => ({
   balls: {
     colorCueBall: new Color(0xffffff),
@@ -104,16 +132,15 @@ export const makeTheme = (): ThemeObject => ({
       0x500003,
     ],
   },
-  cue: {
-    colorTip: new Color(0x8888ff),
-    colorShaft: new Color(0x812e04),
-    colorHandle: new Color(0x000000),
-  },
+  cue: getCueTheme(),
   table: getTableTheme(),
   lighting: { theme: theme.lighting },
 });
 
-export const themed = (fn: (theme: ThemeObject) => void) => {
-  fn(makeTheme());
+export const themed = (
+  fn: (theme: ThemeObject) => void,
+  { init = true }: { init?: boolean } = {}
+) => {
+  if (init) fn(makeTheme());
   return subscribe(theme, () => fn(makeTheme()));
 };

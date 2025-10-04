@@ -51,7 +51,7 @@ export const Preferences = () => {
     enableBallPickup,
     enableProfiler,
   } = useSnapshot(settings);
-  const { table } = useSnapshot(theme);
+  const { table, cue } = useSnapshot(theme);
 
   return (
     <Modal.Root
@@ -101,12 +101,23 @@ export const Preferences = () => {
           </Item>
           <Title order={4}>Theme</Title>
           <Divider style={{ borderTop: '1px solid #FFF2' }} />
-          <Item title="Table colour">
+          <Item title="Table">
             {(['green', 'blue', 'red', 'pink'] as const).map((v) => (
               <Button
                 key={v}
                 variant={table === v ? 'filled' : 'default'}
                 onClick={() => (theme.table = v)}
+              >
+                {v[0].toLocaleUpperCase() + v.slice(1).toLowerCase()}
+              </Button>
+            ))}
+          </Item>
+          <Item title="Cue">
+            {(['standard', 'carbon'] as const).map((v) => (
+              <Button
+                key={v}
+                variant={cue === v ? 'filled' : 'default'}
+                onClick={() => (theme.cue = v)}
               >
                 {v[0].toLocaleUpperCase() + v.slice(1).toLowerCase()}
               </Button>

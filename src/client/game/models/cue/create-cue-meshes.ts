@@ -1,9 +1,23 @@
 import { CylinderGeometry, Mesh, Object3D, SphereGeometry } from 'three';
 import type { Params } from '../../../../common/simulation/physics';
 import { createMaterial } from '../../rendering/create-material';
-import type { ThemeObject } from '../../store/theme';
+import { themed, type ThemeObject } from '../../store/theme';
+import { createCueTexture } from './create-cue-texture';
 
-// todo: just use a texture for the cue
+const createTipMaterial = (theme: ThemeObject) =>
+  createMaterial({ color: theme.cue.colorTip, roughness: 1 });
+const createShaftMaterial = (params: Params, theme: ThemeObject) =>
+  createMaterial({
+    map: createCueTexture(params, theme),
+    roughness: 0.1,
+    metalness: theme.cue.metalness,
+  });
+const createCapMaterial = (theme: ThemeObject) =>
+  createMaterial({
+    color: theme.cue.colorHandle,
+    roughness: 0.1,
+    metalness: theme.cue.metalness,
+  });
 
 export const createCueMeshes = (params: Params, theme: ThemeObject) => {
   const {
@@ -14,40 +28,41 @@ export const createCueMeshes = (params: Params, theme: ThemeObject) => {
   const lift = new Object3D();
   const cue = new Object3D();
 
-  const tip = new Mesh(
-    new SphereGeometry(tipRadius),
-    createMaterial({ color: theme.cue.colorTip })
-  );
+  const tip = new Mesh(new SphereGeometry(tipRadius), createTipMaterial(theme));
   tip.position.y = length / 2;
-  const handlePct = 0.25;
-  const handleLength = length * handlePct;
-  const shaftLength = length - handleLength;
-  const cueMidRadius = tipRadius + (handleRadius - tipRadius) * handlePct;
   const shaft = new Mesh(
-    new CylinderGeometry(tipRadius, cueMidRadius, shaftLength),
-    createMaterial({
-      color: theme.cue.colorShaft,
-      roughness: 0.1,
-      metalness: 0,
-    })
+    new CylinderGeometry(tipRadius, handleRadius, length),
+    createShaftMaterial(params, theme)
   );
-  shaft.position.y = handleLength / 2;
-  const handle = new Mesh(
-    new CylinderGeometry(cueMidRadius, handleRadius, handleLength),
-    createMaterial({
-      color: theme.cue.colorHandle,
-      roughness: 0.1,
-      metalness: 0,
-    })
+  const cap = new Mesh(
+    new SphereGeometry(handleRadius),
+    createCapMaterial(theme)
   );
-  handle.position.y = -shaftLength / 2;
+  cap.position.y = -length / 2;
   tip.castShadow = true;
   shaft.castShadow = true;
-  handle.castShadow = true;
+  cap.castShadow = true;
 
-  cue.add(tip, shaft, handle);
+  cue.add(tip, shaft, cap);
   lift.add(cue);
   anchor.add(lift);
+
+  themed(
+    (theme) => {
+      tip.material.dispose();
+      tip.material = createTipMaterial(theme);
+      tip.material.needsUpdate = true;
+
+      shaft.material.dispose();
+      shaft.material = createShaftMaterial(params, theme);
+      shaft.material.needsUpdate = true;
+
+      cap.material.dispose();
+      cap.material = createCapMaterial(theme);
+      cap.material.needsUpdate = true;
+    },
+    { init: false }
+  );
 
   return { cue, lift, anchor };
 };

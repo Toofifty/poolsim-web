@@ -2,7 +2,10 @@ import { Button, Flex, Group, Stack, Text, Title } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { type StaticParams } from '../../../common/simulation/physics';
+import {
+  defaultParams,
+  type StaticParams,
+} from '../../../common/simulation/physics';
 import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
 import { PageContainer } from '../../ui/page-container';
@@ -117,6 +120,11 @@ export const LobbyPage = () => {
             params={lobby.params}
             full
             onEdit={isHost ? onEditParam : undefined}
+            onReset={
+              isHost
+                ? () => socket.emit('update-params', [lobby.id, defaultParams])
+                : undefined
+            }
           />
         </Surface>
       </Group>

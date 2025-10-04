@@ -162,7 +162,7 @@ export class Cue {
   }
 
   public setShot(shot: Shot) {
-    dlerp(
+    dlerpAngle(
       (v) => (this.anchor.rotation.z = v),
       this.anchor.rotation.z,
       shot.angle - Math.PI / 2,

@@ -45,7 +45,7 @@ const getStateName = (state: PlayState | undefined) => {
 };
 
 export const Controls = () => {
-  const { paramEditorOpen } = useSnapshot(settings);
+  const { preferencesOpen, paramEditorOpen } = useSnapshot(settings);
   const { state, analysisProgress } = useSnapshot(gameStore);
   const { lobby } = useLobby();
   const isHost = !lobby || lobby?.hostId === socket.id;
@@ -108,7 +108,10 @@ export const Controls = () => {
             <Surface>
               <div className="group">
                 <div className="group lower">
-                  <Button onClick={() => (settings.preferencesOpen = true)}>
+                  <Button
+                    variant={preferencesOpen ? 'filled' : 'default'}
+                    onClick={() => (settings.preferencesOpen = true)}
+                  >
                     Preferences
                   </Button>
                   {isHost && (

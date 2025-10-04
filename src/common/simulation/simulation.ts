@@ -21,7 +21,8 @@ export type RunSimulationStepOptions = {
   stepIndex?: number;
   profiler?: IProfiler;
   /** Set to false to prevent extra collision projections on first contact */
-  fixCollisionOverlap?: boolean;
+  fixBallCollisionOverlap?: boolean;
+  fixCushionCollisionOverlap?: boolean;
   /** Write to this result instead of creating a new one */
   result?: Result;
 };
@@ -44,7 +45,8 @@ export class Simulation implements ISimulation {
     state,
     stepIndex = -1,
     profiler = Profiler.none,
-    fixCollisionOverlap,
+    fixBallCollisionOverlap,
+    fixCushionCollisionOverlap,
     result = new StepResult(),
   }: RunSimulationStepOptions) {
     trackPath &&= stepIndex % this.params.simulation.trackingPointDist === 0;
@@ -68,7 +70,7 @@ export class Simulation implements ISimulation {
       for (let j = i + 1; j < activeBalls.length; j++) {
         const other = activeBalls[j];
         // dont fix overlap with evolution physics enabled
-        const collision = ball.collideBall(other, fixCollisionOverlap);
+        const collision = ball.collideBall(other, fixBallCollisionOverlap);
         if (collision) {
           if (collision.initiator.id === 0) {
             if (result.firstStruck === undefined) {
@@ -90,7 +92,10 @@ export class Simulation implements ISimulation {
       const ball = activeBalls[i];
       for (let j = 0; j < state.cushions.length; j++) {
         const cushion = state.cushions[j];
-        const collision = ball.collideCushion(cushion, fixCollisionOverlap);
+        const collision = ball.collideCushion(
+          cushion,
+          fixCushionCollisionOverlap
+        );
         if (collision) {
           if (collision.initiator.id === 0) {
             result.cueBallCushionCollisions++;
@@ -152,7 +157,9 @@ export class Simulation implements ISimulation {
           dt: 1 / this.params.simulation.updatesPerSecond,
           state: copiedState,
           stepIndex: i,
-          fixCollisionOverlap: !stopAtFirstContact && !stopAtFirstBallContact,
+          fixBallCollisionOverlap:
+            !stopAtFirstContact && !stopAtFirstBallContact,
+          fixCushionCollisionOverlap: !stopAtFirstBallContact,
           result,
         })
       );

@@ -284,6 +284,57 @@ export class PhysicsBall {
     return this.v[2] + Math.sqrt(disc) / this.params.ball.gravity;
   }
 
+  private getMomentaryFrictionDelta(dt: number) {
+    const {
+      gravity: g,
+      frictionSlide: us,
+      frictionRoll: ur,
+    } = this.params.ball;
+
+    if (this.state === BallState.Sliding) {
+      const u0 = vec.norm(this.getContactVelocity());
+      return vec.mult(u0, -us * g * dt);
+    }
+
+    if (this.state === BallState.Rolling) {
+      const vh = vec.norm(this.v);
+      return vec.mult(vh, -ur * g * dt);
+    }
+
+    return vec.zero;
+  }
+
+  public computeCollisionTime(other: PhysicsBall, dt: number) {
+    if (this === other) return Infinity;
+    if (this.isStationary && other.isStationary) return Infinity;
+
+    const thisV = vec.add(this.v, this.getMomentaryFrictionDelta(dt));
+    const otherV = vec.add(other.v, other.getMomentaryFrictionDelta(dt));
+
+    const dr = vec.sub(this.r, other.r);
+    const dv = vec.sub(thisV, otherV);
+    if (vec.dot(dr, dv) >= 0) return Infinity;
+
+    const R = this.radius + other.radius;
+
+    const a = vec.dot(dv, dv);
+    if (a === 0) return Infinity;
+
+    const b = 2 * vec.dot(dr, dv);
+    const c = vec.dot(dr, dr) - R * R;
+
+    const disc = b * b - 4 * a * c;
+    if (disc < 0) return Infinity;
+    const sqrtDisc = Math.sqrt(disc);
+
+    const t1 = (-b - sqrtDisc) / (2 * a);
+    const t2 = (-b + sqrtDisc) / (2 * a);
+
+    if (t1 >= 0 && t1 < dt) return t1;
+    if (t2 >= 0 && t2 < dt) return t2;
+    return Infinity;
+  }
+
   public evolve(dt: number, simulated?: boolean) {
     this.state = this.resolveState();
 

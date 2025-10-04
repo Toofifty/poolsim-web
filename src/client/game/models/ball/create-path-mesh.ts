@@ -35,6 +35,8 @@ export const getColor = (state: BallState) => {
 const material = new LineMaterial({
   linewidth: 4,
   vertexColors: true,
+  dashed: true,
+  dashScale: 50,
 });
 
 export type TrackingPoint = { position: Vector3; state: BallState };

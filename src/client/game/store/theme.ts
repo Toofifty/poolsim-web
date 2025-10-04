@@ -36,7 +36,10 @@ export type ThemeObject = {
 };
 
 const readFromStorage = <T>(def: T): T => {
-  return JSON.parse(localStorage.getItem('pool:theme') ?? 'null') || def;
+  return {
+    ...def,
+    ...JSON.parse(localStorage.getItem('pool:theme') ?? '{}'),
+  };
 };
 
 export const theme = proxy(

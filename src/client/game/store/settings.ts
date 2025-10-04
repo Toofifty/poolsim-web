@@ -14,7 +14,10 @@ export enum Players {
 }
 
 const readFromStorage = <T>(def: T): T => {
-  return JSON.parse(localStorage.getItem('pool:settings') ?? 'null') || def;
+  return {
+    ...def,
+    ...JSON.parse(localStorage.getItem('pool:settings') ?? '{}'),
+  };
 };
 
 const isMobile = typeof window !== 'undefined' && getIsMobile();

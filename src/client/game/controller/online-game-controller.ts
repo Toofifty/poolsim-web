@@ -9,7 +9,7 @@ import {
   Player,
   type SerializedTableState,
 } from '../../../common/simulation/table-state';
-import { assert } from '../../../common/util';
+import { assert, assertEqual } from '../../../common/util';
 import { Game } from '../game';
 import type {
   NetworkAdapter,
@@ -43,7 +43,17 @@ export class OnlineGameController extends BaseGameController {
 
     if (this.isHost) {
       setTimeout(() => {
-        this.setup9Ball();
+        switch (this.params.game.ruleSet) {
+          case RuleSet.Debug:
+            this.setupDebugGame();
+            break;
+          case RuleSet._8Ball:
+            this.setup8Ball();
+            break;
+          case RuleSet._9Ball:
+            this.setup9Ball();
+            break;
+        }
         this.startGame();
       }, 1000);
     }
@@ -185,7 +195,7 @@ export class OnlineGameController extends BaseGameController {
     };
 
   private onGameUpdateCue: GameEventListener<'update-cue'> = () => {
-    assert(this.playState === PlayState.PlayerShoot);
+    assertEqual(this.playState, PlayState.PlayerShoot);
     this.adapter.updateCue(this.cue.serialize());
   };
 
@@ -194,7 +204,7 @@ export class OnlineGameController extends BaseGameController {
   }) => this.cue.sync(cue, this.balls);
 
   private onGameShoot: GameEventListener<'shoot'> = () => {
-    assert(this.playState === PlayState.PlayerShoot);
+    assertEqual(this.playState, PlayState.PlayerShoot);
     this.adapter.shoot(this.cue.serialize());
   };
 
@@ -266,13 +276,6 @@ export class OnlineGameController extends BaseGameController {
 
   protected updateState(): void {
     if (!this.isHost || this.playState === PlayState.Initializing) return;
-
-    if (
-      this.state.cueBall.isPocketedStationary ||
-      this.state.cueBall.isOutOfBounds
-    ) {
-      this.resetCueBall();
-    }
 
     if (this.state.isGameOver) {
       if (this.shouldSwitchTurn()) {

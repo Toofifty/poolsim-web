@@ -3,7 +3,6 @@ import type { Line2 } from 'three/examples/jsm/Addons.js';
 import { vec, type Quat, type Vec } from '../../../common/math';
 import { defaultParams, type Params } from '../../../common/simulation/physics';
 import {
-  BallState,
   PhysicsBall,
   type PhysicsBallSnapshot,
 } from '../../../common/simulation/physics/ball';
@@ -136,13 +135,7 @@ export class Ball {
   }
 
   public place(x: number, y: number) {
-    this.physics.removeFromPocket();
-
-    vec.mset(this.physics.position, x, y, 0);
-    vec.mmult(this.physics.velocity, 0);
-    vec.mmult(this.physics.angularVelocity, 0);
-
-    this.physics.state = BallState.Stationary;
+    this.physics.place(x, y);
     this.updateMesh();
     this.debug.update();
   }

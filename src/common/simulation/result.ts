@@ -1,6 +1,11 @@
 import { vec } from '../math';
+import { assert } from '../util';
 import type { Collision } from './collision';
-import { type PhysicsBall, type PhysicsBallSnapshot } from './physics';
+import {
+  BallState,
+  type PhysicsBall,
+  type PhysicsBallSnapshot,
+} from './physics';
 import type { Shot } from './shot';
 import { type TableState } from './table-state';
 
@@ -9,6 +14,7 @@ export class Result {
   ballsPotted: number[] = [];
   pottedCueBall = false;
   hitFoulBall = false;
+  hitBallOffTable = false;
   /** e.g. shot backwards on break */
   invalidShot = false;
   firstStruck: number | undefined = undefined;
@@ -69,7 +75,7 @@ export class Result {
       this.pottedCueBall ||
       this.hitFoulBall ||
       this.invalidShot ||
-      this.hasOutOfBoundsBall()
+      this.hitBallOffTable
     );
   }
 
@@ -83,6 +89,30 @@ export class Result {
       !vec.eq(lastPoint.position, ball.position, 1e-3)
     ) {
       trackingPoints.push(ball.snapshot());
+    }
+  }
+
+  /**
+   * Finalize all checks requiring the table state, so it can
+   * then be mutated without affecting this result.
+   */
+  public finalise() {
+    if (this.state) {
+      assert(this.state.settled);
+
+      this.state.balls.forEach((ball) => {
+        if (ball.isOutOfBounds && ball.state !== BallState.OutOfPlay) {
+          this.hitBallOffTable = true;
+          ball.state = BallState.OutOfPlay;
+          if (ball.id === 0) {
+            ball.place(0, 0);
+          }
+        }
+      });
+
+      if (this.state.balls?.[0]?.isPocketedStationary) {
+        this.state.balls[0].place(0, 0);
+      }
     }
   }
 }

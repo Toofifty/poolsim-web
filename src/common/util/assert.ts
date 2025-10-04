@@ -5,4 +5,4 @@ export function assert(cond: unknown, message?: string): asserts cond is true {
 }
 
 export const assertEqual = <T>(a: T, b: T, message?: string) =>
-  assert(a === b, message);
+  assert(a === b, message ?? `Expected ${a} to equal ${b}`);

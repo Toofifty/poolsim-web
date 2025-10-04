@@ -45,6 +45,7 @@ export enum BallState {
   Spinning,
   Airborne,
   Pocketed,
+  OutOfPlay,
 }
 
 export class PhysicsBall {
@@ -95,6 +96,7 @@ export class PhysicsBall {
     vec.mcopy(newBall.v, this.v);
     vec.mcopy(newBall.w, this.w);
     newBall.pocket = this.pocket;
+    newBall.state = this.state;
     return newBall;
   }
 
@@ -196,6 +198,16 @@ export class PhysicsBall {
     return this.state === BallState.Stationary;
   }
 
+  public place(x: number, y: number) {
+    this.removeFromPocket();
+
+    vec.mset(this.position, x, y, 0);
+    vec.mmult(this.velocity, 0);
+    vec.mmult(this.angularVelocity, 0);
+
+    this.state = BallState.Stationary;
+  }
+
   public minimize() {
     const cv = this.getContactVelocity();
     if (vec.len(cv) < 1e-8 && vec.len(cv) > 0) {
@@ -214,6 +226,8 @@ export class PhysicsBall {
     this.minimize();
 
     switch (true) {
+      case this.state === BallState.OutOfPlay:
+        return BallState.OutOfPlay;
       case this.isPocketed:
         return BallState.Pocketed;
       case this.r[2] > 0:
@@ -306,6 +320,7 @@ export class PhysicsBall {
 
   public addToPocket(pocket: PhysicsPocket, simulated?: boolean) {
     this.pocket = pocket;
+    this.state = BallState.Pocketed;
     if (!simulated) {
       pocket.addBall(this);
     }

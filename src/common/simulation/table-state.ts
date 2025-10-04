@@ -1,4 +1,5 @@
 import {
+  BallState,
   RuleSet,
   type PhysicsBall,
   type PhysicsCushion,
@@ -94,7 +95,12 @@ export class TableState {
 
   public get activeBalls() {
     // todo: optimise (filter/new array may be slow)
-    return this.balls.filter((ball) => !ball.isPocketed && !ball.isOutOfBounds);
+    return this.balls.filter(
+      (ball) =>
+        !ball.isPocketed &&
+        !ball.isOutOfBounds &&
+        ball.state !== BallState.OutOfPlay
+    );
   }
 
   public get settled() {
@@ -117,7 +123,8 @@ export class TableState {
     const activeIds: number[] = [];
     for (let i = 1; i < this.balls.length; i++) {
       const ball = this.balls[i];
-      if (!ball.isPocketed) activeIds.push(ball.id);
+      if (!ball.isPocketed && ball.state !== BallState.OutOfPlay)
+        activeIds.push(ball.id);
     }
     return Math.min(...activeIds);
   }
@@ -186,7 +193,12 @@ export class TableState {
   }
 
   public hasOutOfBoundsBall() {
-    return this.balls.some((ball) => ball.isOutOfBounds && !ball.isPocketed);
+    return this.balls.some(
+      (ball) =>
+        ball.isOutOfBounds &&
+        ball.state !== BallState.OutOfPlay &&
+        !ball.isPocketed
+    );
   }
 
   public serialize() {

@@ -112,22 +112,6 @@ export class OfflineGameController extends BaseGameController {
       return;
     }
 
-    if (
-      this.state.cueBall.isPocketedStationary ||
-      this.state.cueBall.isOutOfBounds
-    ) {
-      this.resetCueBall();
-    }
-
-    this.state.balls.forEach((ball) => {
-      if (ball.isOutOfBounds) {
-        // todo: find a better place for out-of-bounds balls
-        vec.mcopy(ball.r, this.state.pockets[0].position);
-        vec.msetXY(ball.v, vec.new(0, 0));
-        ball.addToPocket(this.state.pockets[0]);
-      }
-    });
-
     if (this.state.isGameOver) {
       this.setupPrevious();
       this.startGame();

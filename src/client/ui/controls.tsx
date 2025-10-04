@@ -1,6 +1,10 @@
 import { ActionIcon, Button } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { IconChevronUp, IconSettings } from '@tabler/icons-react';
+import {
+  IconChevronDown,
+  IconChevronUp,
+  IconLogout2,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
 import {
@@ -81,9 +85,18 @@ export const Controls = () => {
         <ActionIcon
           className="surface button icon"
           size="40"
+          onClick={() => {
+            window.location.pathname = '/';
+          }}
+        >
+          <IconLogout2 size={16} />
+        </ActionIcon>
+        <ActionIcon
+          className="surface button icon"
+          size="40"
           onClick={() => setShowUI((v) => !v)}
         >
-          {showUI ? <IconChevronUp size={16} /> : <IconSettings size={16} />}
+          {showUI ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
         </ActionIcon>
         <Surface>
           <div className="group lower">

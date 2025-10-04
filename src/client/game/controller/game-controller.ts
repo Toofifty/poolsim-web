@@ -508,6 +508,7 @@ export abstract class BaseGameController
     });
 
     if (this.state.settled) {
+      this.simulationResult.finalise();
       this.updateState();
     }
 
@@ -577,6 +578,7 @@ export abstract class BaseGameController
   protected shouldPutBallInHand(): boolean {
     if (this.simulationResult.hasFoul()) {
       Game.audio.play('foul', undefined, 0.1);
+      console.log('foul', this.simulationResult);
       return true;
     }
     return false;

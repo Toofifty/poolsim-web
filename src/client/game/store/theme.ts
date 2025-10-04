@@ -4,14 +4,17 @@ import { proxy, subscribe } from 'valtio';
 export type TableTheme = 'green' | 'blue' | 'red' | 'pink';
 export type LightingTheme = 'normal' | 'neon';
 export type CueTheme = 'standard' | 'carbon';
+export type BallTheme = 'standard' | 'dark' | 'chrome' | 'leopard';
 
 export type ThemeObject = {
   balls: {
-    colorCueBall: Color;
+    roughness: number;
+    metalness: number;
     colorCueBallAccent: Color;
     colorBallCircle: Color;
     colorBallNumber: Color;
     colors: number[];
+    useLeopardPrint: boolean;
   };
   table: {
     theme: TableTheme;
@@ -40,6 +43,7 @@ export const theme = proxy(
   readFromStorage({
     table: 'blue' as TableTheme,
     cue: 'standard' as CueTheme,
+    ball: 'standard' as BallTheme,
     lighting: 'normal' as LightingTheme,
   })
 );
@@ -93,8 +97,6 @@ const getCueTheme = (): ThemeObject['cue'] => {
   };
 
   switch (theme.cue) {
-    case 'standard':
-      return base;
     case 'carbon':
       return {
         ...base,
@@ -102,14 +104,16 @@ const getCueTheme = (): ThemeObject['cue'] => {
         colorShaft: new Color(0x444444),
         colorHandle: new Color(0x000000),
       };
+    case 'standard':
     default:
       return base;
   }
 };
 
-export const makeTheme = (): ThemeObject => ({
-  balls: {
-    colorCueBall: new Color(0xffffff),
+const getBallTheme = (): ThemeObject['balls'] => {
+  const base = {
+    roughness: 0,
+    metalness: 0,
     colorCueBallAccent: new Color(0xff0000),
     colorBallCircle: new Color(0xffffff),
     colorBallNumber: new Color(0x000000),
@@ -131,7 +135,39 @@ export const makeTheme = (): ThemeObject => ({
       0x005900,
       0x500003,
     ],
-  },
+    useLeopardPrint: false,
+  };
+
+  switch (theme.ball) {
+    case 'dark':
+      return {
+        ...base,
+        colorBallNumber: new Color(0xffffff),
+        colorCueBallAccent: new Color(0xffffff),
+        colorBallCircle: new Color(0x333333),
+        colors: [0x333333, ...base.colors.slice(1)],
+      };
+    case 'chrome':
+      return {
+        ...base,
+        roughness: 0,
+        metalness: 0.75,
+        colorCueBallAccent: new Color(0x304657),
+        colors: [0xffffff, ...base.colors.slice(1).map(() => 0x444444)],
+      };
+    case 'leopard':
+      return {
+        ...base,
+        useLeopardPrint: true,
+      };
+    case 'standard':
+    default:
+      return base;
+  }
+};
+
+export const makeTheme = (): ThemeObject => ({
+  balls: getBallTheme(),
   cue: getCueTheme(),
   table: getTableTheme(),
   lighting: { theme: theme.lighting },

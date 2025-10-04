@@ -51,7 +51,7 @@ export const Preferences = () => {
     enableBallPickup,
     enableProfiler,
   } = useSnapshot(settings);
-  const { table, cue } = useSnapshot(theme);
+  const { table, cue, ball } = useSnapshot(theme);
 
   return (
     <Modal.Root
@@ -118,6 +118,17 @@ export const Preferences = () => {
                 key={v}
                 variant={cue === v ? 'filled' : 'default'}
                 onClick={() => (theme.cue = v)}
+              >
+                {v[0].toLocaleUpperCase() + v.slice(1).toLowerCase()}
+              </Button>
+            ))}
+          </Item>
+          <Item title="Balls">
+            {(['standard', 'dark', 'chrome', 'leopard'] as const).map((v) => (
+              <Button
+                key={v}
+                variant={ball === v ? 'filled' : 'default'}
+                onClick={() => (theme.ball = v)}
               >
                 {v[0].toLocaleUpperCase() + v.slice(1).toLowerCase()}
               </Button>

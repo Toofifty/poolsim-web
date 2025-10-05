@@ -20,7 +20,8 @@ Play pool in your browser
 - ~~Event-based evolution~~ not worth
 - ~~Revisit physics values~~
 - ~~Fix ball entering pocket physics~~
-- Mid-timestep collision resolution
+- ~~Substep collision resolution~~
+  - `Substep cushion collisions`
 - ~~Runtime physics param changes~~
 
 ### Graphics
@@ -35,8 +36,8 @@ Play pool in your browser
 
 ### AI
 
-- Optimise
-- Randomise break
+- ~~Optimise~~
+- ~~Randomise break~~
 - ~~Only check down the table on break~~
 - Better shot scoring
   - Consider collisions before/after target ball struck
@@ -55,3 +56,5 @@ Play pool in your browser
 - Handle disconnects better
 - Lerp ball in hand
 - Fix host shot sending
+- Fix sending cue updates with locked cue
+- Unlock cue one state change

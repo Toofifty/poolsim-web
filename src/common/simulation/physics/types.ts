@@ -8,5 +8,6 @@ export enum AimAssistMode {
 export enum RuleSet {
   _8Ball,
   _9Ball,
-  Debug,
+  Sandbox,
+  SandboxSequential,
 }

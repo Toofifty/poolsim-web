@@ -1,31 +1,25 @@
 import { vec, type Vec } from '../../math';
 import { constrain } from '../../util';
-import type { StaticParams } from './default-params';
+import type { Params, StaticParams } from './default-params';
 
 export class Polygon {
-  public vertices: [Vec, Vec, Vec, Vec];
-  public collisionBox: [Vec, Vec];
+  public vertices: readonly [Vec, Vec, Vec, Vec];
+  public collisionBox: readonly [Vec, Vec];
+  /**
+   * Segments used for physics calculations.
+   * Specifically only includes segments facing the table
+   */
+  public segments: readonly [[Vec, Vec], [Vec, Vec], [Vec, Vec]];
 
   constructor(private params: StaticParams, vertices: Vec[]) {
     this.vertices = vertices as [Vec, Vec, Vec, Vec];
-
-    let minX = 0;
-    let minY = 0;
-    let maxX = 0;
-    let maxY = 0;
-    for (let i = 0; i < vertices.length; i++) {
-      const v = vertices[i];
-      if (minX === 0 || v[0] < minX) minX = v[0];
-      if (maxX === 0 || v[0] > maxX) maxX = v[0];
-      if (minY === 0 || v[1] < minY) minY = v[1];
-      if (maxY === 0 || v[1] > maxY) maxY = v[1];
-    }
-    const {
-      ball: { radius },
-    } = params;
-    this.collisionBox = [
-      vec.new(minX - radius, minY - radius),
-      vec.new(maxX - minX + radius * 2, maxY - minY + radius * 2),
+    this.collisionBox = computeCollisionBox(params, vertices);
+    const [tl, bl, br, tr] = vertices;
+    const offsetZ = 0; // params.cushion.height - params.ball.radius;
+    this.segments = [
+      [vec.setZ(tl, offsetZ), vec.setZ(bl, offsetZ)],
+      [vec.setZ(bl, offsetZ), vec.setZ(br, offsetZ)],
+      [vec.setZ(br, offsetZ), vec.setZ(tr, offsetZ)],
     ];
   }
 
@@ -43,10 +37,7 @@ export class Polygon {
     let closest = this.vertices[0];
     let minDistSq = vec.lenSq(vec.sub(point, closest));
 
-    for (let i = 0; i < this.vertices.length; i++) {
-      const start = this.vertices[i];
-      const end = this.vertices[(i + 1) % this.vertices.length];
-
+    for (let [start, end] of this.segments) {
       const closestOnEdge = this.findClosestPointOnLine(point, start, end);
       const distSq = vec.lenSq(vec.sub(point, closestOnEdge));
 
@@ -56,10 +47,7 @@ export class Polygon {
       }
     }
 
-    return vec.setZ(
-      closest,
-      this.params.cushion.height - this.params.ball.radius
-    );
+    return closest;
   }
 
   private findClosestPointOnLine(point: Vec, start: Vec, end: Vec) {
@@ -74,3 +62,22 @@ export class Polygon {
     return vec.add(start, vec.mult(line, t));
   }
 }
+
+const computeCollisionBox = ({ ball: { radius } }: Params, vertices: Vec[]) => {
+  let minX = 0;
+  let minY = 0;
+  let maxX = 0;
+  let maxY = 0;
+  for (let i = 0; i < vertices.length; i++) {
+    const v = vertices[i];
+    if (minX === 0 || v[0] < minX) minX = v[0];
+    if (maxX === 0 || v[0] > maxX) maxX = v[0];
+    if (minY === 0 || v[1] < minY) minY = v[1];
+    if (maxY === 0 || v[1] > maxY) maxY = v[1];
+  }
+
+  return [
+    vec.new(minX - radius, minY - radius),
+    vec.new(maxX - minX + radius * 2, maxY - minY + radius * 2),
+  ] as const;
+};

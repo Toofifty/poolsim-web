@@ -1,16 +1,16 @@
-import { quat, vec } from '../../common/math';
-import { params } from '../../common/simulation/physics';
+import { quat, vec, type Vec } from '../../common/math';
+import { params, type Params } from '../../common/simulation/physics';
 import type { BallProto } from './objects/ball';
 import { makeTheme } from './store/theme';
 
 const gap = params.ball.radius / 10;
-const tipX = params.table.length / 4;
-const tipY = 0;
 
 const randomGap = () => ((Math.random() * 2 - 1) * gap) / 2;
 
+export type Sandboxes = 'debug' | 'cubicle-troll';
+
 export class Rack {
-  private static generateFromLayout(layout: number[][]) {
+  private static generateFromLayout(tip: Vec, layout: number[][]) {
     const theme = makeTheme();
 
     const balls: BallProto[] = [];
@@ -22,16 +22,16 @@ export class Rack {
       id: 0,
       number: 0,
       color: theme.balls.colors[0],
-      position: vec.new(-tipX, tipY),
+      position: vec.new(-tip[0], tip[1]),
       orientation: quat.random(),
     });
 
     for (let row = 0; row < layout.length; row++) {
       const ballsInRow = layout[row].length;
-      const yStart = tipY - ((ballsInRow - 1) * step) / 2;
+      const yStart = tip[1] - ((ballsInRow - 1) * step) / 2;
 
       for (let col = 0; col < ballsInRow; col++) {
-        const x = tipX + row * rowOffset;
+        const x = tip[0] + row * rowOffset;
         const y = yStart + col * step;
         const number = layout[row][col];
 
@@ -48,8 +48,8 @@ export class Rack {
     return balls;
   }
 
-  static generate8Ball() {
-    return this.generateFromLayout([
+  static generate8Ball(tip: Vec) {
+    return this.generateFromLayout(tip, [
       [1],
       [2, 3],
       [4, 8, 5],
@@ -58,11 +58,72 @@ export class Rack {
     ]);
   }
 
-  static generate9Ball() {
-    return this.generateFromLayout([[1], [2, 3], [4, 9, 5], [6, 7], [8]]);
+  static generate9Ball(tip: Vec) {
+    return this.generateFromLayout(tip, [[1], [2, 3], [4, 9, 5], [6, 7], [8]]);
   }
 
-  static generateDebugGame() {
-    return this.generateFromLayout([[9]]);
+  static generateDebugGame(tip: Vec) {
+    return this.generateFromLayout(tip, [[9]]);
+  }
+
+  static getTip(params: Params) {
+    return vec.new(params.table.length / 4, 0);
+  }
+
+  // sandboxes
+
+  static generateCubicleTroll(params: Params) {
+    const theme = makeTheme();
+
+    const edgeGap = params.cushion.width + params.ball.radius * 1.5;
+
+    // diamond-relative
+    const positions: [number, number][] = [
+      [1.5, 0.5],
+      [1, 0],
+      [0, 1],
+      [1, 1],
+      [1, 4],
+      [0, 3],
+      [1, 3],
+      [1, 2],
+      [0, 2],
+      [8, 3],
+      [2, 2],
+      [8, 1],
+      [2, 4],
+      [8, 2],
+      [2, 0],
+      [4, 2],
+    ];
+
+    return positions.map(([x, y], i) => {
+      x -= 4;
+      x *= params.table.length / 8;
+      y -= 2;
+      y *= -params.table.width / 4;
+
+      if (x === -params.table.length / 2) x += edgeGap;
+      if (x === params.table.length / 2) x -= edgeGap;
+      if (y === -params.table.width / 2) y += edgeGap;
+      if (y === params.table.width / 2) y -= edgeGap;
+
+      return {
+        id: i,
+        number: i,
+        color: theme.balls.colors[i],
+        position: vec.new(x, y),
+        orientation: quat.random(),
+      };
+    });
+  }
+
+  static generateSandboxGame(params: Params, type: Sandboxes) {
+    switch (type) {
+      case 'debug':
+        return this.generateDebugGame(this.getTip(params));
+      case 'cubicle-troll':
+        return this.generateCubicleTroll(params);
+    }
   }
 }

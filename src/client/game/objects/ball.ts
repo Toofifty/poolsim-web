@@ -1,5 +1,4 @@
 import { BufferGeometry, Color, Material, Mesh, Object3D } from 'three';
-import type { Line2 } from 'three/examples/jsm/Addons.js';
 import { vec, type Quat, type Vec } from '../../../common/math';
 import { defaultParams, type Params } from '../../../common/simulation/physics';
 import {
@@ -53,7 +52,7 @@ export class Ball {
   private mesh!: Mesh;
 
   private projectionMeshes: Mesh[] = [];
-  private trackingLine?: Line2;
+  private trackingLine?: Object3D;
   private geometry!: BufferGeometry;
   private projectionMaterial!: Material;
 
@@ -228,7 +227,7 @@ export class Ball {
     // ball tracking line
     if (this.trackingLine) {
       Game.remove(this.trackingLine);
-      this.trackingLine.geometry.dispose();
+      (this.trackingLine as any).geometry.dispose();
       this.trackingLine = undefined;
     }
 

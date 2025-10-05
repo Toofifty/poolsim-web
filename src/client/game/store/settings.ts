@@ -38,9 +38,11 @@ export const settings = proxy({
     highlightTargetBalls: true,
     physicsGuidelines: true,
 
+    controlsOpen: false,
     canvasEnabled: true,
     debugLights: false,
     debugBalls: false,
+    debugBallPaths: false,
     debugCushions: false,
     enableProfiler: false,
     enableBallPickup: false,

@@ -70,7 +70,7 @@ export const defaultParams = {
   },
   cue: {
     defaultForce: 2,
-    maxForce: 4,
+    maxForce: 10,
     length: 1.4732,
     tipRadius: 0.006,
     handleRadius: 0.01,
@@ -80,6 +80,7 @@ export const defaultParams = {
   simulation: {
     maxIterations: 10_000,
     updatesPerSecond: 300,
+    playbackSpeed: 1,
     trackingPointDist: 1,
     useWorkerForAimAssist: true,
     useWorkerForAI: true,

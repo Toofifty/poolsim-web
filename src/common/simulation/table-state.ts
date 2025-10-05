@@ -1,3 +1,4 @@
+import { iteration, pairs } from '../util/iterate';
 import {
   BallState,
   RuleSet,
@@ -47,6 +48,12 @@ export class TableState {
   public eightBallState = EightBallState.Open;
   public isBreak: boolean;
 
+  public needsUpdate = true;
+  private _activeBalls: PhysicsBall[] = [];
+  private _activePairs: [PhysicsBall, PhysicsBall][] = [];
+  private _activeBallCushions: [PhysicsBall, PhysicsCushion][] = [];
+  private _activeBallPockets: [PhysicsBall, PhysicsPocket][] = [];
+
   /**
    * Unlike play state, this is specifically NOT
    * inverted on non-hosts, and is also used the
@@ -75,6 +82,7 @@ export class TableState {
   public reset() {
     this.isBreak = true;
     this.eightBallState = EightBallState.Open;
+    this.needsUpdate = true;
   }
 
   public clone() {
@@ -93,14 +101,38 @@ export class TableState {
     return this.balls[0];
   }
 
-  public get activeBalls() {
-    // todo: optimise (filter/new array may be slow)
-    return this.balls.filter(
+  private refresh() {
+    this._activeBalls = this.balls.filter(
       (ball) =>
         !ball.isPocketed &&
         !ball.isOutOfBounds &&
         ball.state !== BallState.OutOfPlay
     );
+    this._activePairs = pairs(this._activeBalls);
+    this._activeBallCushions = iteration(this._activeBalls, this.cushions);
+    this._activeBallPockets = iteration(this._activeBalls, this.pockets);
+
+    this.needsUpdate = false;
+  }
+
+  public get activeBalls() {
+    if (this.needsUpdate) this.refresh();
+    return this._activeBalls;
+  }
+
+  public get activePairs() {
+    if (this.needsUpdate) this.refresh();
+    return this._activePairs;
+  }
+
+  public get activeBallCushions() {
+    if (this.needsUpdate) this.refresh();
+    return this._activeBallCushions;
+  }
+
+  public get activeBallPockets() {
+    if (this.needsUpdate) this.refresh();
+    return this._activeBallPockets;
   }
 
   public get settled() {
@@ -142,7 +174,10 @@ export class TableState {
   }
 
   public getTargetableBalls(): Set<number> {
-    if (this.ruleSet === RuleSet._9Ball) {
+    if (
+      this.ruleSet === RuleSet._9Ball ||
+      this.ruleSet === RuleSet.SandboxSequential
+    ) {
       return new Set([this.lowestActiveBallId]);
     }
 
@@ -227,6 +262,7 @@ export class TableState {
     });
     this.eightBallState = state.eightBallState;
     this.currentPlayer = state.currentPlayer;
+    this.needsUpdate = true;
   }
 
   public syncFull(state: FullSerializedTableState) {

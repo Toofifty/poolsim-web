@@ -1,11 +1,10 @@
-import { ActionIcon, Button } from '@mantine/core';
+import { ActionIcon, Button, Menu } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import {
   IconChevronDown,
   IconChevronUp,
   IconLogout2,
 } from '@tabler/icons-react';
-import { useState } from 'react';
 import { useSnapshot } from 'valtio';
 import {
   AimAssistMode,
@@ -49,14 +48,14 @@ const getStateName = (state: PlayState | undefined) => {
 };
 
 export const Controls = () => {
-  const { preferencesOpen, paramEditorOpen } = useSnapshot(settings);
+  const { preferencesOpen, paramEditorOpen, controlsOpen } =
+    useSnapshot(settings);
   const { state, analysisProgress } = useSnapshot(gameStore);
   const { lobby } = useLobby();
   const isHost = !lobby || lobby?.hostId === socket.id;
   const isMultiplayer = !!lobby;
 
   const isMobile = useIsMobile();
-  const [showUI, setShowUI] = useState(false);
 
   const localParams = useSnapshot(params);
 
@@ -78,7 +77,7 @@ export const Controls = () => {
         classNames={{ notification: 'surface-effects' }}
         // ui-container inset
         top={isMobile ? 4 : 16}
-        mt={showUI ? 108 : 50}
+        mt={controlsOpen ? 108 : 50}
         pt="sm"
       />
       <div className="group">
@@ -94,9 +93,13 @@ export const Controls = () => {
         <ActionIcon
           className="surface button icon"
           size="40"
-          onClick={() => setShowUI((v) => !v)}
+          onClick={() => (settings.controlsOpen = !controlsOpen)}
         >
-          {showUI ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+          {controlsOpen ? (
+            <IconChevronUp size={16} />
+          ) : (
+            <IconChevronDown size={16} />
+          )}
         </ActionIcon>
         <Surface>
           <div className="group lower">
@@ -115,7 +118,7 @@ export const Controls = () => {
           </div>
         </Surface>
       </div>
-      {showUI && (
+      {controlsOpen && (
         <>
           <div className="group space-between">
             <Surface>
@@ -154,13 +157,29 @@ export const Controls = () => {
                       >
                         9 ball
                       </Button>
-                      <Button
-                        onClick={() =>
-                          Game.instance.controller.setupDebugGame()
-                        }
-                      >
-                        Debug
-                      </Button>
+                      <Menu shadow="md">
+                        <Menu.Target>
+                          <Button className="button">Sandbox</Button>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          <Menu.Item
+                            onClick={() =>
+                              Game.instance.controller.setupSandboxGame('debug')
+                            }
+                          >
+                            Debug
+                          </Menu.Item>
+                          <Menu.Item
+                            onClick={() =>
+                              Game.instance.controller.setupSandboxGame(
+                                'cubicle-troll'
+                              )
+                            }
+                          >
+                            Cubicle troll
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
                     </>
                   )}
                 </div>

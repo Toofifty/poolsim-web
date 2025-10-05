@@ -44,8 +44,8 @@ export class OnlineGameController extends BaseGameController {
     if (this.isHost) {
       setTimeout(() => {
         switch (this.params.game.ruleSet) {
-          case RuleSet.Debug:
-            this.setupDebugGame();
+          case RuleSet.Sandbox:
+            this.setupSandboxGame();
             break;
           case RuleSet._8Ball:
             this.setup8Ball();

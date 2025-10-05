@@ -8,7 +8,7 @@ import { getControlPoints } from './get-control-points';
 
 export const createCushionGeometry = (
   params: Params,
-  [A, B, C, D]: [Vec, Vec, Vec, Vec]
+  [A, B, C, D]: readonly [Vec, Vec, Vec, Vec]
 ) => {
   const {
     cushion: { height, width, baseWidth, rounding },

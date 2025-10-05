@@ -3,6 +3,7 @@ import { assert } from '../util';
 import type { Collision } from './collision';
 import {
   BallState,
+  RuleSet,
   type PhysicsBall,
   type PhysicsBallSnapshot,
 } from './physics';
@@ -12,7 +13,7 @@ import { type TableState } from './table-state';
 export class Result {
   stepIterations = 1;
   ballsPotted: number[] = [];
-  pottedCueBall = false;
+  scratched = false;
   hitFoulBall = false;
   hitBallOffTable = false;
   /** e.g. shot backwards on break */
@@ -44,7 +45,7 @@ export class Result {
   public add(other: Result) {
     this.stepIterations += other.stepIterations;
     this.ballsPotted.push(...other.ballsPotted);
-    this.pottedCueBall ||= other.pottedCueBall;
+    this.scratched ||= other.scratched;
     this.hitFoulBall ||= other.hitFoulBall;
     this.invalidShot ||= other.invalidShot;
     this.firstStruck ??= other.firstStruck;
@@ -65,6 +66,16 @@ export class Result {
     return this;
   }
 
+  public addCollision(collision: Collision) {
+    if (this.state?.ruleSet === RuleSet.SandboxSequential) {
+      if (collision.type === 'ball-ball') {
+        // todo
+      }
+    }
+
+    this.collisions.push(collision);
+  }
+
   public hasOutOfBoundsBall() {
     return !!this.state?.hasOutOfBoundsBall();
   }
@@ -72,7 +83,7 @@ export class Result {
   public hasFoul() {
     return (
       this.cueBallCollisions === 0 ||
-      this.pottedCueBall ||
+      this.scratched ||
       this.hitFoulBall ||
       this.invalidShot ||
       this.hitBallOffTable
@@ -100,18 +111,20 @@ export class Result {
     if (this.state) {
       assert(this.state.settled);
 
-      this.state.balls.forEach((ball) => {
+      for (let ball of this.state.balls) {
         if (ball.isOutOfBounds && ball.state !== BallState.OutOfPlay) {
           this.hitBallOffTable = true;
           ball.state = BallState.OutOfPlay;
           if (ball.id === 0) {
             ball.place(0, 0);
+            this.state.needsUpdate = true;
           }
         }
-      });
+      }
 
       if (this.state.balls?.[0]?.isPocketedStationary) {
         this.state.balls[0].place(0, 0);
+        this.state.needsUpdate = true;
       }
     }
   }

@@ -1,4 +1,5 @@
 import { quat, vec, type Quat, type Vec } from '../../math';
+import { solveQuadraticRoots } from '../../math/solve';
 import { assert } from '../../util';
 import type {
   BallBallCollision,
@@ -209,8 +210,8 @@ export class PhysicsBall {
   }
 
   public minimize() {
-    const cv = this.getContactVelocity();
-    if (vec.len(cv) < 1e-8 && vec.len(cv) > 0) {
+    const cv = vec.len(this.getContactVelocity());
+    if (cv < 1e-8 && cv > 0) {
       vec.mcopy(this.w, this.getIdealAngularVelocity());
       assert(
         vec.isZero(this.getContactVelocity()),
@@ -232,9 +233,9 @@ export class PhysicsBall {
         return BallState.Pocketed;
       case this.r[2] > 0:
         return BallState.Airborne;
-      case vec.len(this.getContactVelocity()) > 0:
+      case vec.lenSq(this.getContactVelocity()) > 0:
         return BallState.Sliding;
-      case vec.len(this.velocity) > 0:
+      case vec.lenSq(this.velocity) > 0:
         return BallState.Rolling;
       case Math.abs(this.angularVelocity[2]) > 0:
         return BallState.Spinning;
@@ -284,7 +285,7 @@ export class PhysicsBall {
     return this.v[2] + Math.sqrt(disc) / this.params.ball.gravity;
   }
 
-  private getMomentaryFrictionDelta(dt: number) {
+  private getMomentaryFrictionAccel() {
     const {
       gravity: g,
       frictionSlide: us,
@@ -293,15 +294,19 @@ export class PhysicsBall {
 
     if (this.state === BallState.Sliding) {
       const u0 = vec.norm(this.getContactVelocity());
-      return vec.mult(u0, -us * g * dt);
+      return vec.mult(u0, -us * g);
     }
 
     if (this.state === BallState.Rolling) {
       const vh = vec.norm(this.v);
-      return vec.mult(vh, -ur * g * dt);
+      return vec.mult(vh, -ur * g);
     }
 
     return vec.zero;
+  }
+
+  private getMomentaryFrictionDelta(dt: number) {
+    return vec.mult(this.getMomentaryFrictionAccel(), dt);
   }
 
   public computeCollisionTime(other: PhysicsBall, dt: number) {
@@ -333,6 +338,53 @@ export class PhysicsBall {
     if (t1 >= 0 && t1 < dt) return t1;
     if (t2 >= 0 && t2 < dt) return t2;
     return Infinity;
+  }
+
+  public computeCushionCollisionTime(cushion: PhysicsCushion, dt: number) {
+    if (this.isStationary) return Infinity;
+
+    const p0 = this.r;
+    const a = this.getMomentaryFrictionAccel();
+    const v0 = this.v;
+    const R = this.radius;
+
+    let bestT = Infinity;
+    for (const [A, B] of cushion.segments) {
+      const edge = vec.sub(B, A);
+      const edgeLen = vec.len(edge);
+      const edgeDir = vec.norm(edge);
+      const normal = vec.perp(edgeDir);
+
+      const d0 = vec.dot(normal, vec.sub(p0, A));
+      const vn = vec.dot(normal, v0);
+      const an = vec.dot(normal, a);
+
+      for (const sign of [+1, -1]) {
+        const c = d0 - sign * R;
+        for (let t of solveQuadraticRoots(0.5 * an, vn, c)) {
+          if (t <= 1e-8 || t >= dt || t >= bestT) continue;
+
+          const pt = vec.add(
+            p0,
+            vec.add(vec.mult(v0, t), vec.mult(a, 0.5 * t * t))
+          );
+          const rel = vec.sub(pt, A);
+          const u = vec.dot(rel, edgeDir);
+          if (u >= 0 && u <= edgeLen) {
+            bestT = t;
+          }
+        }
+      }
+
+      // endpoint collisions
+      // for (const P of [A, B]) {
+      //   for (const t of solveQuadraticPointCollisionRoots(p0, v0, R, P)) {
+      //     if (t > 1e-8 && t < bestT) bestT = t;
+      //   }
+      // }
+    }
+
+    return bestT;
   }
 
   public evolve(dt: number, simulated?: boolean) {

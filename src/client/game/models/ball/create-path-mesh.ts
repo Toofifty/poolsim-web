@@ -1,4 +1,12 @@
-import { Color, type Vector3 } from 'three';
+import {
+  BufferGeometry,
+  Color,
+  Float32BufferAttribute,
+  Object3D,
+  Points,
+  PointsMaterial,
+  type Vector3,
+} from 'three';
 import {
   Line2,
   LineGeometry,
@@ -32,17 +40,22 @@ export const getColor = (state: BallState) => {
   }
 };
 
-const material = new LineMaterial({
+const lineMaterial = new LineMaterial({
   linewidth: 4,
   vertexColors: true,
-  dashed: true,
-  dashScale: 50,
 });
 
 export type TrackingPoint = { position: Vector3; state: BallState };
 
-export const createPathMesh = (points: TrackingPoint[], ballColor: Color) => {
-  const { physicsGuidelines } = settings;
+export const createPathMesh = (
+  points: TrackingPoint[],
+  ballColor: Color
+): Object3D => {
+  const { physicsGuidelines, debugBallPaths } = settings;
+
+  if (debugBallPaths) {
+    return createDottedPathMesh(points, ballColor);
+  }
 
   const positions: number[] = [];
   const colors: number[] = [];
@@ -58,9 +71,36 @@ export const createPathMesh = (points: TrackingPoint[], ballColor: Color) => {
   geometry.setPositions(positions);
   geometry.setColors(colors);
 
-  const line = new Line2(geometry, material);
+  const line = new Line2(geometry, lineMaterial);
   line.computeLineDistances();
   line.scale.set(1, 1, 1);
 
   return line;
+};
+
+const createDottedPathMesh = (
+  points: TrackingPoint[],
+  ballColor: Color
+): Points => {
+  const { physicsGuidelines } = settings;
+  const geometry = new BufferGeometry().setFromPoints(
+    points.map((point) => point.position)
+  );
+
+  const colors: number[] = [];
+  for (const point of points) {
+    const color = physicsGuidelines ? getColor(point.state) : ballColor;
+    colors.push(color.r, color.g, color.b);
+  }
+  geometry.setAttribute(
+    'color',
+    new Float32BufferAttribute(new Float32Array(colors), 3)
+  );
+
+  const pointsMesh = new Points(
+    geometry,
+    new PointsMaterial({ size: 0.02, vertexColors: true })
+  );
+
+  return pointsMesh;
 };

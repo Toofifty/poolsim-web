@@ -132,19 +132,19 @@ export const collideBallCushion = (
   const closestPoint = c.findClosestPoint(b.r);
 
   const diff = vec.sub(b.r, closestPoint);
-  const dist = vec.len(diff);
+  const distSq = vec.lenSq(diff);
 
-  if (dist < b.radius) {
+  if (distSq <= b.radius * b.radius + 1e-12) {
     const normal = vec.norm(diff);
-
-    const overlap = b.radius - dist;
-    if (fixOverlap) {
-      vec.madd(b.r, vec.mult(normal, overlap));
-    }
 
     const rv = vec.dot(b.v, normal);
     if (rv > 0) {
       return undefined;
+    }
+
+    const overlap = b.radius - Math.sqrt(distSq);
+    if (fixOverlap) {
+      vec.madd(b.r, vec.mult(normal, overlap));
     }
 
     const j = -(1 + ec) * rv;
@@ -185,11 +185,11 @@ export const collideBallPocket = (
     return undefined;
   }
 
-  const dist = vec.dist(vec.setZ(b.r, 0), vec.setZ(p.position, 0));
+  const dist = vec.distSq(vec.setZ(b.r, 0), vec.setZ(p.position, 0));
 
   // only considered in the pocket if within it's radius,
   // and the ball is below rail height
-  if (dist < p.radius && b.r[2] <= b.params.cushion.height) {
+  if (dist < p.radius * p.radius && b.r[2] <= b.params.cushion.height) {
     b.addToPocket(p);
     return {
       type: 'ball-pocket',

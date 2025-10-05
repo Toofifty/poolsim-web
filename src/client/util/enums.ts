@@ -7,8 +7,9 @@ export const getRuleSetName = (ruleSet: RuleSet) => {
       return '8 Ball';
     case RuleSet._9Ball:
       return '9 Ball';
-    case RuleSet.Debug:
-      return 'Debug';
+    case RuleSet.Sandbox:
+    case RuleSet.SandboxSequential:
+      return 'sandbox';
   }
 };
 

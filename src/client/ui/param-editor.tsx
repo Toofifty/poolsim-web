@@ -130,7 +130,7 @@ export const ParamEditor = ({
             <Item title="Game mode">
               <SelectOrText
                 value={params.game.ruleSet}
-                options={[RuleSet._8Ball, RuleSet._9Ball, RuleSet.Debug]}
+                options={[RuleSet._8Ball, RuleSet._9Ball, RuleSet.Sandbox]}
                 getLabel={getRuleSetName}
                 onChange={onEdit && ((v) => onEdit('game.ruleSet', v))}
               />

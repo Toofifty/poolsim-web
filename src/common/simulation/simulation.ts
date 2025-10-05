@@ -24,7 +24,6 @@ export type RunSimulationStepOptions = {
   stopAtFirstBallContact?: boolean;
   /** Write to this result instead of creating a new one */
   result?: Result;
-  isSubstep?: boolean;
 };
 
 export interface ISimulation {
@@ -48,118 +47,91 @@ export class Simulation implements ISimulation {
       stopAtFirstContact,
       stopAtFirstBallContact,
       result = new StepResult(),
-      isSubstep,
     } = options;
 
     let dt = options.dt;
+    let nextCollision = dt;
 
-    const activeBalls = state.activeBalls;
-
-    if (!isSubstep) {
-      // break down collisions
-      // todo: substep cushions
-      let nextCollision = Infinity;
-      for (let i = 0; i < activeBalls.length; i++) {
-        const ball = activeBalls[i];
-        for (let j = i + 1; j < activeBalls.length; j++) {
-          const other = activeBalls[j];
-          const ct = ball.computeCollisionTime(other, dt);
-          if (ct > 1e-6 && ct < nextCollision) {
-            nextCollision = ct;
-          }
-        }
+    // substep ball-ball collisions
+    for (let [ball, other] of state.activePairs) {
+      const ct = ball.computeCollisionTime(other, dt);
+      if (ct > 1e-6 && ct < nextCollision) {
+        nextCollision = ct;
       }
+    }
 
-      if (nextCollision < dt) {
-        // run until collision
-        const substepResult = this.step({
-          ...options,
-          dt: nextCollision,
-          isSubstep: true,
-        });
-        if (stopAtFirstContact || stopAtFirstBallContact) {
-          return substepResult;
-        }
-
-        result.add(substepResult);
-        // process rest of time step
-        dt -= nextCollision;
+    // substep ball-cushion collisions
+    for (let [ball, cushion] of state.activeBallCushions) {
+      const ct = ball.computeCushionCollisionTime(cushion, dt);
+      if (ct > 1e-6 && ct < nextCollision) {
+        nextCollision = ct;
       }
+    }
+
+    if (nextCollision < dt) {
+      dt = nextCollision;
     }
 
     const doTrackPath =
       trackPath && stepIndex % this.params.simulation.trackingPointDist === 0;
 
     const endBallUpdate = profiler.start('ballUpdate');
-    state.balls.forEach((ball) => {
+    for (let ball of state.balls) {
       ball.evolve(dt, simulated);
       if (doTrackPath) {
         result.addTrackingPoint(ball);
       }
-    });
+    }
     endBallUpdate();
 
     const endBallBall = profiler.start('ballBall');
     // ball <-> ball collisions
-    for (let i = 0; i < activeBalls.length; i++) {
-      const ball = activeBalls[i];
-
-      for (let j = i + 1; j < activeBalls.length; j++) {
-        const other = activeBalls[j];
-        // dont fix overlap with evolution physics enabled
-        const collision = ball.collideBall(
-          other,
-          !stopAtFirstContact && !stopAtFirstBallContact
-        );
-        if (collision) {
-          if (collision.initiator.id === 0) {
-            if (result.firstStruck === undefined) {
-              result.setFirstStruck(collision.other.id);
-            }
-            result.cueBallCollisions++;
-          } else {
-            result.ballBallCollisions++;
+    for (let [ball, other] of state.activePairs) {
+      const collision = ball.collideBall(
+        other,
+        !stopAtFirstContact && !stopAtFirstBallContact
+      );
+      if (collision) {
+        if (collision.initiator.id === 0) {
+          if (result.firstStruck === undefined) {
+            result.setFirstStruck(collision.other.id);
           }
-          result.collisions.push(collision);
+          result.cueBallCollisions++;
+        } else {
+          result.ballBallCollisions++;
         }
+        result.addCollision(collision);
       }
     }
     endBallBall();
 
     const endBallCushion = profiler.start('ballCushion');
     // ball -> cushion collisions
-    for (let i = 0; i < activeBalls.length; i++) {
-      const ball = activeBalls[i];
-      for (let j = 0; j < state.cushions.length; j++) {
-        const cushion = state.cushions[j];
-        const collision = ball.collideCushion(cushion);
-        if (collision) {
-          if (collision.initiator.id === 0) {
-            result.cueBallCushionCollisions++;
-          } else {
-            result.ballCushionCollisions++;
-          }
-          result.collisions.push(collision);
+    for (let [ball, cushion] of state.activeBallCushions) {
+      const collision = ball.collideCushion(cushion);
+      if (collision) {
+        if (collision.initiator.id === 0) {
+          result.cueBallCushionCollisions++;
+        } else {
+          result.ballCushionCollisions++;
         }
+        result.addCollision(collision);
       }
     }
     endBallCushion();
 
     const endBallPocket = profiler.start('ballPocket');
     // ball -> pocket collisions
-    for (let i = 0; i < activeBalls.length; i++) {
-      const ball = activeBalls[i];
-      for (let j = 0; j < state.pockets.length; j++) {
-        const pocket = state.pockets[j];
-        const collision = ball.collidePocket(pocket);
-        if (collision) {
-          if (collision.initiator.id === 0) {
-            result.pottedCueBall = true;
-          } else {
-            result.ballsPotted.push(ball.id);
-          }
-          result.collisions.push(collision);
+    for (let [ball, pocket] of state.activeBallPockets) {
+      const collision = ball.collidePocket(pocket);
+      if (collision) {
+        if (collision.initiator.id === 0) {
+          result.scratched = true;
+        } else {
+          result.ballsPotted.push(ball.id);
         }
+        result.addCollision(collision);
+        state.needsUpdate = true;
       }
     }
     endBallPocket();
@@ -197,6 +169,7 @@ export class Simulation implements ISimulation {
           stopAtFirstContact,
           stopAtFirstBallContact,
           result,
+          profiler,
         })
       );
 

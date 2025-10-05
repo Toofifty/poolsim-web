@@ -47,6 +47,7 @@ export const Preferences = () => {
     pauseSimulation,
     debugLights,
     debugBalls,
+    debugBallPaths,
     debugCushions,
     enableBallPickup,
     enableProfiler,
@@ -219,6 +220,13 @@ export const Preferences = () => {
                   pr="4px"
                   checked={debugBalls}
                   onChange={(e) => (settings.debugBalls = e.target.checked)}
+                />
+              </Item>
+              <Item title="Debug ball paths">
+                <Checkbox
+                  pr="4px"
+                  checked={debugBallPaths}
+                  onChange={(e) => (settings.debugBallPaths = e.target.checked)}
                 />
               </Item>
               <Item title="Debug cushions">

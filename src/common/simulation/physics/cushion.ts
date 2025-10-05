@@ -3,8 +3,8 @@ import type { StaticParams } from './default-params';
 import { Polygon } from './polygon';
 
 export type SerializedPhysicsCushion = {
-  vertices: [Vec, Vec, Vec, Vec];
-  collisionBox: [Vec, Vec];
+  vertices: readonly [Vec, Vec, Vec, Vec];
+  collisionBox: readonly [Vec, Vec];
 };
 
 export class PhysicsCushion extends Polygon {

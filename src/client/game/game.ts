@@ -240,12 +240,16 @@ export class Game {
     });
 
     this.input.onKeyUp((e) => {
+      console.log(e.key);
       switch (e.key) {
         case 'l':
           settings.lockCue = !settings.lockCue;
           return;
         case 'r':
           Game.resetCamera();
+          return;
+        case ' ':
+          settings.pauseSimulation = !settings.pauseSimulation;
           return;
         case 'Shift':
           this.controls.enableZoom = true;
@@ -454,8 +458,18 @@ export class Game {
     this.stats.begin();
     this.controls.update();
 
-    const dt = this.clock.getDelta();
-    this.accumulator += dt;
+    const dt = this.clock.getDelta() * this.params.simulation.playbackSpeed;
+    if (dt < 1) {
+      // when the tab is inactive we don't run simulations,
+      // and the delta after coming back will be huge
+      this.accumulator += dt;
+    } else {
+      console.warn(
+        `skipping ${(dt / this.timestep).toFixed(
+          0
+        )} game updates over ${dt.toFixed(2)}s`
+      );
+    }
 
     // physics step
     while (this.accumulator >= this.timestep) {

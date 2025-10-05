@@ -25,7 +25,7 @@ import { Cue } from '../objects/cue';
 import { type Cushion } from '../objects/cushion';
 import type { Pocket } from '../objects/pocket';
 import { Table } from '../objects/table';
-import { Rack } from '../rack';
+import { Rack, type Sandboxes } from '../rack';
 import { AimAssist } from '../simulation/aim-assist';
 import { settings } from '../store/settings';
 import { subscribe, subscribeTo } from '../util/subscribe';
@@ -80,7 +80,7 @@ export interface GameController
   // setup
   setup8Ball(): void;
   setup9Ball(): void;
-  setupDebugGame(): void;
+  setupSandboxGame(type?: Sandboxes): void;
   setupPrevious(): void;
 
   // gameplay
@@ -242,6 +242,7 @@ export abstract class BaseGameController
     // todo: make balls Object3Ds
     this.root.add(...balls.map((ball) => ball.parent));
     this.state.balls = balls.map((ball) => ball.physics);
+    this.state.needsUpdate = true;
     this.aimAssist.setBalls([...balls]);
   }
 
@@ -266,22 +267,22 @@ export abstract class BaseGameController
 
   public setup8Ball(): void {
     this.setupTable({
-      rack: Rack.generate8Ball(),
+      rack: Rack.generate8Ball(Rack.getTip(this.params)),
       ruleSet: RuleSet._8Ball,
     });
   }
 
   public setup9Ball(): void {
     this.setupTable({
-      rack: Rack.generate9Ball(),
+      rack: Rack.generate9Ball(Rack.getTip(this.params)),
       ruleSet: RuleSet._9Ball,
     });
   }
 
-  public setupDebugGame(): void {
+  public setupSandboxGame(type: Sandboxes = 'debug'): void {
     this.setupTable({
-      rack: Rack.generateDebugGame(),
-      ruleSet: RuleSet.Debug,
+      rack: Rack.generateSandboxGame(this.params, type),
+      ruleSet: RuleSet.SandboxSequential,
     });
   }
 
@@ -303,6 +304,7 @@ export abstract class BaseGameController
    */
   protected resetCueBall(): void {
     this.balls[0].place(-this.params.table.length / 4, 0);
+    this.state.needsUpdate = true;
     this.cue.attachTo(this.balls[0]);
     this.dispatchTypedEvent('reset-cue-ball', new Event('reset-cue-ball'));
   }

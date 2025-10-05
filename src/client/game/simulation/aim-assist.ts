@@ -12,6 +12,8 @@ import type { Ball } from '../objects/ball';
 import { settings } from '../store/settings';
 import { ThreadedSimulation } from './threaded-simulation';
 
+const CONSOLE_TIME = false;
+
 export class AimAssist {
   private simulation: ISimulation;
   private lastShotKey: bigint = 0n;
@@ -65,6 +67,7 @@ export class AimAssist {
     const initialSnapshots = state.balls.map((ball) => ball.snapshot());
 
     await (profiler ?? Profiler.none).profile('aim-update', async () => {
+      if (CONSOLE_TIME) console.time('aim-assist');
       const result = await this.simulation.run({
         shot,
         state,
@@ -187,6 +190,7 @@ export class AimAssist {
         }
       });
       this.calculating = false;
+      if (CONSOLE_TIME) console.timeEnd('aim-assist');
     });
     profiler?.dump();
   }

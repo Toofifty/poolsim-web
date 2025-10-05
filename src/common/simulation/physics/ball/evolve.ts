@@ -142,6 +142,7 @@ export const evolveBallOrientation = (ball: PhysicsBall, dt: number) => {
 const evolveVertical = (ball: PhysicsBall, dt: number) => {
   const { gravity: g } = ball.params.ball;
 
+  // todo: air resistance
   const accel = vec.new(0, 0, -g);
   // r += vt + 0.5at²
   vec.madd(
@@ -155,6 +156,8 @@ const evolveVertical = (ball: PhysicsBall, dt: number) => {
 
 const collideWithSlate = (ball: PhysicsBall) => {
   const { restitutionSlate: es } = ball.params.ball;
+
+  if (ball.isOutOfBounds) return;
 
   if (ball.r[2] < 0 && ball.v[2] < 0) {
     ball.v[2] = -ball.v[2] * es;

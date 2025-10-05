@@ -59,6 +59,9 @@ export type GameControllerEventMap = {
     state: EightBallState;
     isPlayer1: boolean;
   }>;
+  ['balls-potted']: CustomEvent<{
+    ids: number[];
+  }>;
 };
 
 export type GameEventListener<K extends keyof GameControllerEventMap> =
@@ -490,6 +493,14 @@ export abstract class BaseGameController
       });
       this.simulationResult.add(result);
       this.playCollisionSounds(result.collisions);
+      if (result.ballsPotted.length > 0) {
+        this.dispatchTypedEvent(
+          'balls-potted',
+          new CustomEvent('balls-potted', {
+            detail: { ids: result.ballsPotted },
+          })
+        );
+      }
     }
 
     if (this.isShooting && !this.cue.isShooting && this.shouldShowAimAssist()) {
@@ -521,6 +532,7 @@ export abstract class BaseGameController
     }
   }
 
+  // host-only
   protected update8BallState() {
     if (
       this.state.ruleSet === RuleSet._8Ball &&
@@ -544,7 +556,7 @@ export abstract class BaseGameController
           new CustomEvent('8-ball-state-change', {
             detail: {
               state: this.state.eightBallState,
-              isPlayer1,
+              isPlayer1: true,
             },
           })
         );
@@ -557,7 +569,7 @@ export abstract class BaseGameController
           new CustomEvent('8-ball-state-change', {
             detail: {
               state: this.state.eightBallState,
-              isPlayer1,
+              isPlayer1: true,
             },
           })
         );

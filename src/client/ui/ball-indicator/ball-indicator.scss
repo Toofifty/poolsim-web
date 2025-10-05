@@ -1,0 +1,78 @@
+.ball-indicator__container {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ball-indicator__group {
+  border-radius: 9999px;
+
+  > span {
+    min-width: 135px;
+    text-align: center;
+  }
+}
+
+$size: 32px;
+
+@keyframes animate-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%) scale(0);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ball__container {
+  border-radius: 9999px;
+  overflow: hidden;
+  width: $size;
+  height: $size;
+  position: relative;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.1),
+    inset 4px 4px 16px rgba(0, 0, 0, 0.25),
+    inset -1px -1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.ball {
+  border-radius: 9999px;
+  overflow: hidden;
+  animation: animate-in 0.5s;
+  animation-timing-function: linear(
+    0,
+    0.09,
+    0.4,
+    0.8,
+    0.83,
+    0.75,
+    0.9,
+    0.95,
+    0.98,
+    1 100% 100%
+  );
+  width: $size;
+  height: $size;
+
+  > canvas {
+    width: $size;
+    height: $size;
+    transform: translate(0, -$size * 0.1) scale(1.5);
+  }
+
+  &:not(:empty):before {
+    z-index: 1;
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #{-$size * 0.25} #{-$size * 0.25} / #{$size * 1.25} #{$size * 1.25}
+        no-repeat radial-gradient(transparent 25%, rgba(0, 0, 0, 0.9) 80%),
+      #{-$size * 0.375} #{-$size * 0.375} / #{$size * 1.25} #{$size * 1.25}
+        no-repeat radial-gradient(white 2.5%, transparent 7.5%);
+  }
+}

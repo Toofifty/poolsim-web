@@ -18,6 +18,7 @@ import { Players, settings } from '../game/store/settings';
 import { socket } from '../socket';
 import type { DeepKeyOf } from '../util/types';
 import { useLobby } from '../util/use-lobby';
+import { BallIndicator } from './ball-indicator/ball-indicator';
 import './controls.scss';
 import { OverlayParamEditor } from './overlay-param-editor';
 import { PowerBar } from './power-bar';
@@ -77,9 +78,10 @@ export const Controls = () => {
         classNames={{ notification: 'surface-effects' }}
         // ui-container inset
         top={isMobile ? 4 : 16}
-        mt={controlsOpen ? 108 : 50}
+        mt={controlsOpen ? 164 : 108}
         pt="sm"
       />
+      <BallIndicator />
       <div className="group">
         <ActionIcon
           className="surface button icon"

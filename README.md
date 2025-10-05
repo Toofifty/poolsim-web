@@ -9,7 +9,7 @@ Play pool in your browser
 - Fully implement 8 ball
 - ~~Switch turns~~
 - Snooker?
-- Show balls pocketed
+- ~~Show balls pocketed~~`
 - Show curve after first contact
 - ~~Aim assist - first contact~~
 
@@ -21,7 +21,7 @@ Play pool in your browser
 - ~~Revisit physics values~~
 - ~~Fix ball entering pocket physics~~
 - ~~Substep collision resolution~~
-  - `Substep cushion collisions`
+  - ~~Substep cushion collisions~~
 - ~~Runtime physics param changes~~
 
 ### Graphics

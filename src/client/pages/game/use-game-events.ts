@@ -1,11 +1,25 @@
 import { notifications } from '@mantine/notifications';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { EightBallState } from '../../../common/simulation/table-state';
-import type { GameEventListener } from '../../game/controller/game-controller';
+import type {
+  GameControllerEventMap,
+  GameEventListener,
+} from '../../game/controller/game-controller';
 import type { Game } from '../../game/game';
-import { getEightBallStateName, getRuleSetName } from '../../util/enums';
+import { getRuleSetName } from '../../util/enums';
+import { useGameContext } from '../../util/game-provider';
 
-export const useGameEvents = (game: Game) => {
+export const getPlayer8BallState = (
+  eightballState: EightBallState,
+  isPlayer1: boolean
+) => {
+  if (eightballState === EightBallState.Open) return 'open';
+  return isPlayer1 === (eightballState === EightBallState.Player1Solids)
+    ? 'solids'
+    : 'stripes';
+};
+
+export const useGameNotifications = (game: Game) => {
   const controller = game.controller;
 
   useEffect(() => {
@@ -16,23 +30,12 @@ export const useGameEvents = (game: Game) => {
     };
 
     const on8BallStateChange: GameEventListener<'8-ball-state-change'> = ({
-      detail,
+      detail: { state, isPlayer1 },
     }) => {
-      if (detail.state === EightBallState.Open) return;
-
-      if (!detail.isPlayer1) {
-        const opposite =
-          detail.state === EightBallState.Player1Solids
-            ? EightBallState.Player1Stripes
-            : EightBallState.Player1Solids;
-        notifications.show({
-          message: `You are ${getEightBallStateName(opposite)}`,
-        });
-        return;
-      }
+      if (state === EightBallState.Open) return;
 
       notifications.show({
-        message: `You are ${getEightBallStateName(detail.state)}`,
+        message: `You are ${getPlayer8BallState(state, isPlayer1)}`,
       });
     };
 
@@ -44,4 +47,25 @@ export const useGameEvents = (game: Game) => {
       controller.removeEventListener('8-ball-state-change', on8BallStateChange);
     };
   }, [controller]);
+};
+
+export const useGameEvent = <T extends keyof GameControllerEventMap>(
+  event: T,
+  callback: GameEventListener<T>,
+  deps: unknown[]
+) => {
+  const controller = useGameContext().controller;
+
+  const memoCallback = useCallback(
+    callback as Function,
+    deps
+  ) as GameEventListener<T>;
+
+  useEffect(() => {
+    controller.addEventListener(event, memoCallback);
+
+    return () => {
+      controller.removeEventListener(event, memoCallback);
+    };
+  }, [controller, memoCallback]);
 };

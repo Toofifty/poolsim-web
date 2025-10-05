@@ -13,8 +13,10 @@ import { Controls } from '../../ui/controls';
 import { QuickControls } from '../../ui/quick-controls';
 import { SpinControl } from '../../ui/spin-control';
 import { UIContainer } from '../../ui/ui-container';
+import { getIsMobile } from '../../ui/use-media-query';
+import { GameContext } from '../../util/game-provider';
 import { useLobby } from '../../util/use-lobby';
-import { useGameEvents } from './use-game-events';
+import { useGameNotifications } from './use-game-events';
 
 let lastBootstrappedFor: string | undefined = undefined;
 let game: Game | undefined = undefined;
@@ -40,7 +42,7 @@ export const GamePage = () => {
     return bootstrapGame(lobby);
   }, [lobby]);
 
-  useGameEvents(game);
+  useGameNotifications(game);
 
   useEffect(() => {
     if (window.innerHeight > window.innerWidth) {
@@ -48,10 +50,14 @@ export const GamePage = () => {
         message: 'Rotate your device for the best experience',
       });
     }
+
+    if (getIsMobile()) {
+      document.body.requestFullscreen();
+    }
   }, []);
 
   return (
-    <>
+    <GameContext.Provider value={game}>
       {canvasEnabled && <Canvas game={game} />}
       <UIContainer
         bottom={
@@ -64,6 +70,6 @@ export const GamePage = () => {
       >
         <Controls />
       </UIContainer>
-    </>
+    </GameContext.Provider>
   );
 };

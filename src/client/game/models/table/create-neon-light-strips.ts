@@ -13,8 +13,8 @@ export const createNeonLightStrips = (params: Params) => {
     table: { width, length, railPadding },
   } = params;
 
-  const gapX = length / 16;
-  const gapY = width / 8;
+  const gapX = length / 32;
+  const gapY = width / 16;
 
   const midY = (width * 0.95) / 2;
   const midX = (length * 0.95) / 2;

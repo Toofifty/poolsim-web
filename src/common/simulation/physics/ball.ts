@@ -1,3 +1,4 @@
+import { dlerpVec } from '../../../client/game/dlerp';
 import { quat, vec, type Quat, type Vec } from '../../math';
 import { solveQuadraticRoots } from '../../math/solve';
 import { assert } from '../../util';
@@ -452,9 +453,17 @@ export class PhysicsBall {
     } satisfies SerializedPhysicsBall;
   }
 
-  public sync(ball: SerializedPhysicsBall, pockets: PhysicsPocket[]) {
+  public sync(
+    ball: SerializedPhysicsBall,
+    pockets: PhysicsPocket[],
+    t?: number
+  ) {
     this.id = ball.id;
-    this.position = ball.position;
+    if (t !== undefined) {
+      dlerpVec((v) => (this.position = v), this.position, ball.position, t);
+    } else {
+      this.position = ball.position;
+    }
     this.velocity = ball.velocity;
     this.angularVelocity = ball.angularVelocity;
     this.orientation = ball.orientation;

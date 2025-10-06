@@ -13,6 +13,7 @@ import {
   LineMaterial,
 } from 'three/examples/jsm/Addons.js';
 import { BallState } from '../../../../common/simulation/physics/ball';
+import { createMaterial } from '../../rendering/create-material';
 import { settings } from '../../store/settings';
 
 export const getColor = (state: BallState) => {
@@ -45,6 +46,10 @@ const lineMaterial = new LineMaterial({
   vertexColors: true,
 });
 
+const tubeMaterial = createMaterial({
+  color: 0xffffff,
+});
+
 export type TrackingPoint = { position: Vector3; state: BallState };
 
 export const createPathMesh = (
@@ -56,6 +61,9 @@ export const createPathMesh = (
   if (debugBallPaths) {
     return createDottedPathMesh(points, ballColor);
   }
+
+  // const spline = new CatmullRomCurve3(points.map((point) => point.position));
+  // return new Mesh(new TubeGeometry(spline, undefined, 0.0025, 3), tubeMaterial);
 
   const positions: number[] = [];
   const colors: number[] = [];

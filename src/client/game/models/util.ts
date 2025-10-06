@@ -7,6 +7,7 @@ import {
   type ExtrudeGeometryOptions,
 } from 'three';
 import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
+import { vec, type Vec } from '../../../common/math';
 
 export const subtract = (g1: BufferGeometry, g2: BufferGeometry) => {
   return new Evaluator().evaluate(new Brush(g1), new Brush(g2), SUBTRACTION)
@@ -123,3 +124,20 @@ export function generateBoundingBoxUVs(geometry: BufferGeometry) {
   geom.setAttribute('uv', new BufferAttribute(uvArray, 2));
   return geom;
 }
+
+export const adjustVertices = <T extends BufferGeometry>(
+  geometry: T,
+  mutator: (v: Vec) => Vec
+) => {
+  geometry.scale(1, 1, 1);
+  const position = geometry.attributes.position;
+  for (let i = 0; i < position.count; i++) {
+    const p = vec.new(position.getX(i), position.getY(i), position.getZ(i));
+    const dp = mutator(p);
+    position.setX(i, dp[0]);
+    position.setY(i, dp[1]);
+    position.setZ(i, dp[2]);
+  }
+  position.needsUpdate = true;
+  geometry.computeVertexNormals();
+};

@@ -19,14 +19,13 @@ export type SerializedCue = {
   lift: number;
 };
 
-export class Cue {
+export class Cue extends Object3D {
   private targetBall?: Ball;
-  public anchor!: Object3D;
   private object!: Object3D;
   private liftAnchor!: Object3D;
 
   set angle(angle: number) {
-    this.anchor.rotation.z = angle - Math.PI / 2;
+    this.rotation.z = angle - Math.PI / 2;
   }
 
   get force() {
@@ -61,8 +60,11 @@ export class Cue {
   private restingPositionY: number;
 
   constructor(private params: Params) {
+    super();
+    this.visible = false;
+
     this.createMesh();
-    this.anchor.rotation.z = Math.PI;
+    this.rotation.z = Math.PI;
     this.restingPositionY = -(params.cue.length / 2 + params.ball.radius * 1.5);
     this.object.position.y = this.restingPositionY;
 
@@ -75,10 +77,10 @@ export class Cue {
   }
 
   private createMesh() {
-    const { cue, lift, anchor } = createCueMeshes(this.params, makeTheme());
+    const { cue, lift } = createCueMeshes(this.params, makeTheme());
+    this.add(lift);
     this.object = cue;
     this.liftAnchor = lift;
-    this.anchor = anchor;
     this.object.position.y = this.restingPositionY;
     Game.reflectives.push(...(cue.children as Mesh[]));
   }
@@ -86,7 +88,7 @@ export class Cue {
   public attachTo(ball: Ball) {
     this.detach();
     this.targetBall = ball;
-    this.anchor.position.copy(this.targetBall.position);
+    this.position.copy(this.targetBall.position);
   }
 
   public detach() {
@@ -102,7 +104,7 @@ export class Cue {
 
     const position = this.targetBall.physics.position;
     const angle = Math.atan2(point[1] - position[1], point[0] - position[0]);
-    this.anchor.rotation.z = angle - Math.PI / 2;
+    this.rotation.z = angle - Math.PI / 2;
     this.object.position.y = this.restingPositionY;
   }
 
@@ -113,12 +115,12 @@ export class Cue {
     this.force = this.params.cue.defaultForce;
   }
 
-  public get position() {
+  public get ballPosition() {
     return this.targetBall?.physics.position ?? vec.zero;
   }
 
   public get angle() {
-    return this.anchor.rotation.z + Math.PI / 2;
+    return this.rotation.z + Math.PI / 2;
   }
 
   public async shoot(onShotMade?: () => void) {
@@ -163,8 +165,8 @@ export class Cue {
 
   public setShot(shot: Shot) {
     dlerpAngle(
-      (v) => (this.anchor.rotation.z = v),
-      this.anchor.rotation.z,
+      (v) => (this.rotation.z = v),
+      this.rotation.z,
       shot.angle - Math.PI / 2,
       250
     );
@@ -185,7 +187,7 @@ export class Cue {
     );
 
     if (!this.isShooting && this.targetBall && settled) {
-      this.anchor.position.copy(this.targetBall.position);
+      this.position.copy(this.targetBall.position);
     }
   }
 

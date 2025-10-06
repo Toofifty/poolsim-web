@@ -24,7 +24,6 @@ export const createCueMeshes = (params: Params, theme: ThemeObject) => {
     cue: { tipRadius, length, handleRadius },
   } = params;
 
-  const anchor = new Object3D();
   const lift = new Object3D();
   const cue = new Object3D();
 
@@ -45,7 +44,6 @@ export const createCueMeshes = (params: Params, theme: ThemeObject) => {
 
   cue.add(tip, shaft, cap);
   lift.add(cue);
-  anchor.add(lift);
 
   themed(
     (theme) => {
@@ -64,5 +62,5 @@ export const createCueMeshes = (params: Params, theme: ThemeObject) => {
     { init: false }
   );
 
-  return { cue, lift, anchor };
+  return { cue, lift };
 };

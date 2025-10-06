@@ -43,6 +43,7 @@ import type { GameController } from './controller/game-controller';
 import { InputController } from './controller/input-controller';
 import { OfflineGameController } from './controller/offline-game-controller';
 import { OnlineGameController } from './controller/online-game-controller';
+import { _dlerpGame } from './dlerp';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
@@ -91,6 +92,7 @@ export class Game {
   init() {
     this.mounted = true;
     Game.instance = this;
+    _dlerpGame.instance = this;
     this.mousePosition = new Vector2(0, 0);
     this.stats = new Stats();
     this.stats.showPanel(0);
@@ -279,12 +281,12 @@ export class Game {
     this.scene.add(lightParent);
 
     const createCeilingLight = (x: number, y: number, intensity: number) => {
-      const ral = new RectAreaLight(0xffffff, intensity, 0.8, 0.4);
+      const ral = new RectAreaLight(0xfff1e0, intensity, 0.8, 0.4);
       ral.position.set(x, y, 0);
       lightParent.add(ral);
       const ralh = new RectAreaLightHelper(ral);
       lightParent.add(ralh);
-      const sl = new SpotLight(0xffffff, 1);
+      const sl = new SpotLight(0xfff1e0, 1);
       sl.decay = 2;
       sl.castShadow = true;
       sl.shadow.bias = -0.00000000005;
@@ -314,6 +316,7 @@ export class Game {
     const { lighting } = makeTheme();
 
     if (lighting.theme === 'neon') {
+      console.log('neon');
       createCeilingLight(
         0,
         -spy,
@@ -331,21 +334,13 @@ export class Game {
       return;
     }
 
-    if (settings.detail === GraphicsDetail.High) {
-      createCeilingLight(-sp * 2, -spy, 20);
-      createCeilingLight(sp * 2, -spy, 20);
-
-      createCeilingLight(-sp * 2, spy, 20);
-      createCeilingLight(sp * 2, spy, 20);
-    } else {
-      createCeilingLight(0, -spy, 20);
-      createCeilingLight(0, spy, 20);
-    }
+    createCeilingLight(0, -spy, 40);
+    createCeilingLight(0, spy, 40);
   }
 
   private setupAmbientLight() {
     const light = new AmbientLight(0xffffff);
-    light.intensity = settings.detail === GraphicsDetail.High ? 0.5 : 1;
+    light.intensity = 0.5;
     this.scene.add(light);
 
     const overlayLight = new AmbientLight(0xffffff, 10);

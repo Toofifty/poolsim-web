@@ -1,6 +1,7 @@
 import type { TypedEventListenerOrEventListenerObject } from 'typescript-event-target';
 import {
   AimAssistMode,
+  defaultParams,
   RuleSet,
   type Params,
 } from '../../../common/simulation/physics';
@@ -174,9 +175,11 @@ export class OnlineGameController extends BaseGameController {
 
   private onNetworkPlaceBallInHand: NetworkEventListener<'place-ball-in-hand'> =
     ({ detail: ball }) => {
-      this.balls
-        .find(({ id }) => id === ball.id)
-        ?.physics.sync(ball, this.state.pockets);
+      const target = this.balls.find(({ id }) => id === ball.id);
+      assert(target);
+      target.physics.sync(ball, this.state.pockets);
+      target.sync();
+
       this.setPlayState(PlayState.OpponentShoot);
     };
 
@@ -191,7 +194,11 @@ export class OnlineGameController extends BaseGameController {
     ({ detail: ball }) => {
       this.balls
         .find(({ id }) => id === ball.id)
-        ?.physics.sync(ball, this.state.pockets);
+        ?.physics.sync(
+          ball,
+          this.state.pockets,
+          defaultParams.network.throttle
+        );
     };
 
   private onGameUpdateCue: GameEventListener<'update-cue'> = () => {

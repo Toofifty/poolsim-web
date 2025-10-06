@@ -1,6 +1,9 @@
 import type { Vector3 } from 'three';
 import { lerp } from 'three/src/math/MathUtils.js';
-import { Game } from './game';
+import { vec, type Vec } from '../../common/math';
+import type { Game } from './game';
+
+export const _dlerpGame = { instance: undefined! as Game };
 
 class Deferred<T = void> {
   public promise: Promise<T>;
@@ -27,14 +30,14 @@ export const dlerp = (
     t += (dt * 1000) / duration;
     if (t >= 1) {
       setter(to);
-      Game.instance.lerps.delete(lerpFn);
+      _dlerpGame.instance.lerps.delete(lerpFn);
       deferred.resolve();
       return;
     }
     setter(lerp(from, to, t));
   };
 
-  Game.instance.lerps.add(lerpFn);
+  _dlerpGame.instance.lerps.add(lerpFn);
 
   return deferred.promise;
 };
@@ -53,6 +56,31 @@ export const dlerpAngle = (
   return dlerp(setter, from, shortestAngle, duration);
 };
 
+export const dlerpVec = (
+  setter: (value: Vec) => void,
+  from: Vec,
+  to: Vec,
+  duration: number
+) => {
+  const deferred = new Deferred();
+  let t = 0;
+
+  const lerpFn = (dt: number) => {
+    t += (dt * 1000) / duration;
+    if (t >= 1) {
+      setter(to);
+      _dlerpGame.instance.lerps.delete(lerpFn);
+      deferred.resolve();
+      return;
+    }
+    setter(vec.lerp(from, to, t));
+  };
+
+  _dlerpGame.instance.lerps.add(lerpFn);
+
+  return deferred.promise;
+};
+
 export const dvlerp = (
   setter: (value: Vector3) => void,
   from: Vector3,
@@ -66,14 +94,14 @@ export const dvlerp = (
     t += (dt * 1000) / duration;
     if (t >= 1) {
       setter(to);
-      Game.instance.lerps.delete(lerpFn);
+      _dlerpGame.instance.lerps.delete(lerpFn);
       deferred.resolve();
       return;
     }
     setter(from.clone().lerp(to, t));
   };
 
-  Game.instance.lerps.add(lerpFn);
+  _dlerpGame.instance.lerps.add(lerpFn);
 
   return deferred.promise;
 };

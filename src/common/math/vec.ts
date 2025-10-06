@@ -117,6 +117,12 @@ export const vec = {
   addXY: (v: Vec, x: number, y: number): Vec => [v[0] + x, v[1] + y, v[2]],
   subXY: (v: Vec, x: number, y: number): Vec => [v[0] - x, v[1] - y, v[2]],
 
+  lerp: (v1: Vec, v2: Vec, t: number): Vec => [
+    v1[0] + (v2[0] - v1[0]) * t,
+    v1[1] + (v2[1] - v1[1]) * t,
+    v1[2] + (v2[2] - v1[2]) * t,
+  ],
+
   /** Set components to 0 if near 0 */
   minimise: (v: Vec, epsilon = 1e-8): Vec => [
     Math.abs(v[0]) < epsilon ? 0 : v[0],

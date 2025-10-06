@@ -1,4 +1,11 @@
-import { BufferGeometry, Color, Material, Mesh, Object3D } from 'three';
+import {
+  BufferGeometry,
+  Color,
+  Material,
+  Mesh,
+  Object3D,
+  RingGeometry,
+} from 'three';
 import { vec, type Quat, type Vec } from '../../../common/math';
 import { defaultParams, type Params } from '../../../common/simulation/physics';
 import {
@@ -55,6 +62,7 @@ export class Ball {
   private trackingLine?: Object3D;
   private geometry!: BufferGeometry;
   private projectionMaterial!: Material;
+  private tablePositionIndicator!: Mesh;
 
   private impactArrow!: Arrow;
   private firstContact?: BallFirstContact;
@@ -103,6 +111,15 @@ export class Ball {
       color: this.color,
       factor: 0.2,
     });
+
+    this.tablePositionIndicator = new Mesh(
+      new RingGeometry(this.radius * 0.9, this.radius),
+      createMaterial({
+        color: this.color,
+      })
+    );
+    this.tablePositionIndicator.receiveShadow = true;
+    this.parent.add(this.tablePositionIndicator);
   }
 
   get id() {
@@ -178,6 +195,14 @@ export class Ball {
 
   public sync() {
     this.updateMesh();
+    // *.99 prevents z fighting
+    if (this.physics.position[2] > 0.01) {
+      this.tablePositionIndicator.position.z =
+        -this.physics.position[2] - this.radius * 0.99;
+      this.tablePositionIndicator.visible = true;
+    } else {
+      this.tablePositionIndicator.visible = false;
+    }
     this.firstContact?.update();
     this.highlight.update();
     this.impactArrow.update();
@@ -227,7 +252,7 @@ export class Ball {
     // ball tracking line
     if (this.trackingLine) {
       Game.remove(this.trackingLine);
-      (this.trackingLine as any).geometry.dispose();
+      Game.dispose(this.trackingLine);
       this.trackingLine = undefined;
     }
 
@@ -248,6 +273,7 @@ export class Ball {
     this.impactArrow.dispose();
     this.highlight.dispose();
     this.debug.dispose();
+    Game.dispose(this.tablePositionIndicator);
 
     this.parent.traverse((obj) => Game.dispose(obj));
     Game.dispose(this.parent);

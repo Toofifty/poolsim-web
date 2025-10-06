@@ -138,7 +138,7 @@ export abstract class BaseGameController
     // todo: make cue, pockets Object3D
     this.root = new Object3D().add(
       this.table,
-      this.cue.anchor,
+      this.cue,
       ...this.pockets,
       ...this.cushions
     );
@@ -147,6 +147,7 @@ export abstract class BaseGameController
       new PlaneGeometry(params.table.length * 3, params.table.width * 3),
       new MeshBasicMaterial({ color: '#fff' })
     );
+    this.plane.position.z = -params.ball.radius;
     this.plane.visible = false;
     this.root.add(this.plane);
 
@@ -209,8 +210,8 @@ export abstract class BaseGameController
       if (!touch) return;
 
       if (last) {
-        const lastToCue = vec.sub(this.cue.position, last);
-        const touchToCue = vec.sub(this.cue.position, touch);
+        const lastToCue = vec.sub(this.cue.ballPosition, last);
+        const touchToCue = vec.sub(this.cue.ballPosition, touch);
         const lastAngle = Math.atan2(lastToCue[1], lastToCue[0]);
         const touchAngle = Math.atan2(touchToCue[1], touchToCue[0]);
         this.cue.angle += touchAngle - lastAngle;
@@ -404,12 +405,16 @@ export abstract class BaseGameController
     if (!mouse3D) return;
     const position = vec.setZ(mouse3D, 0);
 
-    const collidingBall = this.balls.some(
-      (b) =>
-        b !== ball &&
-        vec.dist(position, vec.setZ(b.physics.r, 0)) <
-          ball.physics.radius + b.physics.radius
-    );
+    this.balls.forEach((other) => {
+      const dist = vec.dist(position, vec.setZ(other.physics.r, 0));
+      if (dist < ball.physics.radius + other.physics.radius) {
+        const normal = vec.norm(vec.sub(ball.physics.r, other.physics.r));
+        const overlap = ball.physics.radius + other.physics.radius - dist;
+        const correction = vec.mult(normal, overlap * 2);
+        vec.madd(position, correction);
+      }
+    });
+
     const collidingCushion = this.state.cushions.some((cushion) => {
       const closestPoint = cushion.findClosestPoint(position);
       return (
@@ -432,24 +437,23 @@ export abstract class BaseGameController
         : false;
 
     if (
-      !collidingBall &&
       !collidingCushion &&
       !collidingPocket &&
       !outOfBounds &&
       !outOfBoundsOnBreak
     ) {
       vec.mcopy(ball.physics.position, position);
+      vec.msetZ(ball.physics.position, 0.1);
       this.dispatchTypedEvent(
         'update-ball-in-hand',
         new Event('update-ball-in-hand')
       );
     }
-    vec.msetZ(ball.physics.position, 0.1);
   }
 
   protected getMouse3D(point?: Vec): Vec | undefined {
     const intersect = Game.getFirstMouseIntersection(this.plane, point);
-    return intersect ? toVec(intersect) : undefined;
+    return intersect ? vec.setZ(toVec(intersect), 0) : undefined;
   }
 
   protected getCueControlMode(): 'touch' | 'cursor' {
@@ -530,6 +534,14 @@ export abstract class BaseGameController
     } else {
       this.updateCue(dt);
     }
+
+    this.cue.visible =
+      this.playState === PlayState.PlayerShoot ||
+      this.playState === PlayState.AIShoot ||
+      this.playState === PlayState.OpponentShoot || //
+      this.playState === PlayState.PlayerInPlay ||
+      this.playState === PlayState.AIInPlay ||
+      this.playState === PlayState.OpponentInPlay;
   }
 
   // host-only

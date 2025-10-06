@@ -43,7 +43,7 @@ export const createTableClothMesh = (
     depth: params.ball.radius,
     bevelSize: 0.0025,
     bevelThickness: 0.0025,
-  }).translate(0, 0, translateZ - params.ball.radius);
+  }).translate(0, 0, translateZ - params.ball.radius - 0.0025);
 
   subscribeTo(params, ['ball.radius'], () => {
     geometry.translate(0, 0, -translateZ);

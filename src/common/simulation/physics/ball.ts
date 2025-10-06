@@ -1,5 +1,6 @@
 import { dlerpVec } from '../../../client/game/dlerp';
 import { quat, vec, type Quat, type Vec } from '../../math';
+import { compute } from '../../math/computed';
 import { solveQuadraticRoots } from '../../math/solve';
 import { assert } from '../../util';
 import type {
@@ -176,20 +177,11 @@ export class PhysicsBall {
       return vec.zero;
     }
 
-    return this.getSurfaceVelocity(vec.new(0, 0, 1));
-  }
-
-  getSurfaceVelocity(normal: Vec) {
-    const relativeVelocity = vec.cross(vec.mult(normal, this.radius), this.w);
-    return vec.minimise(vec.add(this.v, relativeVelocity));
+    return vec.mminimise(compute.contactVelocity(this.v, this.w, this.radius));
   }
 
   getIdealAngularVelocity() {
-    const wXY = vec.mult(
-      vec.norm(vec.cross(vec.UP, this.v)),
-      vec.len(this.v) / this.radius
-    );
-    return vec.setZ(wXY, this.w[2]);
+    return vec.msetZ(compute.idealW(this.v, this.radius), this.w[2]);
   }
 
   get isAirborne() {

@@ -140,6 +140,12 @@ export const vec = {
     return v.map((c) => c.toExponential(2)).join(', ');
   },
 
+  random: (): Vec => [
+    Math.random() * 2 - 1,
+    Math.random() * 2 - 1,
+    Math.random() * 2 - 1,
+  ],
+
   zero: [0, 0, 0] as Vec,
   /** 0, 0, 1 */
   UP: [0, 0, 1] as Vec,

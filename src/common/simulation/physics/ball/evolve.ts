@@ -1,4 +1,5 @@
 import { quat, vec } from '../../../math';
+import { compute } from '../../../math/computed';
 import { BallState, type PhysicsBall } from '../ball';
 import type { PhysicsPocket } from '../pocket';
 
@@ -52,25 +53,19 @@ export const evolveBallMotion = (ball: PhysicsBall, dt: number) => {
 const evolveSlide = (ball: PhysicsBall, dt: number) => {
   const { gravity: g, frictionSlide: us } = ball.params.ball;
 
-  const u0 = vec.norm(ball.getContactVelocity());
+  const U = ball.getContactVelocity();
 
-  // acceleration due to friction
-  const accel = vec.mult(u0, -us * g);
+  const dr = compute.deltaRU(ball.v, U, us, g, dt);
+  const dv = compute.deltaVU(U, us, g, dt);
+
   // r += vt + 0.5at²
-  vec.madd(
-    ball.r,
-    vec.add(vec.mult(ball.v, dt), vec.mult(accel, 0.5 * dt * dt))
-  );
+  vec.madd(ball.r, dr);
 
   // v += at
-  vec.madd(ball.v, vec.mult(accel, dt));
+  vec.madd(ball.v, dv);
 
   // Δw = -(5/2R) μ t (u0 × ẑ)
-  const zh = vec.new(0, 0, 1);
-  const dw = vec.mult(
-    vec.cross(u0, zh),
-    -(5 / (2 * ball.radius)) * us * g * dt
-  );
+  const dw = compute.deltaW(U, ball.radius, us, g, dt);
   const wIdeal = ball.getIdealAngularVelocity();
   const mw = vec.sub(wIdeal, ball.w);
   if (vec.lenSq(dw) > vec.lenSq(mw)) {
@@ -86,22 +81,18 @@ const evolveSlide = (ball: PhysicsBall, dt: number) => {
 const evolveRoll = (ball: PhysicsBall, dt: number) => {
   const { gravity: g, frictionRoll: ur } = ball.params.ball;
 
-  const vh = vec.norm(ball.v);
+  const deltaR = compute.deltaR(ball.v, ur, g, dt);
+  const deltaV = compute.deltaV(ball.v, ur, g, dt);
 
   // r += vt - 0.5at²
-  const accel = vec.mult(vh, -ur * g);
-  vec.madd(
-    ball.r,
-    vec.add(vec.mult(ball.v, dt), vec.mult(accel, 0.5 * dt * dt))
-  );
+  vec.madd(ball.r, deltaR);
 
-  const dv = vec.mult(accel, dt);
-  if (vec.lenSq(dv) > vec.lenSq(ball.v)) {
+  if (vec.lenSq(deltaV) > vec.lenSq(ball.v)) {
     // |a| > |v| -> set velocity to 0
     vec.mcopy(ball.v, vec.zero);
   } else {
     // v += at
-    vec.madd(ball.v, dv);
+    vec.madd(ball.v, deltaV);
   }
 
   // align w with v
@@ -174,8 +165,11 @@ export const evolvePocket = (
 ) => {
   const { gravity: g } = ball.params.ball;
 
+  const r0 = vec.setZ(ball.r, 0);
+  const p0 = vec.setZ(p.position, 0);
+
   // xy dist from pocket centre -> ball centre
-  const delta = vec.sub(vec.setZ(ball.r, 0), vec.setZ(p.position, 0));
+  const delta = vec.sub(r0, p0);
   const dist = vec.len(delta);
 
   ball.v[2] -= g * dt;
@@ -186,7 +180,6 @@ export const evolvePocket = (
     ball.r[2] <= 0 &&
     ball.r[2] > -2 * ball.radius
   ) {
-    const delta = vec.sub(vec.setZ(ball.r, 0), vec.setZ(p.position, 0));
     const contactPoint = vec.add(
       vec.setZ(p.position, -ball.radius),
       vec.mult(vec.norm(delta), p.radius)
@@ -205,7 +198,7 @@ export const evolvePocket = (
   // internal cylinder collision
   if (dist > p.radius - ball.radius) {
     // edge of pocket
-    const normal = vec.norm(vec.sub(ball.r, vec.setZ(p.position, 0)));
+    const normal = vec.norm(vec.sub(ball.r, p0));
 
     const vn = vec.dot(ball.v, normal);
     if (vn > 0) {

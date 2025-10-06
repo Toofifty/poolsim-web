@@ -12,7 +12,7 @@ import type { Ball } from '../objects/ball';
 import { settings } from '../store/settings';
 import { ThreadedSimulation } from './threaded-simulation';
 
-const CONSOLE_TIME = false;
+const CONSOLE_TIME = true;
 
 export class AimAssist {
   private simulation: ISimulation;

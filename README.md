@@ -54,7 +54,7 @@ Play pool in your browser
 - Better interactions
   - Notifications
 - Handle disconnects better
-- Lerp ball in hand
+- ~~Lerp ball in hand~~
 - Fix host shot sending
 - Fix sending cue updates with locked cue
-- Unlock cue one state change
+- Unlock cue on state change

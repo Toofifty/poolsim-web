@@ -81,7 +81,7 @@ export const defaultParams = {
     maxIterations: 10_000,
     updatesPerSecond: 300,
     playbackSpeed: 1,
-    trackingPointDist: 1,
+    trackingPointDist: 10,
     useWorkerForAimAssist: true,
     useWorkerForAI: true,
   },

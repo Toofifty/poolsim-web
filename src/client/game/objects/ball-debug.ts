@@ -5,8 +5,8 @@ import { Game } from '../game';
 import { getColor } from '../models/ball/create-path-mesh';
 import { settings } from '../store/settings';
 import { toVector3 } from '../util/three-interop';
-import { Arrow } from './arrow';
 import type { Ball } from './ball';
+import { Arrow } from './util/arrow';
 
 export class BallDebug extends Object3D {
   private billboard: Object3D;

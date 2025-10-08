@@ -6,8 +6,8 @@ import {
   Vector3,
   type MeshPhysicalMaterialParameters,
 } from 'three';
-import { Game } from '../game';
-import { createMaterial } from '../rendering/create-material';
+import { Game } from '../../game';
+import { createMaterial } from '../../rendering/create-material';
 
 const up = new Vector3(0, 1, 0);
 

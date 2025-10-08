@@ -54,6 +54,10 @@ export class TableState {
   private _activeBallCushions: [PhysicsBall, PhysicsCushion][] = [];
   private _activeBallPockets: [PhysicsBall, PhysicsPocket][] = [];
 
+  private _cueBallPairs: [PhysicsBall, PhysicsBall][] = [];
+  private _cueBallCushions: [PhysicsBall, PhysicsCushion][] = [];
+  private _cueBallPockets: [PhysicsBall, PhysicsPocket][] = [];
+
   /**
    * Unlike play state, this is specifically NOT
    * inverted on non-hosts, and is also used the
@@ -102,15 +106,19 @@ export class TableState {
   }
 
   private refresh() {
-    this._activeBalls = this.balls.filter(
-      (ball) =>
-        !ball.isPocketed &&
-        !ball.isOutOfBounds &&
-        ball.state !== BallState.OutOfPlay
-    );
+    const isActive = (ball: PhysicsBall) =>
+      !ball.isPocketed &&
+      !ball.isOutOfBounds &&
+      ball.state !== BallState.OutOfPlay;
+    this._activeBalls = this.balls.filter(isActive);
     this._activePairs = pairs(this._activeBalls);
     this._activeBallCushions = iteration(this._activeBalls, this.cushions);
     this._activeBallPockets = iteration(this._activeBalls, this.pockets);
+
+    const activeTargetBalls = this.balls.slice(1).filter(isActive);
+    this._cueBallPairs = iteration([this.cueBall], activeTargetBalls);
+    this._cueBallCushions = iteration([this.cueBall], this.cushions);
+    this._cueBallPockets = iteration([this.cueBall], this.pockets);
 
     this.needsUpdate = false;
   }
@@ -135,10 +143,32 @@ export class TableState {
     return this._activeBallPockets;
   }
 
+  public get cueBallPairs() {
+    if (this.needsUpdate) this.refresh();
+    return this._cueBallPairs;
+  }
+
+  public get cueBallCushions() {
+    if (this.needsUpdate) this.refresh();
+    return this._cueBallCushions;
+  }
+
+  public get cueBallPockets() {
+    if (this.needsUpdate) this.refresh();
+    return this._cueBallPockets;
+  }
+
   public get settled() {
     return this.balls.every(
       (ball) =>
         ball.isStationary || ball.isPocketedStationary || ball.isOutOfBounds
+    );
+  }
+
+  public get isSandbox() {
+    return (
+      this.ruleSet === RuleSet.Sandbox ||
+      this.ruleSet === RuleSet.SandboxSequential
     );
   }
 

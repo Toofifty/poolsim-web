@@ -13,6 +13,15 @@ export const getRuleSetName = (ruleSet: RuleSet) => {
   }
 };
 
+export const getAimAssistValues = () => [
+  AimAssistMode.Off,
+  AimAssistMode.FirstContact,
+  AimAssistMode.FirstBallContact,
+  AimAssistMode.FirstContactCurve,
+  AimAssistMode.FirstBallContactCurve,
+  AimAssistMode.Full,
+];
+
 export const getAimAssistName = (aimAssist: AimAssistMode) => {
   switch (aimAssist) {
     case AimAssistMode.Off:
@@ -21,6 +30,10 @@ export const getAimAssistName = (aimAssist: AimAssistMode) => {
       return 'First contact';
     case AimAssistMode.FirstBallContact:
       return 'First ball contact';
+    case AimAssistMode.FirstContactCurve:
+      return 'First contact (+ curve)';
+    case AimAssistMode.FirstBallContactCurve:
+      return 'First ball contact (+ curve)';
     case AimAssistMode.Full:
       return 'Full';
   }

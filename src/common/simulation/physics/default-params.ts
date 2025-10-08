@@ -7,7 +7,7 @@ import { AimAssistMode, RuleSet } from './types';
 export const defaultParams = {
   game: {
     ruleSet: RuleSet._9Ball,
-    aimAssist: AimAssistMode.FirstContact,
+    aimAssist: AimAssistMode.FirstContactCurve,
   },
   ball: {
     /** M */
@@ -80,9 +80,11 @@ export const defaultParams = {
   simulation: {
     maxIterations: 10_000,
     updatesPerSecond: 300,
+    stepsAfterFirstContact: 200,
+    cueBallRollDist: 0.25,
     playbackSpeed: 1,
-    trackingPointDist: 10,
-    useWorkerForAimAssist: true,
+    trackingPointDist: 2,
+    useWorkerForAimAssist: false,
     useWorkerForAI: true,
   },
   network: {

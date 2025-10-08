@@ -2,6 +2,8 @@ export enum AimAssistMode {
   Off,
   FirstContact,
   FirstBallContact,
+  FirstContactCurve,
+  FirstBallContactCurve,
   Full,
 }
 

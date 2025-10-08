@@ -6,16 +6,13 @@ import {
   IconLogout2,
 } from '@tabler/icons-react';
 import { useSnapshot } from 'valtio';
-import {
-  AimAssistMode,
-  params,
-  type StaticParams,
-} from '../../common/simulation/physics';
+import { params, type StaticParams } from '../../common/simulation/physics';
 import { PlayState } from '../game/controller/game-controller';
 import { Game } from '../game/game';
 import { gameStore } from '../game/store/game';
 import { Players, settings } from '../game/store/settings';
 import { socket } from '../socket';
+import { getAimAssistName, getAimAssistValues } from '../util/enums';
 import type { DeepKeyOf } from '../util/types';
 import { useLobby } from '../util/use-lobby';
 import { BallIndicator } from './ball-indicator/ball-indicator';
@@ -211,42 +208,21 @@ const AimAssistControls = () => {
   return (
     <div className="group lower">
       <span>Guidelines</span>
-      <Button
-        variant={aimAssist === AimAssistMode.Off ? 'filled' : 'default'}
-        onClick={() => {
-          params.game.aimAssist = AimAssistMode.Off;
-        }}
-      >
-        Off
-      </Button>
-      <Button
-        variant={
-          aimAssist === AimAssistMode.FirstContact ? 'filled' : 'default'
-        }
-        onClick={() => {
-          params.game.aimAssist = AimAssistMode.FirstContact;
-        }}
-      >
-        First contact
-      </Button>
-      <Button
-        variant={
-          aimAssist === AimAssistMode.FirstBallContact ? 'filled' : 'default'
-        }
-        onClick={() => {
-          params.game.aimAssist = AimAssistMode.FirstBallContact;
-        }}
-      >
-        First ball contact
-      </Button>
-      <Button
-        variant={aimAssist === AimAssistMode.Full ? 'filled' : 'default'}
-        onClick={() => {
-          params.game.aimAssist = AimAssistMode.Full;
-        }}
-      >
-        Full
-      </Button>
+      <Menu shadow="md">
+        <Menu.Target>
+          <Button className="button">{getAimAssistName(aimAssist)}</Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          {getAimAssistValues().map((value) => (
+            <Menu.Item
+              key={value}
+              onClick={() => (params.game.aimAssist = value)}
+            >
+              {getAimAssistName(value)}
+            </Menu.Item>
+          ))}
+        </Menu.Dropdown>
+      </Menu>
     </div>
   );
 };

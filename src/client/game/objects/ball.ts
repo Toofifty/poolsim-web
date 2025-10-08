@@ -7,7 +7,11 @@ import {
   RingGeometry,
 } from 'three';
 import { vec, type Quat, type Vec } from '../../../common/math';
-import { defaultParams, type Params } from '../../../common/simulation/physics';
+import {
+  AimAssistMode,
+  defaultParams,
+  type Params,
+} from '../../../common/simulation/physics';
 import {
   PhysicsBall,
   type PhysicsBallSnapshot,
@@ -23,10 +27,11 @@ import { createMaterial } from '../rendering/create-material';
 import { makeTheme } from '../store/theme';
 import { snapshot } from '../util/subscribe';
 import { toQuaternion, toVector3 } from '../util/three-interop';
-import { Arrow } from './arrow';
 import { BallDebug } from './ball-debug';
 import { BallHighlight } from './ball-highlight';
+import { Arrow } from './util/arrow';
 import { BallFirstContact } from './util/ball-first-contact';
+import { CurvedArrow } from './util/curved-arrow';
 
 export type BallProto = {
   id: number;
@@ -65,6 +70,7 @@ export class Ball {
   private tablePositionIndicator!: Mesh;
 
   private impactArrow!: Arrow;
+  private curvedImpactArrow!: CurvedArrow;
   private firstContact?: BallFirstContact;
 
   public highlight: BallHighlight;
@@ -111,6 +117,10 @@ export class Ball {
       color: this.color,
       factor: 0.2,
     });
+    this.curvedImpactArrow = new CurvedArrow(this, {
+      color: this.color,
+      opacity: 0,
+    });
 
     this.tablePositionIndicator = new Mesh(
       new RingGeometry(this.radius * 0.9, this.radius),
@@ -120,6 +130,27 @@ export class Ball {
     );
     this.tablePositionIndicator.receiveShadow = true;
     this.parent.add(this.tablePositionIndicator);
+  }
+
+  private get displayRing() {
+    return (
+      this.params.game.aimAssist === AimAssistMode.FirstContact ||
+      this.params.game.aimAssist === AimAssistMode.FirstBallContact ||
+      this.params.game.aimAssist === AimAssistMode.FirstContactCurve ||
+      this.params.game.aimAssist === AimAssistMode.FirstBallContactCurve
+    );
+  }
+
+  private get displayPath() {
+    return (
+      this.params.game.aimAssist === AimAssistMode.Full ||
+      this.params.game.aimAssist === AimAssistMode.FirstContactCurve ||
+      this.params.game.aimAssist === AimAssistMode.FirstBallContactCurve
+    );
+  }
+
+  private get displayProjections() {
+    return this.params.game.aimAssist === AimAssistMode.Full;
   }
 
   get id() {
@@ -189,8 +220,20 @@ export class Ball {
     this.impactArrow.setVector(toVector3(velocity));
   }
 
-  public clearImpactArrow() {
+  public updateCurvedImpactArrow(position: Vec, velocity: Vec) {
+    if (position[2] > 1e-4) {
+      return this.updateImpactArrow(position, velocity);
+    }
+
+    this.curvedImpactArrow.ref = {
+      position: toVector3(position),
+    };
+    this.curvedImpactArrow.setVectors(velocity);
+  }
+
+  public clearImpactArrows() {
     this.impactArrow.visible = false;
+    this.curvedImpactArrow.visible = false;
   }
 
   public sync() {
@@ -206,6 +249,7 @@ export class Ball {
     this.firstContact?.update();
     this.highlight.update();
     this.impactArrow.update();
+    this.curvedImpactArrow.update();
     this.debug.update();
   }
 
@@ -221,16 +265,21 @@ export class Ball {
     this.projectionMeshes.forEach((mesh) => Game.remove(mesh));
     this.projectionMeshes = [];
     if (this.firstContact) {
-      this.firstContact.visible = false;
+      this.firstContact.visible = this.displayRing;
     }
 
-    if (this.firstContact && this.collisionPoints.length === 1) {
-      // first contact ring
+    if (
+      this.displayRing &&
+      this.firstContact &&
+      this.collisionPoints.length > 0
+    ) {
       const point = this.collisionPoints[0];
       this.firstContact.setPosition(point);
       this.firstContact.setInvalid(this.invalidCollision);
       this.firstContact.visible = true;
-    } else {
+    }
+
+    if (this.displayProjections && this.collisionPoints.length > 0) {
       for (let i = 0; i < this.collisionPoints.length; i++) {
         const position = this.collisionPoints[i];
         const orientation = this.collisionOrientations[i];
@@ -256,9 +305,11 @@ export class Ball {
       this.trackingLine = undefined;
     }
 
-    if (this.trackingPoints.length > 1) {
-      this.trackingLine = createPathMesh(this.trackingPoints, this.color);
-      Game.add(this.trackingLine, { outline: true });
+    if (this.displayPath) {
+      if (this.trackingPoints.length > 1) {
+        this.trackingLine = createPathMesh(this.trackingPoints, this.color);
+        Game.add(this.trackingLine, { outline: true });
+      }
     }
   }
 
@@ -271,6 +322,7 @@ export class Ball {
 
     this.firstContact?.dispose();
     this.impactArrow.dispose();
+    this.curvedImpactArrow.dispose();
     this.highlight.dispose();
     this.debug.dispose();
     Game.dispose(this.tablePositionIndicator);

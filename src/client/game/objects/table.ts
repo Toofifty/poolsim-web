@@ -18,21 +18,26 @@ export class Table extends Object3D {
     super();
 
     this.unsubscribeTheme = themed((theme) => {
+      const pocketData = this.pockets.map((pocket) => ({
+        position: pocket.physics.position,
+        radius: pocket.radius,
+      }));
+
       if (this.cloth) {
         Game.dispose(this.cloth);
         this.remove(this.cloth);
       }
 
-      this.cloth = createTableClothMesh(params, this.pockets, theme);
-      this.add(this.cloth);
+      this.cloth = createTableClothMesh(params, pocketData, theme);
+      // this.add(this.cloth);
 
       if (this.rail) {
         Game.dispose(this.rail);
         this.remove(this.rail);
       }
 
-      this.rail = createTableRailMesh(this.params, this.pockets, theme);
-      this.add(this.rail);
+      this.rail = createTableRailMesh(this.params, pocketData, theme);
+      // this.add(this.rail);
 
       if (this.diamonds) {
         Game.dispose(this.diamonds);
@@ -40,7 +45,7 @@ export class Table extends Object3D {
       }
 
       this.diamonds = createTableRailDiamondsMesh(params, theme);
-      this.add(this.diamonds);
+      // this.add(this.diamonds);
     });
   }
 

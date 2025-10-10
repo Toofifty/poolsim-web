@@ -1,13 +1,13 @@
+import type { Vec } from '@common/math';
 import { CylinderGeometry, Mesh } from 'three';
 import type { Params } from '../../../../common/simulation/physics';
-import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
 import type { ThemeObject } from '../../store/theme';
 import { createRoundedRect, subtract } from '../util';
 
 export const createTableRailMesh = (
   params: Params,
-  pockets: Pocket[],
+  pockets: { position: Vec; radius: number }[],
   theme: ThemeObject
 ) => {
   const { ball, cushion, pocket, table } = params;
@@ -35,11 +35,7 @@ export const createTableRailMesh = (
       height * 2
     );
     cylinder.rotateX(Math.PI / 2);
-    cylinder.translate(
-      pocket.physics.position[0],
-      pocket.physics.position[1],
-      -height / 2
-    );
+    cylinder.translate(pocket.position[0], pocket.position[1], -height / 2);
     rail = subtract(rail, cylinder);
   });
 

@@ -1,6 +1,6 @@
+import type { Vec } from '@common/math';
 import { ExtrudeGeometry, Mesh, Path } from 'three';
 import type { Params } from '../../../../common/simulation/physics';
-import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
 import { GraphicsDetail, settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
@@ -13,7 +13,7 @@ import {
 
 export const createTableClothMesh = (
   params: Params,
-  pockets: Pocket[],
+  pockets: { position: Vec; radius: number }[],
   theme: ThemeObject
 ) => {
   const { table, pocket } = params;
@@ -27,8 +27,8 @@ export const createTableClothMesh = (
   for (const pocket of pockets) {
     const path = new Path();
     path.absellipse(
-      pocket.physics.position[0],
-      pocket.physics.position[1],
+      pocket.position[0],
+      pocket.position[1],
       pocket.radius,
       pocket.radius,
       0,

@@ -2,16 +2,18 @@ export abstract class Component {
   public getDebugObject(): Record<string, any> {
     return {};
   }
+
+  public dispose() {}
 }
 
-export type ComponentClass<T extends Component> = new (...args: any[]) => T;
+export type Ctor<T> = new (...args: any[]) => T;
 
-export type ExtractComponent<T> = T extends ComponentClass<infer U> ? U : never;
-export type ExtractComponents<T extends ComponentClass<any>[]> = T extends [
+export type ExtractComponent<T> = T extends Ctor<infer U> ? U : never;
+export type ExtractComponents<T extends Ctor<any>[]> = T extends [
   infer Head,
   ...infer Tail
 ]
-  ? Tail extends ComponentClass<any>[]
+  ? Tail extends Ctor<any>[]
     ? [ExtractComponent<Head>, ...ExtractComponents<Tail>]
     : never
   : [];

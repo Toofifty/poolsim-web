@@ -59,10 +59,10 @@ export class OfflineGameController extends BaseGameController {
       }
     });
 
-    setTimeout(() => {
-      this.setup8Ball();
-      this.startGame();
-    }, 200);
+    // setTimeout(() => {
+    //   this.setup8Ball();
+    //   this.startGame();
+    // }, 200);
   }
 
   public startGame(): void {

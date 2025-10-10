@@ -58,6 +58,7 @@ export const vec = {
       vec.mult(axis, dot * (1 - cos))
     );
   },
+  angle2D: (v1: Vec, v2: Vec) => Math.atan2(v2[1] - v1[1], v2[0] - v1[0]),
 
   // mutative - only for class properties
   madd: (v1: Vec, v2: Vec) => {

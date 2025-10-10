@@ -18,4 +18,7 @@ export abstract class System<TWorld = unknown> {
   }
 
   public run(ecs: ECS<any, TWorld>, entity: Entity): void {}
+
+  public added(ecs: ECS<any, TWorld>, entity: Entity): void {}
+  public removed(ecs: ECS<any, TWorld>, entity: Entity): void {}
 }

@@ -1,10 +1,8 @@
-import {
-  type Component,
-  type ComponentClass,
-  type ExtractComponents,
-} from './component';
+import { type Component, type Ctor, type ExtractComponents } from './component';
 import { EventSystem } from './event-system';
 import { Query } from './query';
+import type { Resource } from './resource';
+import type { StartupSystem } from './startup-system';
 import type { System } from './system';
 import type { Entity } from './types';
 
@@ -15,7 +13,7 @@ export class ComponentContainer {
     this.map.set(ctor ?? component.constructor, component);
   }
 
-  public get<T extends Component>(componentClass: ComponentClass<T>): T {
+  public get<T extends Component>(componentClass: Ctor<T>): T {
     return this.map.get(componentClass) as T;
   }
 
@@ -35,6 +33,12 @@ export class ComponentContainer {
   public delete(componentClass: Function): void {
     this.map.delete(componentClass);
   }
+
+  public dispose(): void {
+    for (const component of this.map.values()) {
+      component.dispose();
+    }
+  }
 }
 
 export class ECS<
@@ -43,15 +47,41 @@ export class ECS<
 > {
   private entities = new Map<Entity, ComponentContainer>();
   private systems = new Map<System<TWorld>, Set<Entity>>();
-  private eventSystems = new Set<
-    EventSystem<keyof TEventMap, TEventMap, TWorld>
+  private eventSystems = new Map<
+    keyof TEventMap,
+    Set<EventSystem<keyof TEventMap, TEventMap, TWorld>>
   >();
-  private resources = new Map<string, any>();
+  private resources = new Map<Ctor<Resource>, Resource>();
+  private startupSystems: StartupSystem[] = [];
 
   private nextId = 0;
   private entitiesToDestroy = new Array<Entity>();
 
+  public deltaTime = 0;
+
   constructor(public game: TWorld) {}
+
+  public emit<T extends keyof TEventMap>(event: T, data: TEventMap[T]) {
+    const systems = this.eventSystems.get(event);
+    if (systems) {
+      systems.forEach((system) => system.run(this, data));
+    }
+  }
+
+  public addResource(resource: Resource): void {
+    this.resources.set(resource.constructor as Ctor<Resource>, resource);
+  }
+
+  public removeResource(resource: Resource): void {
+    this.resources.delete(resource.constructor as Ctor<Resource>);
+  }
+
+  public resource<T extends Resource>(ctor: Ctor<T>): T {
+    if (!this.resources.has(ctor)) {
+      throw new Error(`Failed to fetch resource ${ctor}`);
+    }
+    return this.resources.get(ctor) as T;
+  }
 
   public addEntity(): Entity {
     let entity = this.nextId;
@@ -67,7 +97,7 @@ export class ECS<
   public addComponent(
     entity: Entity,
     component: Component,
-    customCtor?: ComponentClass<Component>
+    customCtor?: Ctor<Component>
   ): void {
     if (!this.entities.has(entity)) {
       throw new Error(
@@ -75,8 +105,7 @@ export class ECS<
       );
     }
 
-    const ctor =
-      customCtor ?? (component.constructor as ComponentClass<Component>);
+    const ctor = customCtor ?? (component.constructor as Ctor<Component>);
 
     this.entities.get(entity)!.add(component, ctor);
     this.checkE(entity);
@@ -91,7 +120,7 @@ export class ECS<
     return this.entities.get(entity)!;
   }
 
-  public get<T extends ComponentClass<Component>[]>(
+  public get<T extends Ctor<Component>[]>(
     entity: Entity,
     ...componentClasses: T
   ): ExtractComponents<T> {
@@ -101,7 +130,7 @@ export class ECS<
     ) as ExtractComponents<T>;
   }
 
-  public has(entity: Entity, ...componentClasses: ComponentClass<Component>[]) {
+  public has(entity: Entity, ...componentClasses: Ctor<Component>[]) {
     const components = this.getComponents(entity);
     return componentClasses.every((componentClass) =>
       components.get(componentClass)
@@ -140,16 +169,34 @@ export class ECS<
   public addEventSystem(
     system: EventSystem<keyof TEventMap, TEventMap, TWorld>
   ): void {
-    this.eventSystems.add(system);
+    const event = system.event;
+    if (!this.eventSystems.has(event)) {
+      this.eventSystems.set(event, new Set());
+    }
+    this.eventSystems.get(event)!.add(system);
   }
 
   public removeEventSystem(
     system: EventSystem<keyof TEventMap, TEventMap, TWorld>
   ) {
-    this.eventSystems.delete(system);
+    this.eventSystems.get(system.event)!.delete(system);
   }
 
-  public update(): void {
+  /**
+   * System will be run once on the first frame of the ecs loop
+   */
+  public addStartupSystem(system: StartupSystem) {
+    this.startupSystems.push(system);
+  }
+
+  public update(deltaTime: number): void {
+    this.deltaTime = deltaTime;
+
+    while (this.startupSystems.length > 0) {
+      const system = this.startupSystems.shift()!;
+      system.run(this);
+    }
+
     for (let [system, entities] of this.systems.entries()) {
       system.runAll(this, entities);
     }
@@ -161,9 +208,10 @@ export class ECS<
 
   private destroyEntity(entity: Entity): void {
     [...this.systems.entries()].forEach(([system, entitySet]) => {
-      // todo: on destroy
+      system.removed(this, entity);
       entitySet.delete(entity);
     });
+    this.entities.get(entity)?.dispose();
     this.entities.delete(entity);
   }
 
@@ -187,18 +235,26 @@ export class ECS<
     if (have.hasAll(need)) {
       if (!this.systems.get(system)!.has(entity)) {
         this.systems.get(system)!.add(entity);
+        system.added(this, entity);
       }
     } else {
       if (this.systems.get(system)!.has(entity)) {
+        system.removed(this, entity);
         this.systems.get(system)!.delete(entity);
-        // todo: on destroy
       }
     }
   }
 
-  public createAndSpawn(...components: Component[]) {
+  public createAndSpawn(
+    ...components: (Component | [Component, Ctor<Component>])[]
+  ) {
     const eid = this.addEntity();
-    components.forEach((component) => this.addComponent(eid, component));
+    components.forEach((component) => {
+      if (Array.isArray(component)) {
+        return this.addComponent(eid, component[0], component[1]);
+      }
+      return this.addComponent(eid, component);
+    });
     return this.spawn(eid);
   }
 
@@ -207,7 +263,7 @@ export class ECS<
       const have = this.entities.get(entity)!;
       const need = system.components;
       if (have.hasAll(need)) {
-        // todo: on spawn
+        system.added(this, entity);
       }
     }
     return entity;

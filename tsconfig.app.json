@@ -21,7 +21,11 @@
     "noUnusedParameters": false,
     "erasableSyntaxOnly": false,
     "noFallthroughCasesInSwitch": false,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    "paths": {
+      "@common/*": ["./src/common/*"]
+    }
   },
   "include": ["src"]
 }

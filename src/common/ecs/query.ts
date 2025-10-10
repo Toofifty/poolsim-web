@@ -1,4 +1,4 @@
-import type { Component, ComponentClass, ExtractComponents } from './component';
+import type { Component, Ctor, ExtractComponents } from './component';
 import type { ECS } from './main';
 
 export class Query {
@@ -6,19 +6,19 @@ export class Query {
 
   constructor(private entities: number[], private ecs: ECS) {}
 
-  public has(...componentClasses: ComponentClass<Component>[]): Query {
+  public has(...componentClasses: Ctor<Component>[]): Query {
     return this.filter((ecs, entity) =>
       ecs.getComponents(entity).has(...componentClasses)
     );
   }
 
-  public hasNot(...componentClasses: ComponentClass<Component>[]): Query {
+  public hasNot(...componentClasses: Ctor<Component>[]): Query {
     return this.filter(
       (ecs, entity) => !ecs.getComponents(entity).has(...componentClasses)
     );
   }
 
-  public with<T extends ComponentClass<Component>[]>(...componentClasses: T) {
+  public with<T extends Ctor<Component>[]>(...componentClasses: T) {
     return {
       filter: (
         predicate: (...components: ExtractComponents<T>) => boolean
@@ -46,5 +46,14 @@ export class Query {
     return this.predicates.reduce((entities, predicate) => {
       return entities.filter((e) => predicate(this.ecs, e));
     }, this.entities)[0];
+  }
+
+  public first(componentClass: Ctor<Component>): number | undefined {
+    if (this.predicates.length > 0) {
+      console.warn('Ignoring previous predicates in query.first()');
+    }
+    return this.entities.find((entity) =>
+      this.ecs.getComponents(entity).has(componentClass)
+    );
   }
 }

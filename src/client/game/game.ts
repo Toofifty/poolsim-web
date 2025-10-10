@@ -35,8 +35,9 @@ import {
 } from 'three/examples/jsm/Addons.js';
 import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
 import { subscribe } from 'valtio';
+import type { ECS } from '../../common/ecs';
 import type { Vec } from '../../common/math';
-import { type Params } from '../../common/simulation/physics';
+import { RuleSet, type Params } from '../../common/simulation/physics';
 import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
 import type { GameController } from './controller/game-controller';
@@ -44,9 +45,12 @@ import { InputController } from './controller/input-controller';
 import { OfflineGameController } from './controller/offline-game-controller';
 import { OnlineGameController } from './controller/online-game-controller';
 import { _dlerpGame } from './dlerp';
+import { createECS } from './ecs';
+import type { GameEvents } from './events';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
+import { Rack } from './rack';
 import { BlackOutlinePass } from './rendering/black-outline-pass';
 import { GraphicsDetail, settings } from './store/settings';
 import { makeTheme } from './store/theme';
@@ -81,6 +85,8 @@ export class Game {
   public static profiler = new Profiler();
 
   public static reflectives: Mesh[] = [];
+
+  public ecs!: ECS<GameEvents, Game>;
 
   private mounted: boolean = false;
 
@@ -214,6 +220,7 @@ export class Game {
 
     this.clock = new Clock();
 
+    this.ecs = createECS(this);
     this.renderer.setAnimationLoop(this.draw.bind(this));
   }
 
@@ -256,7 +263,47 @@ export class Game {
         case 'Shift':
           this.controls.enableZoom = true;
           return;
+        case 'c':
+          this.ecs.emit('game/setup', {
+            rack: Rack.generate9Ball(Rack.getTip(this.params)),
+            ruleSet: RuleSet.Sandbox,
+          });
+          return;
       }
+    });
+
+    this.input.onMouseMove((e) => {
+      const { left, top, width, height } = (
+        e.target as HTMLElement
+      ).getBoundingClientRect();
+      const x = e.clientX - left;
+      const y = e.clientY - top;
+
+      this.ecs.emit('input/mouse-move', {
+        x: (x / width) * 2 - 1,
+        y: -(y / height) * 2 + 1,
+        original: e,
+      });
+    });
+
+    this.input.onTouchMove((e) => {
+      const { left, top, width, height } = (
+        e.target as HTMLElement
+      ).getBoundingClientRect();
+      const [touch] = e.touches;
+
+      const x = touch.clientX - left;
+      const y = touch.clientY - top;
+
+      this.ecs.emit('input/mouse-move', {
+        x: (x / width) * 2 - 1,
+        y: -(y / height) * 2 + 1,
+        original: e,
+      });
+    });
+
+    this.input.onMouseDown((e) => {
+      this.ecs.emit('input/mouse-pressed', { button: e.button, original: e });
     });
   }
 
@@ -469,6 +516,7 @@ export class Game {
     // physics step
     while (this.accumulator >= this.timestep) {
       this.controller.update(this.timestep);
+      this.ecs.update(this.timestep);
       this.accumulator -= this.timestep;
     }
 

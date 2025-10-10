@@ -25,7 +25,7 @@ export const defaultParams = {
     /** u_a */
     frictionAir: 0.001,
     /** e_b */
-    restitutionBall: 0.95,
+    restitutionBall: 0.9,
     /** e_p */
     restitutionPocket: 0.5,
     /** e_c */

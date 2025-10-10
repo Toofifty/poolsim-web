@@ -380,7 +380,7 @@ export class PhysicsBall {
     return bestT;
   }
 
-  public evolve(dt: number, simulated?: boolean) {
+  public evolve(dt: number) {
     this.state = this.resolveState();
 
     if (this.pocket) {

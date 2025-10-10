@@ -16,7 +16,6 @@ export type RunSimulationOptions = {
 };
 
 export type RunSimulationStepOptions = {
-  simulated: boolean;
   trackPath: boolean;
   dt: number;
   state: TableState;
@@ -43,7 +42,6 @@ export class Simulation implements ISimulation {
 
   public step(options: RunSimulationStepOptions): StepResult {
     const {
-      simulated,
       trackPath,
       state,
       stepIndex = -1,
@@ -93,7 +91,7 @@ export class Simulation implements ISimulation {
 
     const endBallUpdate = profiler.start('ballUpdate');
     for (let ball of balls) {
-      ball.evolve(dt, simulated);
+      ball.evolve(dt);
       if (doTrackPath) {
         result.addTrackingPoint(ball);
       }
@@ -180,7 +178,6 @@ export class Simulation implements ISimulation {
     for (let i = 0; i < this.params.simulation.maxIterations; i++) {
       profiler.profile('step', () =>
         this.step({
-          simulated: true,
           trackPath,
           dt: 1 / this.params.simulation.updatesPerSecond,
           state: copiedState,

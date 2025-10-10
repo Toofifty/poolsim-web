@@ -1,7 +1,34 @@
 import { vec, type Vec } from '@common/math';
 import { compute } from '@common/math/computed';
 import { defaultParams } from '@common/simulation/physics';
-import { PhysicsState, type Physics } from '../../../components/physics';
+import { PhysicsState, type Physics } from '../physics.component';
+
+export const computeMomentaryFrictionAccel = (ball: Physics): Vec => {
+  const {
+    gravity: g,
+    frictionSlide: us,
+    frictionRoll: ur,
+  } = defaultParams.ball;
+
+  if (ball.state === PhysicsState.Sliding) {
+    const u0 = vec.norm(computeContactVelocity(ball));
+    return vec.mult(u0, -us * g);
+  }
+
+  if (ball.state === PhysicsState.Rolling) {
+    const vh = vec.norm(ball.v);
+    return vec.mult(vh, -ur * g);
+  }
+
+  return vec.zero;
+};
+
+export const computeMomentaryFrictionDelta = (
+  ball: Physics,
+  dt: number
+): Vec => {
+  return vec.mult(computeMomentaryFrictionAccel(ball), dt);
+};
 
 export const computeContactVelocity = (ball: Physics): Vec => {
   if (ball.state === PhysicsState.Pocketed) return vec.zero;

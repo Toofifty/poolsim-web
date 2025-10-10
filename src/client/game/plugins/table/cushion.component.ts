@@ -1,6 +1,7 @@
 import { Component } from '@common/ecs';
 import { vec, type Vec } from '@common/math';
 import { defaultParams, type Params } from '@common/simulation/physics';
+import { constrain } from '@common/util';
 
 export class Cushion extends Component {
   public collisionBox: readonly [Vec, Vec];
@@ -21,6 +22,45 @@ export class Cushion extends Component {
       [vec.setZ(bl, offsetZ), vec.setZ(br, offsetZ)],
       [vec.setZ(br, offsetZ), vec.setZ(tr, offsetZ)],
     ];
+  }
+
+  public inBounds(point: Vec) {
+    const [position, size] = this.collisionBox;
+    return (
+      point[0] >= position[0] &&
+      point[0] <= position[0] + size[0] &&
+      point[1] >= position[1] &&
+      point[1] <= position[1] + size[1]
+    );
+  }
+
+  public findClosestPoint(point: Vec) {
+    let closest = this.vertices[0];
+    let minDistSq = vec.lenSq(vec.sub(point, closest));
+
+    for (let [start, end] of this.segments) {
+      const closestOnEdge = this.findClosestPointOnLine(point, start, end);
+      const distSq = vec.lenSq(vec.sub(point, closestOnEdge));
+
+      if (distSq < minDistSq) {
+        minDistSq = distSq;
+        closest = closestOnEdge;
+      }
+    }
+
+    return closest;
+  }
+
+  private findClosestPointOnLine(point: Vec, start: Vec, end: Vec) {
+    const line = vec.sub(end, start);
+    const toPoint = vec.sub(point, start);
+
+    if (vec.isZero(line)) {
+      return start;
+    }
+
+    const t = constrain(vec.dot(toPoint, line) / vec.lenSq(line), 0, 1);
+    return vec.add(start, vec.mult(line, t));
   }
 
   /**

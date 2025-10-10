@@ -1,7 +1,8 @@
-import { vec } from '@common/math';
+import { quat, vec } from '@common/math';
 import { compute } from '@common/math/computed';
 import { defaultParams } from '@common/simulation/physics';
-import { PhysicsState, type Physics } from '../../../components/physics';
+import type { Pocket } from '../../table/pocket.component';
+import { PhysicsState, type Physics } from '../physics.component';
 import {
   computeContactVelocity,
   computeIdealAngularVelocity,
@@ -11,6 +12,13 @@ import {
 } from './compute';
 
 export const evolveMotion = (ball: Physics, dt: number) => {
+  if (ball.state === PhysicsState.Pocketed) {
+    // evolvePocket(ball, dt);
+    return;
+  }
+
+  collideWithSlate(ball);
+
   if (ball.state === PhysicsState.Airborne) {
     evolveVertical(ball, dt);
     return;
@@ -45,11 +53,18 @@ export const evolveMotion = (ball: Physics, dt: number) => {
   if (ball.state === PhysicsState.Spinning) {
     const spinTime = computeSpinTime(ball);
 
-    return evolveSpin(ball, Math.min(dt, spinTime));
+    if (dt >= spinTime) {
+      evolveSpin(ball, spinTime);
+      ball.state = PhysicsState.Stationary;
+      // dt -= spinTime;
+    } else {
+      evolveSpin(ball, dt);
+      return;
+    }
   }
 };
 
-export const evolveSlide = (ball: Physics, dt: number) => {
+const evolveSlide = (ball: Physics, dt: number) => {
   const { gravity: g, frictionSlide: us } = defaultParams.ball;
 
   const U = computeContactVelocity(ball);
@@ -58,6 +73,10 @@ export const evolveSlide = (ball: Physics, dt: number) => {
 
   // r += vt + 0.5at²
   vec.madd(ball.r, dr);
+
+  if (ball.r[2] > 0) {
+    ball.state = PhysicsState.Airborne;
+  }
 
   // v += at
   vec.madd(ball.v, dv);
@@ -76,7 +95,7 @@ export const evolveSlide = (ball: Physics, dt: number) => {
   evolveSpin(ball, dt);
 };
 
-export const evolveRoll = (ball: Physics, dt: number) => {
+const evolveRoll = (ball: Physics, dt: number) => {
   const { gravity: g, frictionRoll: ur } = defaultParams.ball;
 
   const deltaR = compute.deltaR(ball.v, ur, g, dt);
@@ -84,6 +103,10 @@ export const evolveRoll = (ball: Physics, dt: number) => {
 
   // r += vt - 0.5at²
   vec.madd(ball.r, deltaR);
+
+  if (ball.r[2] > 0) {
+    ball.state = PhysicsState.Airborne;
+  }
 
   if (vec.lenSq(deltaV) > vec.lenSq(ball.v)) {
     // |a| > |v| -> set velocity to 0
@@ -101,7 +124,7 @@ export const evolveRoll = (ball: Physics, dt: number) => {
   evolveSpin(ball, dt);
 };
 
-export const evolveSpin = (ball: Physics, dt: number) => {
+const evolveSpin = (ball: Physics, dt: number) => {
   const { gravity: g, frictionSpin: usp } = defaultParams.ball;
 
   const wz = ball.w[2];
@@ -129,4 +152,93 @@ export const evolveVertical = (ball: Physics, dt: number) => {
 
   // v += at
   vec.madd(ball.v, vec.mult(accel, dt));
+};
+
+export const evolveOrientation = (ball: Physics, dt: number) => {
+  if (vec.len(ball.w) > 0) {
+    const angle = vec.len(ball.w) * dt;
+    const axis = vec.norm(ball.w);
+
+    ball.orientation = quat.norm(
+      quat.mult(quat.fromAxisAngle(axis, angle), ball.orientation)
+    );
+  }
+};
+
+const collideWithSlate = (ball: Physics) => {
+  const { restitutionSlate: es } = defaultParams.ball;
+
+  if (ball.state === PhysicsState.OutOfPlay) return;
+
+  if (ball.r[2] < 0 && ball.v[2] < 0) {
+    ball.v[2] = -ball.v[2] * es;
+    if (Math.abs(ball.v[2]) < 1e-1) {
+      ball.v[2] = 0;
+      ball.state = PhysicsState.Sliding;
+    }
+  }
+};
+
+const evolvePocket = (ball: Physics, pocket: Pocket, dt: number) => {
+  const { gravity: g } = defaultParams.ball;
+
+  const r0 = vec.setZ(ball.r, 0);
+  const p0 = vec.setZ(pocket.position, 0);
+
+  // xy dist from pocket centre -> ball centre
+  const delta = vec.sub(r0, p0);
+  const dist = vec.len(delta);
+
+  ball.v[2] -= g * dt;
+
+  // pocket edge rolling
+  if (
+    dist >= pocket.radius - ball.R &&
+    ball.r[2] <= 0 &&
+    ball.r[2] > -2 * ball.R
+  ) {
+    const contactPoint = vec.add(
+      vec.setZ(pocket.position, -ball.R),
+      vec.mult(vec.norm(delta), pocket.radius)
+    );
+    const normal = vec.norm(vec.sub(ball.r, contactPoint));
+    const accelGravity = vec.new(0, 0, -g);
+    const accelNormal = vec.mult(normal, vec.dot(accelGravity, normal));
+    vec.msub(ball.v, vec.mult(accelNormal, dt));
+  } else {
+    // slow spin
+    vec.mmult(ball.w, 0.5);
+  }
+
+  vec.madd(ball.r, vec.mult(ball.v, dt));
+
+  // internal cylinder collision
+  if (dist > pocket.radius - ball.R) {
+    // edge of pocket
+    const normal = vec.norm(vec.sub(ball.r, p0));
+
+    const vn = vec.dot(ball.v, normal);
+    if (vn > 0) {
+      const vz = ball.v[2];
+      vec.msub(ball.v, vec.mult(normal, 2 * vn));
+      vec.mmult(ball.v, 0.5);
+      if (vec.lenSq(ball.v) < 1e-8) {
+        vec.mmult(ball.v, 0);
+      }
+      ball.v[2] = vz;
+    }
+  }
+
+  // cylinder base collision
+  const bottomZ = pocket.position[2] - pocket.depth / 2;
+  if (ball.r[2] - ball.R < bottomZ) {
+    const overlap = bottomZ - ball.r[2] + ball.R;
+    ball.r[2] += overlap;
+    ball.v[2] = 0;
+    vec.mmult(ball.v, 0.5);
+
+    // if (b.v[2] < 0) {
+    //   b.v[2] = -b.v[2] * ep;
+    // }
+  }
 };

@@ -2,6 +2,11 @@ import type { Entity } from '@common/ecs';
 import type { Shot } from '@common/simulation/shot';
 import type { Quat, Vec } from '../../common/math';
 import type { RuleSet } from '../../common/simulation/physics';
+import type {
+  BallBallCollision,
+  BallCushionCollision,
+  BallPocketCollision,
+} from './plugins/physics/collision/types';
 
 export type GameEvents = {
   'game/setup': {
@@ -18,6 +23,11 @@ export type GameEvents = {
     targetEntity: Entity;
     shot: Shot;
   };
+  /** Called when no balls are moving and we can update the state */
+  'game/settled': {};
+  'game/ball-collision': BallBallCollision;
+  'game/cushion-collision': BallCushionCollision;
+  'game/pocket-collision': BallPocketCollision;
 
   'input/mouse-move': {
     x: number;

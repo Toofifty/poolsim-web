@@ -1,9 +1,10 @@
+import { defaultParams } from '@common/simulation/physics';
 import type { ECS } from '../../../common/ecs';
 import type { Quat, Vec } from '../../../common/math';
 import { BallId } from '../components/ball-id';
 import { BallMesh } from '../components/ball-mesh';
-import { Physics } from '../components/physics';
 import { Renderable } from '../components/renderable';
+import { Physics } from '../plugins/physics/physics.component';
 
 export const spawnBall = (
   ecs: ECS,
@@ -20,7 +21,7 @@ export const spawnBall = (
 ) => {
   return ecs.createAndSpawn(
     BallId.create({ id }),
-    Physics.create({ r: position }),
+    Physics.create({ id, r: position, R: defaultParams.ball.radius }),
     [BallMesh.create({ id }), Renderable]
   );
 };

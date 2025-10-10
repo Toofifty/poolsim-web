@@ -1,7 +1,9 @@
 import { ECS, EventSystem } from '../../../common/ecs';
 import { BallId } from '../components/ball-id';
+import { PlayState } from '../controller/game-controller';
 import { spawnBall } from '../entities/ball';
 import type { GameEvents } from '../events';
+import { SystemState } from '../resources/system-state';
 
 export class TableSetupSystem extends EventSystem<'game/setup', GameEvents> {
   public event = 'game/setup' as const;
@@ -18,5 +20,8 @@ export class TableSetupSystem extends EventSystem<'game/setup', GameEvents> {
     data.rack.forEach((data) => {
       spawnBall(ecs, data);
     });
+
+    const systemState = ecs.resource(SystemState);
+    systemState.playState = PlayState.PlayerShoot;
   }
 }

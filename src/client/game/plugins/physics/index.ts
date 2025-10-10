@@ -1,8 +1,8 @@
 import { ECS, Plugin } from '@common/ecs';
-import { MotionSystem } from './motion.system';
+import { PhysicsSystem } from './physics.system';
 
 export class PhysicsPlugin extends Plugin {
   public install(ecs: ECS): void {
-    ecs.addSystem(new MotionSystem());
+    ecs.addSystem(new PhysicsSystem());
   }
 }

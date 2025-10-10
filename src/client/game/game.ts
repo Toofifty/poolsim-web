@@ -79,6 +79,8 @@ export class Game {
   public lerps: Set<(dt: number) => void> = new Set();
   private input!: InputController;
 
+  public audio!: Audio;
+
   public static instance: Game;
   public static debug: Debug;
   public static audio: Audio;
@@ -203,8 +205,9 @@ export class Game {
     this.mouseRaycaster = new Raycaster();
     Game.debug = new Debug();
     this.scene.add(Game.debug);
-    Game.audio = new Audio(this.scene);
-    this.camera.add(Game.audio.listener);
+    this.audio = new Audio(this.scene);
+    Game.audio = this.audio;
+    this.camera.add(this.audio.listener);
 
     this.setupInputController();
     window.addEventListener('resize', this.onResize);

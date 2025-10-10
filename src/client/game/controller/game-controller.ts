@@ -476,7 +476,6 @@ export abstract class BaseGameController
   public update(dt: number): void {
     if (this.isInPlay && !this.shouldPauseSimulation()) {
       const result = this.simulation.step({
-        simulated: false,
         trackPath: false,
         state: this.state,
         dt,

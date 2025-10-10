@@ -1,9 +1,9 @@
 import { ECS, EventSystem } from '@common/ecs';
 import { vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
-import { Physics, PhysicsState } from '../components/physics';
 import { PlayState } from '../controller/game-controller';
 import type { GameEvents } from '../events';
+import { Physics, PhysicsState } from '../plugins/physics/physics.component';
 import { SystemState } from '../resources/system-state';
 
 export class BallShootSystem extends EventSystem<'game/shoot', GameEvents> {

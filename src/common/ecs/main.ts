@@ -53,6 +53,7 @@ export class ECS<
   >();
   private resources = new Map<Ctor<Resource>, Resource>();
   private startupSystems: StartupSystem[] = [];
+  private spawners: (() => void)[] = [];
 
   private nextId = 0;
   private entitiesToDestroy = new Array<Entity>();
@@ -62,6 +63,10 @@ export class ECS<
   constructor(public game: TWorld) {}
 
   public emit<T extends keyof TEventMap>(event: T, data: TEventMap[T]) {
+    if (event.toString().startsWith('game/')) {
+      console.log('event:', event);
+    }
+
     const systems = this.eventSystems.get(event);
     if (systems) {
       systems.forEach((system) => system.run(this, data));
@@ -141,6 +146,12 @@ export class ECS<
     return new Query([...this.entities.keys()], this);
   }
 
+  public queryAll(...componentClasses: Ctor<Component>[]) {
+    return new Query([...this.entities.keys()], this)
+      .has(...componentClasses)
+      .findAll();
+  }
+
   public removeComponent(entity: Entity, componentClass: Function): void {
     if (!this.entities.has(entity)) {
       throw new Error(`Tried remove component of non-tracked entity ${entity}`);
@@ -204,6 +215,10 @@ export class ECS<
     while (this.entitiesToDestroy.length > 0) {
       this.destroyEntity(this.entitiesToDestroy.shift()!);
     }
+
+    while (this.spawners.length > 0) {
+      this.spawners.shift()!();
+    }
   }
 
   private destroyEntity(entity: Entity): void {
@@ -248,16 +263,21 @@ export class ECS<
   public createAndSpawn(
     ...components: (Component | [Component, Ctor<Component>])[]
   ) {
-    const eid = this.addEntity();
-    components.forEach((component) => {
-      if (Array.isArray(component)) {
-        return this.addComponent(eid, component[0], component[1]);
-      }
-      return this.addComponent(eid, component);
+    this.spawners.push(() => {
+      const eid = this.addEntity();
+      components.forEach((component) => {
+        if (Array.isArray(component)) {
+          return this.addComponent(eid, component[0], component[1]);
+        }
+        return this.addComponent(eid, component);
+      });
+      this.spawn(eid);
     });
-    return this.spawn(eid);
   }
 
+  /**
+   * Adds the entity into the world.
+   */
   public spawn(entity: number) {
     for (let [system] of this.systems.entries()) {
       const have = this.entities.get(entity)!;

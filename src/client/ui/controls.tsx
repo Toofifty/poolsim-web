@@ -31,11 +31,13 @@ const getStateName = (state: PlayState | undefined) => {
     case PlayState.AIShoot:
       return 'AI is thinking';
     case PlayState.PlayerInPlay:
+      return 'Your turn (playing)';
     case PlayState.PlayerShoot:
       return 'Your turn';
     case PlayState.PlayerBallInHand:
       return 'You have ball in hand';
     case PlayState.OpponentInPlay:
+      return "Opponent's turn (playing)";
     case PlayState.OpponentShoot:
       return "Opponent's turn";
     case PlayState.OpponentBallInHand:

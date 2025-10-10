@@ -3,9 +3,9 @@ import { params, type Params } from '../../common/simulation/physics';
 import type { BallProto } from './objects/ball';
 import { makeTheme } from './store/theme';
 
-const gap = params.ball.radius / 10;
+const gap = 0.001;
 
-const randomGap = () => ((Math.random() * 2 - 1) * gap) / 2;
+const getGap = () => Math.random() * gap;
 
 export type Sandboxes = 'debug' | 'cubicle-troll';
 
@@ -39,7 +39,7 @@ export class Rack {
           id: number,
           number,
           color: theme.balls.colors[number],
-          position: vec.new(x + randomGap(), y + randomGap()),
+          position: vec.new(x + getGap(), y + getGap()),
           orientation: quat.random(),
         });
       }

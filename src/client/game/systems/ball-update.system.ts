@@ -1,8 +1,8 @@
 import { ECS, System, type Entity } from '../../../common/ecs';
-import { Physics } from '../components/physics';
 import { Renderable } from '../components/renderable';
 import type { Game } from '../game';
-import { toVector3 } from '../util/three-interop';
+import { Physics } from '../plugins/physics/physics.component';
+import { toQuaternion, toVector3 } from '../util/three-interop';
 
 export class BallUpdateSystem extends System<Game> {
   public components: Set<Function> = new Set([Physics, Renderable]);
@@ -11,5 +11,6 @@ export class BallUpdateSystem extends System<Game> {
     const [physics, { mesh }] = ecs.get(entity, Physics, Renderable);
 
     mesh.position.copy(toVector3(physics.r));
+    mesh.rotation.setFromQuaternion(toQuaternion(physics.orientation));
   }
 }

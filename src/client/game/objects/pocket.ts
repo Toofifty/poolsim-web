@@ -1,11 +1,4 @@
-import {
-  BackSide,
-  Color,
-  CylinderGeometry,
-  Mesh,
-  Object3D,
-  Vector2,
-} from 'three';
+import { BackSide, Color, CylinderGeometry, Mesh, Object3D } from 'three';
 import { type Params } from '../../../common/simulation/physics';
 import { PhysicsPocket } from '../../../common/simulation/physics/pocket';
 import { Game } from '../game';
@@ -39,22 +32,6 @@ export class Pocket extends Object3D {
     return this.physics.depth;
   }
 
-  get mouthDirection() {
-    const dir = new Vector2(0, 0);
-
-    // top or bottom
-    dir.y = this.physics.position[1] > 0 ? -1 : 1;
-    // left, middle, right
-    dir.x =
-      this.physics.position[0] === 0
-        ? 0
-        : this.physics.position[0] > 0
-        ? -1
-        : 1;
-
-    return dir.normalize();
-  }
-
   private createMesh() {
     this.position.copy(toVector3(this.physics.position));
     this.mesh = new Mesh(
@@ -65,7 +42,12 @@ export class Pocket extends Object3D {
     this.mesh.receiveShadow = true;
     this.mesh.rotation.x = Math.PI / 2;
     // this.parent.add(this.mesh);
-    this.add(createPocketLinerMesh(this));
+    this.add(
+      createPocketLinerMesh({
+        position: this.physics.position,
+        radius: this.radius,
+      })
+    );
   }
 
   public dispose() {

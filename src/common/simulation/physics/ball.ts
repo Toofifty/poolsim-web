@@ -417,9 +417,6 @@ export class PhysicsBall {
   public addToPocket(pocket: PhysicsPocket, simulated?: boolean) {
     this.pocket = pocket;
     this.state = BallState.Pocketed;
-    if (!simulated) {
-      pocket.addBall(this);
-    }
   }
 
   public removeFromPocket() {
@@ -427,7 +424,6 @@ export class PhysicsBall {
       return;
     }
 
-    this.pocket.removeBall(this);
     this.pocket = undefined;
     this.state = BallState.Stationary;
   }

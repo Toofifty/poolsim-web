@@ -2,8 +2,8 @@ import type { ECS } from '../../../common/ecs';
 import type { Quat, Vec } from '../../../common/math';
 import { BallId } from '../components/ball-id';
 import { BallMesh } from '../components/ball-mesh';
-import { Object3DComponent } from '../components/mesh';
 import { Physics } from '../components/physics';
+import { Renderable } from '../components/renderable';
 
 export const spawnBall = (
   ecs: ECS,
@@ -21,6 +21,6 @@ export const spawnBall = (
   return ecs.createAndSpawn(
     BallId.create({ id }),
     Physics.create({ r: position }),
-    [BallMesh.create({ id }), Object3DComponent]
+    [BallMesh.create({ id }), Renderable]
   );
 };

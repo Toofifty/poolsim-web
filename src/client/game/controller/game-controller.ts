@@ -136,12 +136,7 @@ export abstract class BaseGameController
     this.aimAssist = new AimAssist(params);
 
     // todo: make cue, pockets Object3D
-    this.root = new Object3D().add(
-      this.table,
-      this.cue,
-      ...this.pockets,
-      ...this.cushions
-    );
+    this.root = new Object3D().add(this.table, this.cue, ...this.pockets);
 
     this.plane = new Mesh(
       new PlaneGeometry(params.table.length * 3, params.table.width * 3),
@@ -173,15 +168,6 @@ export abstract class BaseGameController
 
     subscribeTo(params, ['ball.radius'], () => this.setupPrevious());
 
-    subscribe(params.cushion, () => {
-      this.root.remove(...this.cushions);
-      this.cushions.forEach((cushion) => cushion.dispose());
-
-      this.cushions = createCushions(params);
-      this.createFreshState();
-      this.root.add(...this.cushions);
-    });
-
     subscribe(params.pocket, () => {
       this.root.remove(...this.cushions, ...this.pockets, this.table);
       this.cushions.forEach((cushion) => cushion.dispose());
@@ -192,7 +178,7 @@ export abstract class BaseGameController
       this.cushions = createCushions(params);
       this.table = new Table(params, this.pockets);
       this.createFreshState();
-      this.root.add(...this.cushions, ...this.pockets, this.table);
+      this.root.add(...this.pockets, this.table);
     });
   }
 

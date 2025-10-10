@@ -3,6 +3,7 @@ import { Game } from './game';
 import { CuePlugin } from './plugins/cue';
 import { MousePlugin } from './plugins/mouse';
 import { PhysicsPlugin } from './plugins/physics';
+import { TablePlugin } from './plugins/table';
 import { SystemState } from './resources/system-state';
 import { BallPhysicsSystem } from './systems/ball-physics';
 import { BallShootSystem } from './systems/ball-shoot.system';
@@ -19,6 +20,7 @@ export const createECS = (game: Game) => {
 
   new MousePlugin().install(ecs);
   new CuePlugin().install(ecs);
+  new TablePlugin().install(ecs);
   new PhysicsPlugin().install(ecs);
 
   ecs.addStartupSystem(new WorldSetupSystem());

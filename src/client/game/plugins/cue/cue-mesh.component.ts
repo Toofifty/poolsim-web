@@ -1,10 +1,10 @@
 import { defaultParams } from '@common/simulation/physics';
 import { Object3D } from 'three';
-import { Object3DComponent } from '../../components/mesh';
+import { Renderable } from '../../components/renderable';
 import { createCueMeshes } from '../../models/cue/create-cue-meshes';
 import { makeTheme } from '../../store/theme';
 
-export class CueMesh extends Object3DComponent {
+export class CueMesh extends Renderable {
   constructor(
     /** parent (attached to target ball) */
     public mesh: Object3D,
@@ -17,7 +17,7 @@ export class CueMesh extends Object3DComponent {
   }
 
   public getObject3DComponent() {
-    return new Object3DComponent(this.mesh);
+    return new Renderable(this.mesh);
   }
 
   public static create() {

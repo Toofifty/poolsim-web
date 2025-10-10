@@ -2,7 +2,7 @@ import { ECS, EventSystem } from '@common/ecs';
 import { vec, type Vec } from '@common/math';
 import { assertExists } from '@common/util';
 import { Object3D, Raycaster, type Camera } from 'three';
-import { Object3DComponent } from '../../components/mesh';
+import { Renderable } from '../../components/renderable';
 import type { GameEvents } from '../../events';
 import { toVec, toVector2 } from '../../util/three-interop';
 import { MousePosition } from './mouse-position.resource';
@@ -40,7 +40,7 @@ export class MousePositionSystem extends EventSystem<
     const planeEntity = ecs.query().first(Plane);
     assertExists(planeEntity, 'Missing intersection plane');
 
-    const [{ mesh }] = ecs.get(planeEntity, Object3DComponent);
+    const [{ mesh }] = ecs.get(planeEntity, Renderable);
 
     const world = this.intersect(mousePosition.screen, mesh);
     if (world) {

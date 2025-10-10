@@ -1,8 +1,8 @@
 import { defaultParams } from '@common/simulation/physics';
 import { Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
-import { Object3DComponent } from '../../components/mesh';
+import { Renderable } from '../../components/renderable';
 
-export class PlaneMesh extends Object3DComponent {
+export class PlaneMesh extends Renderable {
   public static create() {
     const mesh = new Mesh(
       new PlaneGeometry(

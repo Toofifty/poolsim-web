@@ -40,17 +40,6 @@ export class Cushion extends Object3D {
     );
   }
 
-  public reverseVertices() {
-    this.physics.vertices = [
-      this.physics.vertices[1],
-      this.physics.vertices[0],
-      this.physics.vertices[3],
-      this.physics.vertices[2],
-    ];
-    this.createMesh();
-    return this;
-  }
-
   private get isVertical() {
     return this.physics.vertices[0][0] === this.physics.vertices[3][0];
   }

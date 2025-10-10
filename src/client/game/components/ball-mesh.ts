@@ -10,7 +10,7 @@ import normalMapUrl from '../../assets/scratch_normal.png';
 import { createBallTexture } from '../models/ball/create-ball-texture';
 import { createMaterial } from '../rendering/create-material';
 import { makeTheme } from '../store/theme';
-import { Object3DComponent } from './mesh';
+import { Renderable } from './renderable';
 
 const normalMap = new TextureLoader().load(normalMapUrl);
 
@@ -18,7 +18,7 @@ const geometry = new SphereGeometry(defaultParams.ball.radius, 32, 16);
 
 const texturePool = new Map<number, CanvasTexture>();
 
-export class BallMesh extends Object3DComponent {
+export class BallMesh extends Renderable {
   public static create({ id }: { id: number }) {
     const theme = makeTheme();
     const texture = texturePool.get(id) ?? createBallTexture(theme, id);

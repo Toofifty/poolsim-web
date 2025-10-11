@@ -1,6 +1,6 @@
-import { Component } from '@common/ecs';
+import { ECSComponent } from '@common/ecs';
 
-export class Plane extends Component {
+export class Plane extends ECSComponent {
   public static create() {
     return new Plane();
   }

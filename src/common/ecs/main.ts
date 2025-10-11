@@ -1,4 +1,8 @@
-import { type Component, type Ctor, type ExtractComponents } from './component';
+import {
+  type Ctor,
+  type ECSComponent,
+  type ExtractComponents,
+} from './component';
 import { EventSystem } from './event-system';
 import { Query } from './query';
 import type { Resource } from './resource';
@@ -7,13 +11,13 @@ import type { System } from './system';
 import type { Entity } from './types';
 
 export class ComponentContainer {
-  private map = new Map<Function, Component>();
+  private map = new Map<Function, ECSComponent>();
 
-  public add(component: Component, ctor?: Function): void {
+  public add(component: ECSComponent, ctor?: Function): void {
     this.map.set(ctor ?? component.constructor, component);
   }
 
-  public get<T extends Component>(componentClass: Ctor<T>): T {
+  public get<T extends ECSComponent>(componentClass: Ctor<T>): T {
     return this.map.get(componentClass) as T;
   }
 
@@ -30,7 +34,7 @@ export class ComponentContainer {
     return true;
   }
 
-  public values(): MapIterator<Component> {
+  public values(): MapIterator<ECSComponent> {
     return this.map.values();
   }
 
@@ -74,10 +78,6 @@ export class ECS<
   constructor(public game: TWorld) {}
 
   public emit<T extends keyof TEventMap>(event: T, data: TEventMap[T]) {
-    if (event.toString().startsWith('game/')) {
-      console.log('event:', event);
-    }
-
     const systems = this.eventSystems.get(event);
     if (systems) {
       systems.forEach((system) => system.run(this, data));
@@ -134,8 +134,8 @@ export class ECS<
 
   public addComponent(
     entity: Entity,
-    component: Component,
-    customCtor?: Ctor<Component>
+    component: ECSComponent,
+    customCtor?: Ctor<ECSComponent>
   ): void {
     if (!this.entities.has(entity)) {
       throw new Error(
@@ -143,7 +143,7 @@ export class ECS<
       );
     }
 
-    const ctor = customCtor ?? (component.constructor as Ctor<Component>);
+    const ctor = customCtor ?? (component.constructor as Ctor<ECSComponent>);
 
     this.entities.get(entity)!.add(component, ctor);
     this.checkE(entity);
@@ -158,7 +158,7 @@ export class ECS<
     return this.entities.get(entity)!;
   }
 
-  public get<T extends Ctor<Component>[]>(
+  public get<T extends Ctor<ECSComponent>[]>(
     entity: Entity,
     ...componentClasses: T
   ): ExtractComponents<T> {
@@ -168,7 +168,7 @@ export class ECS<
     ) as ExtractComponents<T>;
   }
 
-  public has(entity: Entity, ...componentClasses: Ctor<Component>[]) {
+  public has(entity: Entity, ...componentClasses: Ctor<ECSComponent>[]) {
     const components = this.getComponents(entity);
     return componentClasses.every((componentClass) =>
       components.get(componentClass)
@@ -179,7 +179,7 @@ export class ECS<
     return new Query([...this.entities.keys()], this);
   }
 
-  public queryAll(...componentClasses: Ctor<Component>[]) {
+  public queryAll(...componentClasses: Ctor<ECSComponent>[]) {
     return new Query([...this.entities.keys()], this)
       .has(...componentClasses)
       .findAll();
@@ -303,7 +303,7 @@ export class ECS<
    * Should only be used within startup systems.
    */
   public createAndSpawnImmediate(
-    ...components: (Component | [Component, Ctor<Component>])[]
+    ...components: (ECSComponent | [ECSComponent, Ctor<ECSComponent>])[]
   ) {
     const eid = this.addEntity();
     components.forEach((component) => {
@@ -321,7 +321,7 @@ export class ECS<
    * Runs in the next frame.
    */
   public createAndSpawn(
-    ...components: (Component | [Component, Ctor<Component>])[]
+    ...components: (ECSComponent | [ECSComponent, Ctor<ECSComponent>])[]
   ) {
     this.spawners.push(() => this.createAndSpawnImmediate(...components));
   }

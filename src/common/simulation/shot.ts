@@ -23,24 +23,34 @@ export class Shot {
     this.lift = lift ?? 0;
   }
 
-  get velocity() {
+  public static getVelocity(shot: Shot) {
     return vec.new(
-      this.force * Math.cos(this.angle),
-      this.force * Math.sin(this.angle)
+      shot.force * Math.cos(shot.angle),
+      shot.force * Math.sin(shot.angle)
     );
   }
 
-  get key() {
-    const angleQ = BigInt(Math.round(this.angle * 1000)) & 0xffffn;
-    const forceQ = BigInt(Math.round(this.force * 100)) & 0xffffn;
+  /** @deprecated */
+  get velocity() {
+    return Shot.getVelocity(this);
+  }
+
+  public static getKey(shot: Shot) {
+    const angleQ = BigInt(Math.round(shot.angle * 1000)) & 0xffffn;
+    const forceQ = BigInt(Math.round(shot.force * 100)) & 0xffffn;
     const liftQ =
-      BigInt(Math.round((this.lift / (Math.PI / 2)) * 4095)) & 0xfffn;
-    const sideQ = BigInt(Math.round((this.sideSpin + 1) * 500)) & 0xfffn;
-    const topQ = BigInt(Math.round((this.topSpin + 1) * 255)) & 0xffn;
+      BigInt(Math.round((shot.lift / (Math.PI / 2)) * 4095)) & 0xfffn;
+    const sideQ = BigInt(Math.round((shot.sideSpin + 1) * 500)) & 0xfffn;
+    const topQ = BigInt(Math.round((shot.topSpin + 1) * 255)) & 0xffn;
 
     return (
       (angleQ << 48n) | (forceQ << 32n) | (liftQ << 20n) | (sideQ << 8n) | topQ
     );
+  }
+
+  /** @deprecated */
+  get key() {
+    return Shot.getKey(this);
   }
 
   public static from(cue: Cue) {

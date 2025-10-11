@@ -20,6 +20,7 @@ export type GameEvents = {
     }[];
     ruleSet: RuleSet;
   };
+  'game/start-shooting': {};
   'game/shoot': {
     targetEntity: Entity;
     shot: Shot;

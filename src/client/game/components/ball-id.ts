@@ -1,6 +1,6 @@
-import { Component } from '../../../common/ecs';
+import { ECSComponent } from '../../../common/ecs';
 
-export class BallId extends Component {
+export class BallId extends ECSComponent {
   constructor(public id: number) {
     super();
   }

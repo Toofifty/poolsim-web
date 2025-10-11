@@ -4,6 +4,7 @@ import type { GameEvents } from '../events';
 import type { Game } from '../game';
 import { Audio } from '../resources/audio';
 import { toVector3 } from '../util/three-interop';
+import { Cue } from './cue/cue.component';
 import type {
   BallBallCollision,
   BallPocketCollision,
@@ -12,8 +13,21 @@ import type {
 export class AudioPlugin extends Plugin {
   public install(ecs: ECS<GameEvents, Game>): void {
     ecs.addResource(new Audio(ecs.game.scene));
+    ecs.addEventSystem(new ShootAudioSystem());
     ecs.addEventSystem(new BallCollisionAudioSystem());
     ecs.addEventSystem(new PocketCollisionAudioSystem());
+  }
+}
+
+class ShootAudioSystem extends EventSystem<'game/shoot', GameEvents> {
+  public event = 'game/shoot' as const;
+  public run(
+    ecs: ECS<GameEvents, unknown>,
+    data: GameEvents['game/shoot']
+  ): void {
+    const audio = ecs.resource(Audio);
+    const cue = ecs.query().resolveFirst(Cue);
+    audio.play('hit_centre', toVector3(cue.target), cue.force / 2);
   }
 }
 

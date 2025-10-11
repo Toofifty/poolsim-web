@@ -1,8 +1,8 @@
-import { Component, type Entity } from '@common/ecs';
+import { ECSComponent, type Entity } from '@common/ecs';
 import { vec, type Vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
 
-export class Cue extends Component {
+export class Cue extends ECSComponent {
   constructor(
     /** position of target ball */
     public target: Vec,
@@ -11,7 +11,9 @@ export class Cue extends Component {
     public force: number,
     public top: number,
     public side: number,
-    public lift: number
+    public lift: number,
+    public drawback = 0,
+    public shooting = false
   ) {
     super();
   }

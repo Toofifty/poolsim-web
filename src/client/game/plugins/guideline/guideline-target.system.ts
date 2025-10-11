@@ -5,8 +5,8 @@ import { PlayState } from '../../controller/game-controller';
 import { SystemState } from '../../resources/system-state';
 import { Cue } from '../cue/cue.component';
 import { Physics } from '../physics/physics.component';
-import { runSimulation } from '../physics/simulation/run';
 import { createSimulationState } from '../physics/simulation/step';
+import { runWorkerSimulation } from '../physics/simulation/worker/run';
 import { Cushion } from '../table/cushion.component';
 import { Pocket } from '../table/pocket.component';
 import { Guideline } from './guideline.component';
@@ -14,7 +14,7 @@ import { Guideline } from './guideline.component';
 export class GuidelineTargetSystem extends System {
   public components: Set<Function> = new Set([Guideline]);
 
-  public run(ecs: ECS<any, unknown>, entity: Entity): void {
+  public async run(ecs: ECS<any, unknown>, entity: Entity): Promise<void> {
     const systemState = ecs.resource(SystemState);
     const [guideline] = ecs.get(entity, Guideline);
     if (systemState.playState !== PlayState.PlayerShoot) {
@@ -33,6 +33,7 @@ export class GuidelineTargetSystem extends System {
 
     guideline.reset();
     guideline.key = shot.key;
+    guideline.computing = true;
 
     const balls = ecs.query().resolveAll(Physics);
     const cushions = ecs.query().resolveAll(Cushion);
@@ -43,11 +44,10 @@ export class GuidelineTargetSystem extends System {
       return;
     }
 
-    // todo: worker
     const state = createSimulationState(balls, cushions, pockets, {
       cueBallOnly: true,
     });
-    const result = runSimulation({
+    const result = await runWorkerSimulation({
       shot,
       state,
       trackPath: true,
@@ -77,5 +77,7 @@ export class GuidelineTargetSystem extends System {
       guideline.targetBallPosition = collision.other.r;
       //   guideline.targetBallColor = collision.other.id;
     }
+
+    guideline.computing = false;
   }
 }

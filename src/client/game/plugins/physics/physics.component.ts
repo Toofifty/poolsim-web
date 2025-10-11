@@ -1,5 +1,5 @@
-import { Component } from '../../../../common/ecs';
-import { quat, vec, type Quat, type Vec } from '../../../../common/math';
+import { ECSComponent } from '@common/ecs';
+import { quat, vec, type Quat, type Vec } from '@common/math';
 
 export enum PhysicsState {
   Stationary,
@@ -21,7 +21,7 @@ export type PhysicsSnapshot = {
 /**
  * Ball physics
  */
-export class Physics extends Component {
+export class Physics extends ECSComponent {
   constructor(
     public id: number,
     /** position */

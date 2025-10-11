@@ -1,4 +1,4 @@
-export abstract class Component {
+export abstract class ECSComponent {
   public getDebugObject(): Record<string, any> {
     return {};
   }

@@ -1,9 +1,9 @@
-import { Component } from '@common/ecs';
+import { ECSComponent } from '@common/ecs';
 import { vec, type Vec } from '@common/math';
 import { defaultParams, type Params } from '@common/simulation/physics';
 import { constrain } from '@common/util';
 
-export class Cushion extends Component {
+export class Cushion extends ECSComponent {
   public collisionBox: readonly [Vec, Vec];
   /**
    * Segments used for physics calculations.

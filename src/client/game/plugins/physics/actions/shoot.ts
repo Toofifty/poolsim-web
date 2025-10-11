@@ -1,10 +1,11 @@
 import { vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
-import type { Shot } from '@common/simulation/shot';
+import { Shot } from '@common/simulation/shot';
 import { PhysicsState, type Physics } from '../physics.component';
 
 export const shoot = (ball: Physics, shot: Shot) => {
-  let direction = vec.norm(shot.velocity);
+  const velocity = Shot.getVelocity(shot);
+  let direction = vec.norm(velocity);
   if (shot.lift > 0) {
     const right = vec.norm(vec.cross(vec.UP, direction));
     direction = vec.norm(vec.rotate(direction, right, shot.lift));
@@ -34,7 +35,7 @@ export const shoot = (ball: Physics, shot: Shot) => {
     vec.madd(ball.w, dw);
   }
 
-  const dv = vec.mult(direction, vec.len(shot.velocity));
+  const dv = vec.mult(direction, vec.len(velocity));
   // contribute less to vertical velocity based on where the cue ball is hit
   dv[2] *= Math.cos((shot.sideSpin * Math.PI) / 2);
   vec.madd(ball.v, dv);

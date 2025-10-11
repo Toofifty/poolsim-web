@@ -1,7 +1,7 @@
 import type { Object3D } from 'three';
-import { Component } from '../../../common/ecs';
+import { ECSComponent } from '../../../common/ecs';
 
-export class Renderable extends Component {
+export class Renderable extends ECSComponent {
   public readonly isRenderable = true;
 
   constructor(public mesh: Object3D) {

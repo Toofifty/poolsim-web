@@ -1,5 +1,5 @@
 import { assertExists } from '@common/util';
-import type { Component, Ctor, ExtractComponents } from './component';
+import type { Ctor, ECSComponent, ExtractComponents } from './component';
 import type { ECS } from './main';
 
 export class Query {
@@ -7,19 +7,19 @@ export class Query {
 
   constructor(private entities: number[], private ecs: ECS) {}
 
-  public has(...componentClasses: Ctor<Component>[]): Query {
+  public has(...componentClasses: Ctor<ECSComponent>[]): Query {
     return this.filter((ecs, entity) =>
       ecs.getComponents(entity).has(...componentClasses)
     );
   }
 
-  public hasNot(...componentClasses: Ctor<Component>[]): Query {
+  public hasNot(...componentClasses: Ctor<ECSComponent>[]): Query {
     return this.filter(
       (ecs, entity) => !ecs.getComponents(entity).has(...componentClasses)
     );
   }
 
-  public with<T extends Ctor<Component>[]>(...componentClasses: T) {
+  public with<T extends Ctor<ECSComponent>[]>(...componentClasses: T) {
     return {
       filter: (
         predicate: (...components: ExtractComponents<T>) => boolean
@@ -49,7 +49,7 @@ export class Query {
     }, this.entities)[0];
   }
 
-  public firstWith(componentClass: Ctor<Component>): number | undefined {
+  public firstWith(componentClass: Ctor<ECSComponent>): number | undefined {
     if (this.predicates.length > 0) {
       console.warn('Ignoring previous predicates in query.firstWith()');
     }
@@ -58,7 +58,7 @@ export class Query {
     );
   }
 
-  public resolveFirst<T extends Component>(componentClass: Ctor<T>): T {
+  public resolveFirst<T extends ECSComponent>(componentClass: Ctor<T>): T {
     const entity = this.firstWith(componentClass);
     assertExists(
       entity,
@@ -72,7 +72,7 @@ export class Query {
     return component;
   }
 
-  public resolveAll<T extends Component>(componentClass: Ctor<T>): T[] {
+  public resolveAll<T extends ECSComponent>(componentClass: Ctor<T>): T[] {
     if (this.predicates.length === 0) {
       this.has(componentClass);
     }

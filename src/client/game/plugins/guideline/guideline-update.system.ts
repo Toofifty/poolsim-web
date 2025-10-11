@@ -49,8 +49,6 @@ export class GuidelineUpdateSystem extends System {
     // todo: resource
     const { physicsGuidelines } = settings;
 
-    // todo: check key
-
     const [guideline, { line }, { ring, material: ringMaterial }] = ecs.get(
       entity,
       Guideline,
@@ -61,14 +59,14 @@ export class GuidelineUpdateSystem extends System {
     const systemState = ecs.resource(SystemState);
     if (
       systemState.playState !== PlayState.PlayerShoot ||
-      guideline.trackingPoints.length === 0
+      (guideline.trackingPoints.length === 0 && !guideline.computing)
     ) {
       line.visible = false;
       ring.visible = false;
       return;
     }
 
-    if (guideline.key === this.lastKey) {
+    if (guideline.key === this.lastKey || guideline.computing) {
       return;
     }
     this.lastKey = guideline.key;

@@ -14,14 +14,15 @@ export class CueUpdateSystem extends System {
     const [cue, mesh] = ecs.get(entity, Cue, CueMesh);
     mesh.mesh.position.copy(toVector3(cue.target));
     mesh.mesh.rotation.z = cue.angle - Math.PI / 2;
-    mesh.cue.position.y = -(
-      defaultParams.cue.length / 2 +
-      defaultParams.ball.radius * 1.5
-    );
+    mesh.cue.position.y =
+      -(defaultParams.cue.length / 2 + defaultParams.ball.radius * 1.5) -
+      cue.drawback;
 
     // spins
     mesh.cue.position.x = -cue.side * defaultParams.ball.radius;
     mesh.cue.position.z = cue.top * defaultParams.ball.radius;
     mesh.lift.setRotationFromAxisAngle(LEFT, -Math.PI / 48 - cue.lift);
+
+    // draw-back during shot
   }
 }

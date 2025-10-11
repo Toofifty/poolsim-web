@@ -15,9 +15,13 @@ export class GuidelineArrowUpdateSystem extends System {
     const systemState = ecs.resource(SystemState);
     if (
       systemState.playState !== PlayState.PlayerShoot ||
-      guideline.trackingPoints.length === 0
+      (guideline.trackingPoints.length === 0 && !guideline.computing)
     ) {
       arrow.mesh.visible = false;
+      return;
+    }
+
+    if (guideline.computing) {
       return;
     }
 

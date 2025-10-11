@@ -1,3 +1,4 @@
+import { defaultParams } from '@common/simulation/physics';
 import { ECS, EventSystem } from '../../../common/ecs';
 import { BallId } from '../components/ball-id';
 import { PlayState } from '../controller/game-controller';
@@ -23,5 +24,11 @@ export class TableSetupSystem extends EventSystem<'game/setup', GameEvents> {
 
     const systemState = ecs.resource(SystemState);
     systemState.playState = PlayState.PlayerShoot;
+    ecs.emit('input/cue-update', {
+      force: defaultParams.cue.defaultForce,
+      top: 0,
+      side: 0,
+      lift: 0,
+    });
   }
 }

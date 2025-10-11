@@ -1,11 +1,13 @@
-import { Component } from '@common/ecs';
+import { ECSComponent } from '@common/ecs';
 import type { Vec } from '@common/math';
 import type { Color } from 'three';
 import type { PhysicsSnapshot } from '../physics/physics.component';
 
-export class Guideline extends Component {
+export class Guideline extends ECSComponent {
   /** Shot key */
   public key?: BigInt;
+  /** Whether the guideline is currently being computed */
+  public computing: boolean = false;
 
   /** Points from cue ball to collision point */
   public trackingPoints: PhysicsSnapshot[] = [];

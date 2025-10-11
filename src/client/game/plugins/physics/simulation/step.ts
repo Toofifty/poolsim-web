@@ -1,5 +1,5 @@
 import { defaultParams } from '@common/simulation/physics';
-import { assert } from '@common/util';
+import { assert, assertExists } from '@common/util';
 import { iteration, pairs } from '@common/util/iterate';
 import { Profiler, type IProfiler } from '@common/util/profiler';
 import type { Cushion } from '../../table/cushion.component';
@@ -104,7 +104,7 @@ const simulationSubstep = (
   const endBallUpdate = profiler.start('ball-update');
   for (const ball of state.balls) {
     if (ball.state === PhysicsState.Pocketed) {
-      assert(ball.pocketId, 'Missing pocket id for pocketed ball');
+      assertExists(ball.pocketId, 'Missing pocket id for pocketed ball');
       assert(
         state.pockets[ball.pocketId],
         `Could not find pocket ${ball.pocketId}`

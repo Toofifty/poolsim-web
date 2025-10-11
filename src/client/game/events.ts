@@ -2,6 +2,7 @@ import type { Entity } from '@common/ecs';
 import type { Shot } from '@common/simulation/shot';
 import type { Quat, Vec } from '../../common/math';
 import type { RuleSet } from '../../common/simulation/physics';
+import type { Cue } from './plugins/cue/cue.component';
 import type {
   BallBallCollision,
   BallCushionCollision,
@@ -28,6 +29,7 @@ export type GameEvents = {
   'game/ball-collision': BallBallCollision;
   'game/cushion-collision': BallCushionCollision;
   'game/pocket-collision': BallPocketCollision;
+  'game/cue-update': Cue;
 
   'input/mouse-move': {
     x: number;
@@ -37,5 +39,11 @@ export type GameEvents = {
   'input/mouse-pressed': {
     button: number;
     original: MouseEvent;
+  };
+  'input/cue-update': {
+    force?: number;
+    top?: number;
+    side?: number;
+    lift?: number;
   };
 };

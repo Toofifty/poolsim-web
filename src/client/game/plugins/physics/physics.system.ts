@@ -33,6 +33,9 @@ export class PhysicsSystem extends System {
       if (collision.type === 'ball-ball') {
         ecs.emit('game/ball-collision', collision);
       }
+      if (collision.type === 'ball-pocket') {
+        ecs.emit('game/pocket-collision', collision);
+      }
     });
 
     if (settled(state)) {

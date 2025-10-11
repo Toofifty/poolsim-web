@@ -4,12 +4,16 @@ import type { GameEvents } from '../events';
 import type { Game } from '../game';
 import { Audio } from '../resources/audio';
 import { toVector3 } from '../util/three-interop';
-import type { BallBallCollision } from './physics/collision/types';
+import type {
+  BallBallCollision,
+  BallPocketCollision,
+} from './physics/collision/types';
 
 export class AudioPlugin extends Plugin {
   public install(ecs: ECS<GameEvents, Game>): void {
     ecs.addResource(new Audio(ecs.game.scene));
     ecs.addEventSystem(new BallCollisionAudioSystem());
+    ecs.addEventSystem(new PocketCollisionAudioSystem());
   }
 }
 
@@ -39,5 +43,17 @@ class BallCollisionAudioSystem extends EventSystem<
       Math.min(vec.len(data.impulse) * 2, 5)
     );
     this.soundsPlayed++;
+  }
+}
+
+class PocketCollisionAudioSystem extends EventSystem<
+  'game/pocket-collision',
+  GameEvents
+> {
+  public event = 'game/pocket-collision' as const;
+
+  public run(ecs: ECS<GameEvents, Game>, data: BallPocketCollision): void {
+    const audio = ecs.resource(Audio);
+    audio.play('pocket_drop', toVector3(data.position));
   }
 }

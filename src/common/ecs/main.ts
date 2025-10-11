@@ -59,6 +59,11 @@ export class ECS<
   private startupSystems: StartupSystem[] = [];
   private spawners: (() => void)[] = [];
 
+  private externalListeners = new Map<
+    keyof TEventMap,
+    Set<(data: TEventMap[keyof TEventMap]) => void>
+  >();
+
   private nextId = 0;
   private entitiesToDestroy = new Array<Entity>();
 
@@ -77,6 +82,11 @@ export class ECS<
     if (systems) {
       systems.forEach((system) => system.run(this, data));
     }
+
+    const externalListeners = this.externalListeners.get(event);
+    if (externalListeners) {
+      externalListeners.forEach((callback) => callback(data));
+    }
   }
 
   public addResource(resource: Resource): void {
@@ -85,6 +95,23 @@ export class ECS<
 
   public removeResource(resource: Resource): void {
     this.resources.delete(resource.constructor as Ctor<Resource>);
+  }
+
+  public addExternalListener<T extends keyof TEventMap>(
+    event: T,
+    callback: (data: TEventMap[T]) => void
+  ) {
+    if (!this.externalListeners.has(event)) {
+      this.externalListeners.set(event, new Set());
+    }
+    this.externalListeners.get(event)!.add(callback as any);
+  }
+
+  public removeExternalListener<T extends keyof TEventMap>(
+    event: T,
+    callback: (data: TEventMap[T]) => void
+  ) {
+    this.externalListeners.get(event)!.delete(callback as any);
   }
 
   public resource<T extends Resource>(ctor: Ctor<T>): T {

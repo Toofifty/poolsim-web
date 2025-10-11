@@ -1,29 +1,34 @@
-import { useEffect } from 'react';
-import { useSnapshot } from 'valtio';
-import { params as staticParams } from '../../common/simulation/physics';
+import { useEffect, useState } from 'react';
+import { defaultParams } from '../../common/simulation/physics';
 import { constrain } from '../../common/util';
-import { gameStore } from '../game/store/game';
-import { settings } from '../game/store/settings';
+import { useGameContext } from '../util/game-provider';
 import './power-bar.scss';
+import { useGameEvent } from './use-game-event';
 import { useMouseInputs } from './use-mouse-inputs';
 
 export const PowerBar = () => {
-  const { cueForce } = useSnapshot(gameStore);
-  const { controlMode } = useSnapshot(settings);
+  const [cueForce, setCueForce] = useState(0);
+  const ecs = useGameContext().ecs;
 
-  // todo: useSnapshot(params);
-  const params = staticParams;
+  useGameEvent('game/cue-update', ({ force }) => setCueForce(force), []);
 
-  const props = useMouseInputs(({ x }) => {
-    gameStore.cueForce = params.cue.maxForce * x;
-  }, []);
+  const props = useMouseInputs(
+    ({ x }) =>
+      ecs.emit('input/cue-update', {
+        force: x * defaultParams.cue.maxForce,
+      }),
+    [ecs]
+  );
 
   useEffect(() => {
     const scrollListener = (event: WheelEvent) => {
       if (!event.shiftKey) return;
       const force =
-        gameStore.cueForce / params.cue.maxForce - event.deltaY * 0.0002;
-      gameStore.cueForce = params.cue.maxForce * constrain(force, 0, 1);
+        cueForce / defaultParams.cue.maxForce - event.deltaY * 0.0002;
+
+      ecs.emit('input/cue-update', {
+        force: constrain(force, 0, 1) * defaultParams.cue.maxForce,
+      });
     };
 
     document.addEventListener('wheel', scrollListener, { passive: true });
@@ -31,14 +36,14 @@ export const PowerBar = () => {
     return () => {
       document.removeEventListener('wheel', scrollListener);
     };
-  }, []);
+  }, [ecs, cueForce]);
 
   return (
     <div className="power-bar">
       <div className="power-bar__click-area" {...props}>
         <div
           className="power-bar__current-power"
-          style={{ width: `${(cueForce / params.cue.maxForce) * 100}%` }}
+          style={{ width: `${(cueForce / defaultParams.cue.maxForce) * 100}%` }}
         />
         <span className="power-bar__power-num">{cueForce.toFixed(2)}m/s</span>
       </div>

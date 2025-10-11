@@ -1,6 +1,7 @@
 import { ECS, System, type Entity } from '@common/ecs';
 import { assert } from '@common/util';
 import { Color } from 'three';
+import { LineGeometry } from 'three/examples/jsm/Addons.js';
 import { PlayState } from '../../controller/game-controller';
 import { SystemState } from '../../resources/system-state';
 import { settings } from '../../store/settings';
@@ -50,8 +51,12 @@ export class GuidelineUpdateSystem extends System {
 
     // todo: check key
 
-    const [guideline, { line, geometry }, { ring, material: ringMaterial }] =
-      ecs.get(entity, Guideline, GuidelineMesh, ImpactPointMesh);
+    const [guideline, { line }, { ring, material: ringMaterial }] = ecs.get(
+      entity,
+      Guideline,
+      GuidelineMesh,
+      ImpactPointMesh
+    );
 
     const systemState = ecs.resource(SystemState);
     if (
@@ -80,8 +85,12 @@ export class GuidelineUpdateSystem extends System {
     }
 
     // guideline
-    geometry.setPositions(positions);
-    geometry.setColors(colors);
+    line.geometry.dispose();
+    // need to recreate the geometry each frame,
+    // otherwise the length will not update
+    line.geometry = new LineGeometry();
+    line.geometry.setPositions(positions);
+    line.geometry.setColors(colors);
     line.computeLineDistances();
     line.scale.set(1, 1, 1);
     line.visible = true;

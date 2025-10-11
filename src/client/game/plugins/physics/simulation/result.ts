@@ -1,10 +1,14 @@
 import type { Collision } from '../collision/types';
-import type { PhysicsSnapshot } from '../physics.component';
+import { Physics, type PhysicsSnapshot } from '../physics.component';
 
 export type Result = {
   readonly steps: number;
   readonly ballsPotted: readonly number[];
   readonly collisions: readonly Collision[];
+  readonly cueBallCollisions: number;
+  readonly ballCollisions: number;
+  readonly cueBallCushionCollisions: number;
+  readonly cushionCollisions: number;
   // todo: readonly array
   readonly trackingPoints: Map<number, PhysicsSnapshot[]>;
 
@@ -21,6 +25,10 @@ export const createResult = (): Result => ({
   steps: 1,
   ballsPotted: [],
   collisions: [],
+  cueBallCollisions: 0,
+  ballCollisions: 0,
+  cueBallCushionCollisions: 0,
+  cushionCollisions: 0,
   trackingPoints: new Map(),
   firstStruck: undefined,
   scratched: false,
@@ -30,8 +38,22 @@ export const addCollision = (result: Result, collision: Collision) => {
   const write = result as Writable<Result>;
 
   if (collision.type === 'ball-ball') {
-    if (collision.initiator.id === 0 && result.firstStruck === undefined) {
-      write.firstStruck = collision.other.id;
+    if (collision.initiator.id === 0) {
+      write.cueBallCollisions++;
+
+      if (result.firstStruck === undefined) {
+        write.firstStruck = collision.other.id;
+      }
+    } else {
+      write.ballCollisions++;
+    }
+  }
+
+  if (collision.type === 'ball-cushion') {
+    if (collision.initiator.id === 0) {
+      write.cueBallCushionCollisions++;
+    } else {
+      write.cushionCollisions++;
     }
   }
 
@@ -46,14 +68,29 @@ export const addCollision = (result: Result, collision: Collision) => {
   write.collisions.push(collision);
 };
 
+export const addTrackingPoint = (result: Result, ball: Physics) => {
+  if (!result.trackingPoints.has(ball.id)) {
+    result.trackingPoints.set(ball.id, [Physics.snapshot(ball)]);
+  } else {
+    result.trackingPoints.get(ball.id)!.push(Physics.snapshot(ball));
+  }
+};
+
 const combineMaps = <T extends Map<any, any[]>>(map1: T, map2: T): T => {
   const combined = new Map(map1) as T;
 
-  for (const [key, values] of map2) {
-    if (!combined.has(key)) {
-      combined.set(key, values);
+  for (const [key, values] of map2.entries()) {
+    if (combined.has(key)) {
+      try {
+        combined.set(key, combined.get(key)!.concat(values));
+      } catch (e) {
+        console.log(key);
+        console.log(combined.get(key)?.length);
+        console.log(values.length);
+        throw new Error('Failed to merge maps', { cause: e });
+      }
     } else {
-      combined.get(key)!.push(...values);
+      combined.set(key, values);
     }
   }
 
@@ -68,6 +105,11 @@ export const combine = (first: Result, second: Result): Result => ({
   steps: first.steps + second.steps,
   ballsPotted: [...first.ballsPotted, ...second.ballsPotted],
   collisions: [...first.collisions, ...second.collisions],
+  cueBallCollisions: first.cueBallCollisions + second.cueBallCollisions,
+  ballCollisions: first.ballCollisions + second.ballCollisions,
+  cueBallCushionCollisions:
+    first.cueBallCushionCollisions + second.cueBallCushionCollisions,
+  cushionCollisions: first.cushionCollisions + second.cushionCollisions,
   trackingPoints: combineMaps(first.trackingPoints, second.trackingPoints),
   firstStruck: first.firstStruck ?? second.firstStruck,
   scratched: first.scratched || second.scratched,

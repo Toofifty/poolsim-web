@@ -30,7 +30,8 @@ export class PocketMesh extends Renderable {
     );
     debugMesh.rotation.x = Math.PI / 2;
 
-    parent.add(debugMesh);
-    return new Renderable(parent);
+    // todo: debug
+    // parent.add(debugMesh);
+    return new PocketMesh(parent);
   }
 }

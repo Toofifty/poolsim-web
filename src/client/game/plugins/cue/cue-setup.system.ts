@@ -4,7 +4,6 @@ import { Cue } from './cue.component';
 
 export class CueSetupSystem extends StartupSystem {
   public run(ecs: ECS): void {
-    const cueMesh = CueMesh.create();
-    ecs.createAndSpawn(Cue.create(), cueMesh, cueMesh.getObject3DComponent());
+    ecs.createAndSpawnImmediate(Cue.create(), CueMesh.create());
   }
 }

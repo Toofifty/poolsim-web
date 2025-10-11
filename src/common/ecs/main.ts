@@ -30,6 +30,10 @@ export class ComponentContainer {
     return true;
   }
 
+  public values(): MapIterator<Component> {
+    return this.map.values();
+  }
+
   public delete(componentClass: Function): void {
     this.map.delete(componentClass);
   }
@@ -59,6 +63,8 @@ export class ECS<
   private entitiesToDestroy = new Array<Entity>();
 
   public deltaTime = 0;
+  public frameId = 0;
+  public midframe = false;
 
   constructor(public game: TWorld) {}
 
@@ -161,12 +167,6 @@ export class ECS<
   }
 
   public addSystem(system: System<TWorld>): void {
-    if (system.components.size == 0) {
-      console.warn('System not added: empty Components list.');
-      console.warn(system);
-      return;
-    }
-
     this.systems.set(system, new Set());
     for (let entity of this.entities.keys()) {
       this.checkES(entity, system);
@@ -201,12 +201,14 @@ export class ECS<
   }
 
   public update(deltaTime: number): void {
-    this.deltaTime = deltaTime;
-
-    while (this.startupSystems.length > 0) {
-      const system = this.startupSystems.shift()!;
-      system.run(this);
+    if (this.midframe) {
+      console.warn('ECS skipped colliding frame');
+      return;
     }
+    this.midframe = true;
+
+    this.deltaTime = deltaTime;
+    this.frameId++;
 
     for (let [system, entities] of this.systems.entries()) {
       system.runAll(this, entities);
@@ -219,6 +221,13 @@ export class ECS<
     while (this.spawners.length > 0) {
       this.spawners.shift()!();
     }
+
+    while (this.startupSystems.length > 0) {
+      const system = this.startupSystems.shift()!;
+      system.run(this);
+    }
+
+    this.midframe = false;
   }
 
   private destroyEntity(entity: Entity): void {
@@ -247,7 +256,7 @@ export class ECS<
 
     const have = this.entities.get(entity)!;
     const need = system.components;
-    if (have.hasAll(need)) {
+    if (have.hasAll(need) || need.size === 0) {
       if (!this.systems.get(system)!.has(entity)) {
         this.systems.get(system)!.add(entity);
         system.added(this, entity);
@@ -260,19 +269,34 @@ export class ECS<
     }
   }
 
+  /**
+   * Immediate create an entity from the components and add
+   * it to the world.
+   *
+   * Should only be used within startup systems.
+   */
+  public createAndSpawnImmediate(
+    ...components: (Component | [Component, Ctor<Component>])[]
+  ) {
+    const eid = this.addEntity();
+    components.forEach((component) => {
+      if (Array.isArray(component)) {
+        return this.addComponent(eid, component[0], component[1]);
+      }
+      return this.addComponent(eid, component);
+    });
+    return this.spawn(eid);
+  }
+
+  /**
+   * Schedule creation and spawning of an entity from the components.
+   *
+   * Runs in the next frame.
+   */
   public createAndSpawn(
     ...components: (Component | [Component, Ctor<Component>])[]
   ) {
-    this.spawners.push(() => {
-      const eid = this.addEntity();
-      components.forEach((component) => {
-        if (Array.isArray(component)) {
-          return this.addComponent(eid, component[0], component[1]);
-        }
-        return this.addComponent(eid, component);
-      });
-      this.spawn(eid);
-    });
+    this.spawners.push(() => this.createAndSpawnImmediate(...components));
   }
 
   /**

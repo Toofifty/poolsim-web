@@ -224,6 +224,10 @@ export class Game {
     this.clock = new Clock();
 
     this.ecs = createECS(this);
+    // this.ecs.emit('game/setup', {
+    //   rack: Rack.generateSandboxGame(this.params, 'debug'),
+    //   ruleSet: RuleSet.Sandbox,
+    // });
     this.renderer.setAnimationLoop(this.draw.bind(this));
   }
 
@@ -418,24 +422,28 @@ export class Game {
     return undefined;
   }
 
-  public static add(obj: Object3D, { outline }: { outline?: boolean } = {}) {
-    this.instance.overlay.add(obj);
+  public add(obj: Object3D, { outline }: { outline?: boolean } = {}) {
+    this.overlay.add(obj);
     if (outline) {
-      this.instance.outlinedOverlays.add(obj);
-      this.instance.outlinePass.selectedObjects = [
-        ...this.instance.outlinedOverlays,
-      ];
+      this.outlinedOverlays.add(obj);
+      this.outlinePass.selectedObjects = [...this.outlinedOverlays];
+    }
+  }
+
+  public static add(obj: Object3D, { outline }: { outline?: boolean } = {}) {
+    this.instance.add(obj);
+  }
+
+  public remove(obj: Object3D) {
+    this.overlay.remove(obj);
+    if (this.outlinedOverlays.has(obj)) {
+      this.outlinedOverlays.delete(obj);
+      this.outlinePass.selectedObjects = [...this.outlinedOverlays];
     }
   }
 
   public static remove(obj: Object3D) {
-    this.instance.overlay.remove(obj);
-    if (this.instance.outlinedOverlays.has(obj)) {
-      this.instance.outlinedOverlays.delete(obj);
-      this.instance.outlinePass.selectedObjects = [
-        ...this.instance.outlinedOverlays,
-      ];
-    }
+    this.instance.remove(obj);
   }
 
   public static resetCamera() {

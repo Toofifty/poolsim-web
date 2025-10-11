@@ -14,7 +14,7 @@ import { getControlPoints } from '../../models/cushion/get-control-points';
 import { createMaterial } from '../../rendering/create-material';
 import { makeTheme } from '../../store/theme';
 import { toVector3 } from '../../util/three-interop';
-import { computeCollisionBox } from './cushion.component';
+import { Cushion } from './cushion.component';
 
 export class CushionMesh extends Renderable {
   public static create(vertices: [Vec, Vec, Vec, Vec]) {
@@ -30,7 +30,10 @@ export class CushionMesh extends Renderable {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
 
-    const [position, size] = computeCollisionBox(defaultParams, vertices);
+    const [position, size] = Cushion.computeCollisionBox(
+      defaultParams,
+      vertices
+    );
     const collisionBoxMesh = new Mesh(
       new PlaneGeometry(size[0], size[1]),
       new MeshBasicMaterial({
@@ -58,7 +61,8 @@ export class CushionMesh extends Renderable {
     controlPoints.renderOrder = 9999;
     controlPoints.position.z = 0.01;
 
-    mesh.add(collisionBoxMesh, controlPoints);
-    return new Renderable(mesh);
+    // todo: debug
+    // mesh.add(collisionBoxMesh, controlPoints);
+    return new CushionMesh(mesh);
   }
 }

@@ -1,9 +1,9 @@
 import { vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
-import type { Cushion } from '../../table/cushion.component';
+import { Cushion } from '../../table/cushion.component';
 import type { Pocket } from '../../table/pocket.component';
 import { computeIdealAngularVelocity } from '../evolution/compute';
-import { PhysicsState, type Physics } from '../physics.component';
+import { Physics, PhysicsState } from '../physics.component';
 import { applyBallCollisionSpin } from './spin';
 import type {
   BallBallCollision,
@@ -60,8 +60,8 @@ export const collideBallBall = (
       position: vec.add(ball1.r, vec.mult(normal, ball1.R)),
       impulse,
       snapshots: {
-        initiator: ball1.snapshot({ position: initial }),
-        other: ball2.snapshot({ position: otherInitial }),
+        initiator: Physics.snapshot(ball1, { position: initial }),
+        other: Physics.snapshot(ball2, { position: otherInitial }),
       },
     };
   }
@@ -74,13 +74,13 @@ export const collideBallCushion = (
   cushion: Cushion,
   fixOverlap = true
 ): BallCushionCollision | undefined => {
-  if (!cushion.inBounds(ball.r)) {
+  if (!Cushion.inBounds(cushion, ball.r)) {
     return undefined;
   }
 
   const { restitutionCushion: ec, frictionCushion: fc } = defaultParams.ball;
 
-  const closestPoint = cushion.findClosestPoint(ball.r);
+  const closestPoint = Cushion.findClosestPoint(cushion, ball.r);
 
   const diff = vec.sub(ball.r, closestPoint);
   const distSq = vec.lenSq(diff);
@@ -120,7 +120,7 @@ export const collideBallCushion = (
       position: closestPoint,
       impulse,
       snapshots: {
-        initiator: ball.snapshot(),
+        initiator: Physics.snapshot(ball),
       },
     };
   }
@@ -146,13 +146,14 @@ export const collideBallPocket = (
     ball.r[2] <= defaultParams.cushion.height
   ) {
     ball.state = PhysicsState.Pocketed;
+    ball.pocketId = pocket.id;
     return {
       type: 'ball-pocket',
       initiator: ball,
       other: pocket,
       position: ball.r,
       snapshots: {
-        initiator: ball.snapshot(),
+        initiator: Physics.snapshot(ball),
       },
     };
   }

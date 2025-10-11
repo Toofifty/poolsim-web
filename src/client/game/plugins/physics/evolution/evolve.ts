@@ -12,11 +12,6 @@ import {
 } from './compute';
 
 export const evolveMotion = (ball: Physics, dt: number) => {
-  if (ball.state === PhysicsState.Pocketed) {
-    // evolvePocket(ball, dt);
-    return;
-  }
-
   collideWithSlate(ball);
 
   if (ball.state === PhysicsState.Airborne) {
@@ -179,7 +174,7 @@ const collideWithSlate = (ball: Physics) => {
   }
 };
 
-const evolvePocket = (ball: Physics, pocket: Pocket, dt: number) => {
+export const evolvePocket = (ball: Physics, pocket: Pocket, dt: number) => {
   const { gravity: g } = defaultParams.ball;
 
   const r0 = vec.setZ(ball.r, 0);

@@ -1,5 +1,4 @@
 import { ECS, StartupSystem } from '@common/ecs';
-import { Renderable } from '../../components/renderable';
 import { Pocket } from './pocket.component';
 import { TableMesh } from './table-mesh.component';
 
@@ -10,6 +9,6 @@ export class TableSetupSystem extends StartupSystem {
       .map((entity) => ecs.get(entity, Pocket))
       .flat();
 
-    ecs.createAndSpawn([TableMesh.create({ pockets }), Renderable]);
+    ecs.createAndSpawnImmediate(TableMesh.create({ pockets }));
   }
 }

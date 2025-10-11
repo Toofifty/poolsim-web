@@ -19,12 +19,25 @@ class BallCollisionAudioSystem extends EventSystem<
 > {
   public event = 'game/ball-collision' as const;
 
+  private soundsPlayed = 0;
+  private currentFrame = 0;
+
   public run(ecs: ECS<GameEvents, Game>, data: BallBallCollision): void {
+    if (this.currentFrame !== ecs.frameId) {
+      this.currentFrame = ecs.frameId;
+      this.soundsPlayed = 0;
+    }
+
+    if (this.soundsPlayed >= 1) {
+      return;
+    }
+
     const audio = ecs.resource(Audio);
     audio.play(
       'clack_mid',
       toVector3(data.position),
       Math.min(vec.len(data.impulse) * 2, 5)
     );
+    this.soundsPlayed++;
   }
 }

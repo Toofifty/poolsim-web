@@ -1,3 +1,4 @@
+import type { Cue } from '../../client/game/plugins/cue/cue.component';
 import { vec } from '../math';
 
 export class Shot {
@@ -40,5 +41,9 @@ export class Shot {
     return (
       (angleQ << 48n) | (forceQ << 32n) | (liftQ << 20n) | (sideQ << 8n) | topQ
     );
+  }
+
+  public static from(cue: Cue) {
+    return new Shot(cue.angle, cue.force, cue.side, cue.top, cue.lift);
   }
 }

@@ -33,19 +33,10 @@ export class Physics extends Component {
     /** radius */
     public R: number,
     public orientation: Quat,
-    public state: PhysicsState
+    public state: PhysicsState,
+    public pocketId?: number
   ) {
     super();
-  }
-
-  public snapshot(override: Partial<PhysicsSnapshot> = {}): PhysicsSnapshot {
-    return {
-      position: vec.clone(this.r),
-      velocity: vec.clone(this.v),
-      orientation: quat.clone(this.orientation),
-      state: this.state,
-      ...override,
-    };
   }
 
   public static create(override: Partial<Physics> = {}) {
@@ -56,7 +47,21 @@ export class Physics extends Component {
       override.w ?? vec.new(0, 0, 0),
       override.R ?? 0,
       override.orientation ?? quat.random(),
-      override.state ?? PhysicsState.Stationary
+      override.state ?? PhysicsState.Stationary,
+      override.pocketId
     );
+  }
+
+  public static snapshot(
+    ball: Physics,
+    override: Partial<PhysicsSnapshot> = {}
+  ): PhysicsSnapshot {
+    return {
+      position: vec.clone(ball.r),
+      velocity: vec.clone(ball.v),
+      orientation: quat.clone(ball.orientation),
+      state: ball.state,
+      ...override,
+    };
   }
 }

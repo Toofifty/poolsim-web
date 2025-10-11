@@ -1,3 +1,4 @@
+import { assertExists } from '@common/util';
 import type { Component, Ctor, ExtractComponents } from './component';
 import type { ECS } from './main';
 
@@ -48,12 +49,35 @@ export class Query {
     }, this.entities)[0];
   }
 
-  public first(componentClass: Ctor<Component>): number | undefined {
+  public firstWith(componentClass: Ctor<Component>): number | undefined {
     if (this.predicates.length > 0) {
-      console.warn('Ignoring previous predicates in query.first()');
+      console.warn('Ignoring previous predicates in query.firstWith()');
     }
     return this.entities.find((entity) =>
       this.ecs.getComponents(entity).has(componentClass)
     );
+  }
+
+  public resolveFirst<T extends Component>(componentClass: Ctor<T>): T {
+    const entity = this.firstWith(componentClass);
+    assertExists(
+      entity,
+      `query.resolveFirst() failed - no entity with ${componentClass.name}`
+    );
+    const [component] = this.ecs.get(entity, componentClass);
+    assertExists(
+      component,
+      'query.resolveFirst() failed - entity did not have component'
+    );
+    return component;
+  }
+
+  public resolveAll<T extends Component>(componentClass: Ctor<T>): T[] {
+    if (this.predicates.length === 0) {
+      this.has(componentClass);
+    }
+
+    const entites = this.findAll();
+    return entites.map((entity) => this.ecs.get(entity, componentClass)).flat();
   }
 }

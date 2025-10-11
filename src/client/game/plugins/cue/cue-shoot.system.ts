@@ -17,14 +17,14 @@ export class CueShootSystem extends EventSystem<
     // todo: check game state
     if (data.button !== 0) return;
 
-    const cueEntity = ecs.query().first(Cue);
+    const cueEntity = ecs.query().firstWith(Cue);
     assertExists(cueEntity, 'No cue found when shooting');
     const [cue] = ecs.get(cueEntity, Cue);
     assertExists(cue.targetEntity, 'No target ball found when shooting');
 
     ecs.emit('game/shoot', {
       targetEntity: cue.targetEntity,
-      shot: new Shot(cue.angle, cue.force, cue.side, cue.top, cue.lift),
+      shot: Shot.from(cue),
     });
   }
 }

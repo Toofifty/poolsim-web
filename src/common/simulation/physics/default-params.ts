@@ -83,7 +83,7 @@ export const defaultParams = {
     stepsAfterFirstContact: 200,
     cueBallRollDist: 0.25,
     playbackSpeed: 1,
-    trackingPointDist: 2,
+    trackingPointDist: 10,
     useWorkerForAimAssist: false,
     useWorkerForAI: true,
   },

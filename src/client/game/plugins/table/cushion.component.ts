@@ -14,7 +14,7 @@ export class Cushion extends Component {
   constructor(public vertices: [Vec, Vec, Vec, Vec]) {
     super();
 
-    this.collisionBox = computeCollisionBox(defaultParams, vertices);
+    this.collisionBox = Cushion.computeCollisionBox(defaultParams, vertices);
     const [tl, bl, br, tr] = vertices;
     const offsetZ = 0; // params.cushion.height - params.ball.radius;
     this.segments = [
@@ -24,8 +24,30 @@ export class Cushion extends Component {
     ];
   }
 
-  public inBounds(point: Vec) {
-    const [position, size] = this.collisionBox;
+  public static computeCollisionBox(
+    { ball: { radius } }: Params,
+    vertices: Vec[]
+  ) {
+    let minX = 0;
+    let minY = 0;
+    let maxX = 0;
+    let maxY = 0;
+    for (let i = 0; i < vertices.length; i++) {
+      const v = vertices[i];
+      if (minX === 0 || v[0] < minX) minX = v[0];
+      if (maxX === 0 || v[0] > maxX) maxX = v[0];
+      if (minY === 0 || v[1] < minY) minY = v[1];
+      if (maxY === 0 || v[1] > maxY) maxY = v[1];
+    }
+
+    return [
+      vec.new(minX - radius, minY - radius),
+      vec.new(maxX - minX + radius * 2, maxY - minY + radius * 2),
+    ] as const;
+  }
+
+  public static inBounds(cushion: Cushion, point: Vec) {
+    const [position, size] = cushion.collisionBox;
     return (
       point[0] >= position[0] &&
       point[0] <= position[0] + size[0] &&
@@ -34,12 +56,12 @@ export class Cushion extends Component {
     );
   }
 
-  public findClosestPoint(point: Vec) {
-    let closest = this.vertices[0];
+  public static findClosestPoint(cushion: Cushion, point: Vec) {
+    let closest = cushion.vertices[0];
     let minDistSq = vec.lenSq(vec.sub(point, closest));
 
-    for (let [start, end] of this.segments) {
-      const closestOnEdge = this.findClosestPointOnLine(point, start, end);
+    for (let [start, end] of cushion.segments) {
+      const closestOnEdge = Cushion.findClosestPointOnLine(point, start, end);
       const distSq = vec.lenSq(vec.sub(point, closestOnEdge));
 
       if (distSq < minDistSq) {
@@ -51,7 +73,7 @@ export class Cushion extends Component {
     return closest;
   }
 
-  private findClosestPointOnLine(point: Vec, start: Vec, end: Vec) {
+  private static findClosestPointOnLine(point: Vec, start: Vec, end: Vec) {
     const line = vec.sub(end, start);
     const toPoint = vec.sub(point, start);
 
@@ -74,25 +96,3 @@ export class Cushion extends Component {
     return new Cushion(vertices);
   }
 }
-
-export const computeCollisionBox = (
-  { ball: { radius } }: Params,
-  vertices: Vec[]
-) => {
-  let minX = 0;
-  let minY = 0;
-  let maxX = 0;
-  let maxY = 0;
-  for (let i = 0; i < vertices.length; i++) {
-    const v = vertices[i];
-    if (minX === 0 || v[0] < minX) minX = v[0];
-    if (maxX === 0 || v[0] > maxX) maxX = v[0];
-    if (minY === 0 || v[1] < minY) minY = v[1];
-    if (maxY === 0 || v[1] > maxY) maxY = v[1];
-  }
-
-  return [
-    vec.new(minX - radius, minY - radius),
-    vec.new(maxX - minX + radius * 2, maxY - minY + radius * 2),
-  ] as const;
-};

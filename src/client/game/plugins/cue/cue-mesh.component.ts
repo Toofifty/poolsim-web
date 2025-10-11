@@ -16,10 +16,6 @@ export class CueMesh extends Renderable {
     super(mesh);
   }
 
-  public getObject3DComponent() {
-    return new Renderable(this.mesh);
-  }
-
   public static create() {
     const { lift, cue } = createCueMeshes(defaultParams, makeTheme());
     const parent = new Object3D();

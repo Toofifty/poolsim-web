@@ -4,8 +4,9 @@ import type { GameEvents } from '../../events';
 import { SystemState } from '../../resources/system-state';
 import { Cushion } from '../table/cushion.component';
 import { Pocket } from '../table/pocket.component';
-import { Physics, PhysicsState } from './physics.component';
-import { generateSimulationData, simulationStep } from './simulation/step';
+import { Physics } from './physics.component';
+import { createSimulationState, simulationStep } from './simulation/step';
+import { settled } from './simulation/tools';
 
 export class PhysicsSystem extends System {
   public components: Set<Function> = new Set([Physics]);
@@ -22,17 +23,11 @@ export class PhysicsSystem extends System {
     const balls = [...entities]
       .map((entity) => ecs.get(entity, Physics))
       .flat();
-    const cushions = ecs
-      .queryAll(Cushion)
-      .map((entity) => ecs.get(entity, Cushion))
-      .flat();
-    const pockets = ecs
-      .queryAll(Pocket)
-      .map((entity) => ecs.get(entity, Pocket))
-      .flat();
+    const cushions = ecs.query().resolveAll(Cushion);
+    const pockets = ecs.query().resolveAll(Pocket);
 
-    const data = generateSimulationData(balls, cushions, pockets);
-    const result = simulationStep(ecs.deltaTime, data, { trackPath: false });
+    const state = createSimulationState(balls, cushions, pockets);
+    const result = simulationStep(ecs.deltaTime, state, { trackPath: false });
 
     result.collisions.forEach((collision) => {
       if (collision.type === 'ball-ball') {
@@ -40,14 +35,7 @@ export class PhysicsSystem extends System {
       }
     });
 
-    if (
-      balls.every(
-        (ball) =>
-          ball.state === PhysicsState.Stationary ||
-          ball.state === PhysicsState.Pocketed ||
-          ball.state === PhysicsState.OutOfPlay
-      )
-    ) {
+    if (settled(state)) {
       ecs.emit('game/settled', {});
     }
   }

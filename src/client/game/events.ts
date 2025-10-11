@@ -41,6 +41,11 @@ export type GameEvents = {
     button: number;
     original: MouseEvent;
   };
+  'input/key-pressed': {
+    key: string;
+    original: KeyboardEvent;
+  };
+  'input/lock-cue': {};
   'input/cue-update': {
     force?: number;
     top?: number;

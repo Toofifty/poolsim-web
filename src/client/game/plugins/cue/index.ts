@@ -1,4 +1,5 @@
 import { ECS, Plugin } from '@common/ecs';
+import { CueLockSystem } from './cue-lock.system';
 import { CueSetupSystem } from './cue-setup.system';
 import { CueShootSystem } from './cue-shoot.system';
 import { CueTargetSystem } from './cue-target.system';
@@ -13,5 +14,6 @@ export class CuePlugin extends Plugin {
 
     ecs.addEventSystem(new CueShootSystem());
     ecs.addEventSystem(new CueUIUpdateSystem());
+    ecs.addEventSystem(new CueLockSystem());
   }
 }

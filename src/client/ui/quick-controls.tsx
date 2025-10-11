@@ -9,13 +9,20 @@ import { useEffect, useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { Game } from '../game/game';
 import { settings } from '../game/store/settings';
+import { useGameContext } from '../util/game-provider';
 import './quick-controls.scss';
+import { useGameEvent } from './use-game-event';
 import { useIsMobile } from './use-media-query';
 
 export const QuickControls = () => {
+  const ecs = useGameContext().ecs;
   const isMobile = useIsMobile();
-  const { enableZoomPan, lockCue } = useSnapshot(settings);
+  const { enableZoomPan } = useSnapshot(settings);
   const [resettingCamera, setResettingCamera] = useState(false);
+
+  const [lockCue, setLockCue] = useState(false);
+
+  useGameEvent('game/cue-update', (cue) => setLockCue(cue.locked), []);
 
   const onShoot = () => {
     Game.instance.controller.uiShoot();
@@ -66,7 +73,7 @@ export const QuickControls = () => {
           className="surface button"
           size="40"
           variant={lockCue ? 'filled' : 'default'}
-          onClick={() => (settings.lockCue = !lockCue)}
+          onClick={() => ecs.emit('input/lock-cue', {})}
           rightSection={isMobile ? <IconLockShare size={16} /> : <kbd>L</kbd>}
         >
           {lockCue ? 'Cue locked' : <>Lock cue</>}

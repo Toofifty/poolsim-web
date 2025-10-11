@@ -79,7 +79,7 @@ export const defaultParams = {
   },
   simulation: {
     maxIterations: 10_000,
-    updatesPerSecond: 300,
+    updatesPerSecond: 30,
     stepsAfterFirstContact: 200,
     cueBallRollDist: 0.25,
     playbackSpeed: 1,

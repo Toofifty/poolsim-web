@@ -19,7 +19,7 @@ export class CueTargetSystem extends System {
 
     const [cue] = ecs.get(entity, Cue);
     cue.targetEntity = ecs.query().has(BallId, Physics).findOne();
-    if (cue.targetEntity === undefined || cue.shooting) {
+    if (cue.targetEntity === undefined || cue.shooting || cue.locked) {
       return;
     }
 

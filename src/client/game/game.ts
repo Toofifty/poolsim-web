@@ -256,10 +256,14 @@ export class Game {
     });
 
     this.input.onKeyUp((e) => {
-      console.log(e.key);
+      this.ecs.emit('input/key-pressed', {
+        key: e.key,
+        original: e,
+      });
+
       switch (e.key) {
         case 'l':
-          settings.lockCue = !settings.lockCue;
+          this.ecs.emit('input/lock-cue', {});
           return;
         case 'r':
           Game.resetCamera();

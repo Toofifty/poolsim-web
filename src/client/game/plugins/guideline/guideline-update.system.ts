@@ -1,14 +1,13 @@
 import { ECS, System, type Entity } from '@common/ecs';
 import { assert } from '@common/util';
 import { Color } from 'three';
-import { LineGeometry } from 'three/examples/jsm/Addons.js';
+import { LineMesh } from '../../components/line-mesh.component';
 import { PlayState } from '../../controller/game-controller';
 import { SystemState } from '../../resources/system-state';
 import { settings } from '../../store/settings';
 import { toVector3 } from '../../util/three-interop';
 import { Cue } from '../cue/cue.component';
 import { PhysicsState } from '../physics/physics.component';
-import { GuidelineMesh } from './guideline-mesh.component';
 import { Guideline } from './guideline.component';
 import { ImpactPointMesh } from './impact-point-mesh.component';
 
@@ -37,10 +36,12 @@ const getColor = (state: PhysicsState) => {
   }
 };
 
+const CONSOLE_TIME = false;
+
 export class GuidelineUpdateSystem extends System {
   public components: Set<Function> = new Set([
     Guideline,
-    GuidelineMesh,
+    LineMesh,
     ImpactPointMesh,
   ]);
 
@@ -50,11 +51,17 @@ export class GuidelineUpdateSystem extends System {
     // todo: resource
     const { physicsGuidelines } = settings;
 
-    const [guideline, { line }, { ring, material: ringMaterial }] = ecs.get(
+    const [guideline, line, { ring, material: ringMaterial }] = ecs.get(
       entity,
       Guideline,
-      GuidelineMesh,
+      LineMesh,
       ImpactPointMesh
+    );
+
+    // always update the line mesh to ensure it billboards
+    LineMesh.update(
+      line,
+      guideline.trackingPoints.map((tp) => tp.position)
     );
 
     const systemState = ecs.resource(SystemState);
@@ -63,37 +70,23 @@ export class GuidelineUpdateSystem extends System {
       (guideline.trackingPoints.length === 0 && !guideline.computing) ||
       ecs.query().resolveFirst(Cue).shooting
     ) {
-      line.visible = false;
+      line.mesh.visible = false;
       ring.visible = false;
       return;
     }
 
-    if (guideline.key === this.lastKey || guideline.computing) {
+    if (
+      guideline.key === this.lastKey ||
+      guideline.trackingPoints.length === 0
+    ) {
       return;
     }
+
+    CONSOLE_TIME && console.time('guideline-draw');
+
     this.lastKey = guideline.key;
 
-    const positions: number[] = [];
-    const colors: number[] = [];
-
-    for (const point of guideline.trackingPoints) {
-      positions.push(...point.position);
-      const color = physicsGuidelines
-        ? getColor(point.state)
-        : new Color(0xffffff);
-      colors.push(color.r, color.g, color.b);
-    }
-
-    // guideline
-    line.geometry.dispose();
-    // need to recreate the geometry each frame,
-    // otherwise the length will not update
-    line.geometry = new LineGeometry();
-    line.geometry.setPositions(positions);
-    line.geometry.setColors(colors);
-    line.computeLineDistances();
-    line.scale.set(1, 1, 1);
-    line.visible = true;
+    line.mesh.visible = true;
 
     assert(guideline.collisionPoint);
 
@@ -103,5 +96,7 @@ export class GuidelineUpdateSystem extends System {
       ? new Color(0xff0000)
       : new Color(0xffffff);
     ring.visible = true;
+
+    CONSOLE_TIME && console.timeEnd('guideline-draw');
   }
 }

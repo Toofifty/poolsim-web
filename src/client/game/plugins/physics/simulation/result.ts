@@ -153,6 +153,20 @@ export const getFoul = (result: Result, rules: GameRules): boolean => {
   );
 };
 
+/**
+ * Check if there is an immediate foul in the shot.
+ *
+ * Used for guidelines.
+ */
+export const hasImmediateFoul = (result: Result, rules: GameRules): boolean => {
+  return (
+    result.ballsPotted.includes(0) ||
+    result.ballsEjected.length > 0 ||
+    (result.firstStruck !== undefined &&
+      !rules.validTargets.includes(result.firstStruck))
+  );
+};
+
 export const getTurnResult = (result: Result, rules: GameRules): TurnResult => {
   switch (true) {
     case result.ballsPotted.includes(0):

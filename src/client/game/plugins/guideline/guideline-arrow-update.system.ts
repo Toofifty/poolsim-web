@@ -23,10 +23,6 @@ export class GuidelineArrowUpdateSystem extends System {
       return;
     }
 
-    if (guideline.computing) {
-      return;
-    }
-
     if (kind === 'cue-ball') {
       if (
         !guideline.cueBallVelocity ||

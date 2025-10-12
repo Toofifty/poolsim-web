@@ -1,7 +1,7 @@
 import { ECS, StartupSystem } from '@common/ecs';
 import { ArrowMesh } from '../../components/arrow-mesh.component';
 import { ImpactArrow } from '../../components/arrow-type.component';
-import { GuidelineMesh } from './guideline-mesh.component';
+import { LineMesh } from '../../components/line-mesh.component';
 import { Guideline } from './guideline.component';
 import { ImpactPointMesh } from './impact-point-mesh.component';
 
@@ -10,7 +10,7 @@ export class GuidelineSetupSystem extends StartupSystem {
     // guideline
     ecs.spawnImmediate(
       Guideline.create(),
-      GuidelineMesh.create(),
+      LineMesh.create(),
       ImpactPointMesh.create()
     );
 

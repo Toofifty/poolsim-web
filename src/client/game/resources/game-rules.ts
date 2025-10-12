@@ -11,6 +11,7 @@ export class GameRuleProvider extends Resource {
     super();
   }
 
+  // todo: cache rules
   public getRules(balls: number[], args: RuleProviderArgs): GameRules {
     switch (this.ruleset) {
       case Ruleset._8Ball:

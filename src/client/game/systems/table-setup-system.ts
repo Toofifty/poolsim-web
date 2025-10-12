@@ -32,7 +32,7 @@ export class TableSetupSystem extends EventSystem<'game/setup', GameEvents> {
     system.turnIndex = 0;
 
     const ruleProvider = ecs.resource(GameRuleProvider);
-    ruleProvider.ruleSet = data.ruleSet;
+    ruleProvider.ruleset = data.ruleset;
 
     ecs.emit('input/cue-update', {
       force: defaultParams.cue.defaultForce,

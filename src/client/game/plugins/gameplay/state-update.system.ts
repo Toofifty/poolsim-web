@@ -1,10 +1,14 @@
 import { ECS, EventSystem } from '@common/ecs';
-import { RuleSet } from '@common/simulation/physics';
+import { vec } from '@common/math';
+import { Ruleset } from '@common/simulation/physics';
 import { EightBallState } from '@common/simulation/table-state';
+import { assert, assertExists } from '@common/util';
 import { PlayState } from '../../controller/game-controller';
 import type { GameEvents } from '../../events';
 import { GameRuleProvider } from '../../resources/game-rules';
 import { SystemState } from '../../resources/system-state';
+import { Physics } from '../physics/physics.component';
+import { getTurnResult } from '../physics/simulation/result';
 
 export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
   public event = 'game/settled' as const;
@@ -19,11 +23,27 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
       system.playState = PlayState.PlayerShoot;
     }
 
+    const turnResult = getTurnResult(data.result, data.rules);
+
+    // todo: ball in hand
+    if (turnResult.fouled) {
+      ecs.emit('game/foul', turnResult);
+      const cueBallEntity = ecs.query().has(Physics).findOne();
+      assertExists(cueBallEntity);
+      const [physics] = ecs.get(cueBallEntity, Physics);
+      assert(physics.id === 0, 'Expected cue ball to be first ball entity');
+      vec.mset(physics.r, 0, 0, 0);
+      vec.mset(physics.v, 0, 0, 0);
+      vec.mset(physics.w, 0, 0, 0);
+      return;
+    }
+
     // update 8 ball state
-    const ruleSet = ecs.resource(GameRuleProvider).ruleSet;
+    const ruleset = ecs.resource(GameRuleProvider).ruleset;
     if (
-      ruleSet === RuleSet._8Ball &&
-      system.eightBallState === EightBallState.Open
+      ruleset === Ruleset._8Ball &&
+      system.eightBallState === EightBallState.Open &&
+      !system.isBreak
     ) {
       let pottedSolid = false;
       let pottedStripe = false;
@@ -51,8 +71,11 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
       }
     }
 
-    // if cue ball pocketed, set it as ball in hand
+    // todo: game over check here
 
-    // if no pottable ball pocketed, switch to next player
+    if (!turnResult.success) {
+      system.turnIndex = (system.turnIndex + 1) % system.playerCount;
+      ecs.emit('game/change-player', system.turnIndex);
+    }
   }
 }

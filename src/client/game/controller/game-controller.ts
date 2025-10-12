@@ -6,7 +6,7 @@ import {
 import { vec, type Vec } from '../../../common/math';
 import type { Collision } from '../../../common/simulation/collision';
 import {
-  RuleSet,
+  Ruleset,
   type Params,
   type SerializedPhysicsBall,
 } from '../../../common/simulation/physics';
@@ -46,7 +46,7 @@ export enum PlayState {
 
 export type GameControllerEventMap = {
   // for network
-  ['setup-table']: CustomEvent<{ rack: BallProto[]; ruleSet: RuleSet }>;
+  ['setup-table']: CustomEvent<{ rack: BallProto[]; ruleset: Ruleset }>;
   ['reset-cue-ball']: Event;
   ['set-game-state']: Event;
   ['place-ball-in-hand']: CustomEvent<SerializedPhysicsBall>;
@@ -129,7 +129,7 @@ export abstract class BaseGameController
       [],
       this.cushions.map((cushion) => cushion.physics),
       this.pockets.map((pocket) => pocket.physics),
-      RuleSet._9Ball
+      Ruleset._9Ball
     );
     this.simulation = new Simulation(params);
     this.simulationResult = new Result(undefined, this.state);
@@ -213,7 +213,7 @@ export abstract class BaseGameController
       this.balls.map((ball) => ball.physics),
       this.cushions.map((cushion) => cushion.physics),
       this.pockets.map((pocket) => pocket.physics),
-      this.state.ruleSet
+      this.state.ruleset
     );
   }
 
@@ -241,44 +241,44 @@ export abstract class BaseGameController
    */
   protected setupTable({
     rack,
-    ruleSet,
+    ruleset,
   }: {
     rack: BallProto[];
-    ruleSet: RuleSet;
+    ruleset: Ruleset;
   }): void {
     this.setBalls(rack.map((proto) => new Ball(this.params, proto)));
     this.state.reset();
-    this.state.ruleSet = ruleSet;
+    this.state.ruleset = ruleset;
     this.dispatchTypedEvent(
       'setup-table',
-      new CustomEvent('setup-table', { detail: { rack, ruleSet } })
+      new CustomEvent('setup-table', { detail: { rack, ruleset } })
     );
   }
 
   public setup8Ball(): void {
     this.setupTable({
       rack: Rack.generate8Ball(Rack.getTip(this.params)),
-      ruleSet: RuleSet._8Ball,
+      ruleset: Ruleset._8Ball,
     });
   }
 
   public setup9Ball(): void {
     this.setupTable({
       rack: Rack.generate9Ball(Rack.getTip(this.params)),
-      ruleSet: RuleSet._9Ball,
+      ruleset: Ruleset._9Ball,
     });
   }
 
   public setupSandboxGame(type: Sandboxes = 'debug'): void {
     this.setupTable({
       rack: Rack.generateSandboxGame(this.params, type),
-      ruleSet: RuleSet.SandboxSequential,
+      ruleset: Ruleset.SandboxSequential,
     });
   }
 
   public setupPrevious(): void {
-    switch (this.state.ruleSet) {
-      case RuleSet._8Ball:
+    switch (this.state.ruleset) {
+      case Ruleset._8Ball:
         this.setup8Ball();
         break;
       default:
@@ -532,7 +532,7 @@ export abstract class BaseGameController
   // host-only
   protected update8BallState() {
     if (
-      this.state.ruleSet === RuleSet._8Ball &&
+      this.state.ruleset === Ruleset._8Ball &&
       !this.state.isBreak &&
       this.state.eightBallState === EightBallState.Open &&
       !this.simulationResult.hasFoul()

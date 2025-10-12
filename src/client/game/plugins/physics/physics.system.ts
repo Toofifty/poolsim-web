@@ -59,6 +59,10 @@ export class PhysicsSystem extends System {
       }
     });
 
+    result.ballsEjected.forEach((id) => {
+      ecs.emit('game/ball-ejected', id);
+    });
+
     this.accumulatedResult = combine(this.accumulatedResult, result);
 
     if (settled(state)) {

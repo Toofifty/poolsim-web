@@ -14,7 +14,10 @@ import {
 export const evolveMotion = (ball: Physics, dt: number) => {
   collideWithSlate(ball);
 
-  if (ball.state === PhysicsState.Airborne) {
+  if (
+    ball.state === PhysicsState.Airborne ||
+    ball.state === PhysicsState.OutOfPlay
+  ) {
     evolveVertical(ball, dt);
     return;
   }
@@ -163,13 +166,16 @@ export const evolveOrientation = (ball: Physics, dt: number) => {
 const collideWithSlate = (ball: Physics) => {
   const { restitutionSlate: es } = defaultParams.ball;
 
-  if (ball.state === PhysicsState.OutOfPlay) return;
+  // out-of-bounds balls hit an imaginary floor
+  const slate = ball.state === PhysicsState.OutOfPlay ? -1 : 0;
 
-  if (ball.r[2] < 0 && ball.v[2] < 0) {
+  if (ball.r[2] < slate && ball.v[2] < 0) {
     ball.v[2] = -ball.v[2] * es;
     if (Math.abs(ball.v[2]) < 1e-1) {
       ball.v[2] = 0;
-      ball.state = PhysicsState.Sliding;
+      if (ball.state !== PhysicsState.OutOfPlay) {
+        ball.state = PhysicsState.Sliding;
+      }
     }
   }
 };

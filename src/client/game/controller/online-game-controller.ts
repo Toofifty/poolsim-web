@@ -2,7 +2,7 @@ import type { TypedEventListenerOrEventListenerObject } from 'typescript-event-t
 import {
   AimAssistMode,
   defaultParams,
-  RuleSet,
+  Ruleset,
   type Params,
 } from '../../../common/simulation/physics';
 import {
@@ -44,14 +44,14 @@ export class OnlineGameController extends BaseGameController {
 
     if (this.isHost) {
       setTimeout(() => {
-        switch (this.params.game.ruleSet) {
-          case RuleSet.Sandbox:
+        switch (this.params.game.ruleset) {
+          case Ruleset.Sandbox:
             this.setupSandboxGame();
             break;
-          case RuleSet._8Ball:
+          case Ruleset._8Ball:
             this.setup8Ball();
             break;
-          case RuleSet._9Ball:
+          case Ruleset._9Ball:
             this.setup9Ball();
             break;
         }
@@ -363,7 +363,7 @@ export class OnlineGameController extends BaseGameController {
 
   private syncGameState({ playState, state }: SerializedOnlineGameState) {
     if (
-      this.state.ruleSet === RuleSet._8Ball &&
+      this.state.ruleset === Ruleset._8Ball &&
       this.state.eightBallState === EightBallState.Open &&
       state.eightBallState !== EightBallState.Open
     ) {

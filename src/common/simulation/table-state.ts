@@ -1,7 +1,7 @@
 import { iteration, pairs } from '../util/iterate';
 import {
   BallState,
-  RuleSet,
+  Ruleset,
   type PhysicsBall,
   type PhysicsCushion,
   type PhysicsPocket,
@@ -23,7 +23,7 @@ export enum Player {
 
 export type SerializedTableState = {
   balls: SerializedPhysicsBall[];
-  ruleSet: RuleSet;
+  ruleset: Ruleset;
   isBreak: boolean;
   currentPlayer: Player;
   eightBallState: EightBallState;
@@ -44,7 +44,7 @@ export class TableState {
   public balls: PhysicsBall[] = [];
   public cushions: PhysicsCushion[] = [];
   public pockets: PhysicsPocket[] = [];
-  public ruleSet: RuleSet = RuleSet._9Ball;
+  public ruleset: Ruleset = Ruleset._9Ball;
   public eightBallState = EightBallState.Open;
   public isBreak: boolean;
 
@@ -69,7 +69,7 @@ export class TableState {
     balls: PhysicsBall[],
     cushions: PhysicsCushion[],
     pockets: PhysicsPocket[],
-    ruleSet: RuleSet,
+    ruleset: Ruleset,
     isBreak = true,
     eightBallState: EightBallState = EightBallState.Open,
     currentPlayer: Player = Player.One
@@ -77,7 +77,7 @@ export class TableState {
     this.balls = balls;
     this.cushions = cushions;
     this.pockets = pockets;
-    this.ruleSet = ruleSet;
+    this.ruleset = ruleset;
     this.isBreak = isBreak;
     this.eightBallState = isBreak ? EightBallState.Open : eightBallState;
     this.currentPlayer = currentPlayer;
@@ -94,7 +94,7 @@ export class TableState {
       this.balls.map((ball) => ball.clone()),
       this.cushions,
       this.pockets,
-      this.ruleSet,
+      this.ruleset,
       this.isBreak,
       this.eightBallState,
       this.currentPlayer
@@ -167,13 +167,13 @@ export class TableState {
 
   public get isSandbox() {
     return (
-      this.ruleSet === RuleSet.Sandbox ||
-      this.ruleSet === RuleSet.SandboxSequential
+      this.ruleset === Ruleset.Sandbox ||
+      this.ruleset === Ruleset.SandboxSequential
     );
   }
 
   public get isGameOver() {
-    if (this.ruleSet === RuleSet._8Ball || this.ruleSet === RuleSet._9Ball) {
+    if (this.ruleset === Ruleset._8Ball || this.ruleset === Ruleset._9Ball) {
       // 5th ball is 8 or 9 ball
       return (
         this.balls[5].isPocketed || this.balls[5].state === BallState.OutOfPlay
@@ -207,13 +207,13 @@ export class TableState {
 
   public getTargetableBalls(): Set<number> {
     if (
-      this.ruleSet === RuleSet._9Ball ||
-      this.ruleSet === RuleSet.SandboxSequential
+      this.ruleset === Ruleset._9Ball ||
+      this.ruleset === Ruleset.SandboxSequential
     ) {
       return new Set([this.lowestActiveBallId]);
     }
 
-    if (this.ruleSet === RuleSet._8Ball) {
+    if (this.ruleset === Ruleset._8Ball) {
       if (this.isBreak) {
         // allowed to hit only first 2 rows on break
         return new Set(this.getBallIds([1, 2, 3]));
@@ -270,7 +270,7 @@ export class TableState {
 
   public serialize() {
     return {
-      ruleSet: this.ruleSet,
+      ruleset: this.ruleset,
       isBreak: this.isBreak,
       balls: this.balls.map((b) => b.serialize()),
       eightBallState: this.eightBallState,
@@ -287,7 +287,7 @@ export class TableState {
   }
 
   public sync(state: SerializedTableState) {
-    this.ruleSet = state.ruleSet;
+    this.ruleset = state.ruleset;
     this.isBreak = state.isBreak;
     this.balls.forEach((ball, i) => {
       ball.sync(state.balls[i], this.pockets);

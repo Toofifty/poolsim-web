@@ -1,6 +1,6 @@
 import { TypedEventTarget } from 'typescript-event-target';
 import type {
-  RuleSet,
+  Ruleset,
   SerializedPhysicsBall,
 } from '../../../common/simulation/physics';
 import type { SerializedOnlineGameState } from '../controller/online-game-controller';
@@ -15,7 +15,7 @@ export class OfflineAdapter
 {
   public isHost = true;
   public isMultiplayer = false;
-  setupTable(data: { rack: BallProto[]; ruleSet: RuleSet }): void {}
+  setupTable(data: { rack: BallProto[]; ruleset: Ruleset }): void {}
   resetCueBall(): void {}
   setGameState(state: SerializedOnlineGameState): void {}
   placeBallInHand(ball: SerializedPhysicsBall): void {}

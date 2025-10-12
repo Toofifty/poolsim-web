@@ -1,5 +1,5 @@
 import { ECS, EventSystem } from '@common/ecs';
-import { defaultParams, RuleSet } from '@common/simulation/physics';
+import { defaultParams, Ruleset } from '@common/simulation/physics';
 import type { GameEvents } from '../events';
 import { Rack } from '../rack';
 
@@ -12,27 +12,27 @@ export class InputSetupSystem extends EventSystem<
     ecs: ECS<GameEvents, unknown>,
     data: GameEvents['input/setup-game']
   ): void {
-    if (data.ruleSet === RuleSet._8Ball) {
+    if (data.ruleset === Ruleset._8Ball) {
       ecs.emit('game/setup', {
         rack: Rack.generate8Ball(Rack.getTip(defaultParams)),
-        ruleSet: data.ruleSet,
+        ruleset: data.ruleset,
       });
     }
 
-    if (data.ruleSet === RuleSet._9Ball) {
+    if (data.ruleset === Ruleset._9Ball) {
       ecs.emit('game/setup', {
         rack: Rack.generate9Ball(Rack.getTip(defaultParams)),
-        ruleSet: data.ruleSet,
+        ruleset: data.ruleset,
       });
     }
 
     if (
-      data.ruleSet === RuleSet.Sandbox ||
-      data.ruleSet === RuleSet.SandboxSequential
+      data.ruleset === Ruleset.Sandbox ||
+      data.ruleset === Ruleset.SandboxSequential
     ) {
       ecs.emit('game/setup', {
         rack: Rack.generateSandboxGame(defaultParams, data.sandbox),
-        ruleSet: data.ruleSet,
+        ruleset: data.ruleset,
       });
     }
   }

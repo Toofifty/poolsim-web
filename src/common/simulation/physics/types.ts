@@ -7,7 +7,7 @@ export enum AimAssistMode {
   Full,
 }
 
-export enum RuleSet {
+export enum Ruleset {
   _8Ball,
   _9Ball,
   Sandbox,

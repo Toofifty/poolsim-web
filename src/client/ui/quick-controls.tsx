@@ -11,7 +11,7 @@ import { Game } from '../game/game';
 import { settings } from '../game/store/settings';
 import { useGameContext } from '../util/game-provider';
 import './quick-controls.scss';
-import { useGameEvent } from './use-game-event';
+import { useGameBinding } from './use-game-binding';
 import { useIsMobile } from './use-media-query';
 
 export const QuickControls = () => {
@@ -20,9 +20,7 @@ export const QuickControls = () => {
   const { enableZoomPan } = useSnapshot(settings);
   const [resettingCamera, setResettingCamera] = useState(false);
 
-  const [lockCue, setLockCue] = useState(false);
-
-  useGameEvent('game/cue-update', (cue) => setLockCue(cue.locked), []);
+  const lockCue = useGameBinding('game/cue-update', (cue) => cue.locked, false);
 
   const onShoot = () => {
     Game.instance.controller.uiShoot();

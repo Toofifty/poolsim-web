@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { defaultParams } from '../../common/simulation/physics';
 import { constrain } from '../../common/util';
 import { useGameContext } from '../util/game-provider';
 import './power-bar.scss';
-import { useGameEvent } from './use-game-event';
+import { useGameBinding } from './use-game-binding';
 import { useMouseInputs } from './use-mouse-inputs';
 
 export const PowerBar = () => {
-  const [cueForce, setCueForce] = useState(0);
   const ecs = useGameContext().ecs;
 
-  useGameEvent('game/cue-update', ({ force }) => setCueForce(force), []);
+  const cueForce = useGameBinding('game/cue-update', (cue) => cue.force, 0);
 
   const props = useMouseInputs(
     ({ x }) =>

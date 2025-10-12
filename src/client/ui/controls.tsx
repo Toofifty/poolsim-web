@@ -8,7 +8,7 @@ import {
 import { useSnapshot } from 'valtio';
 import {
   params,
-  RuleSet,
+  Ruleset,
   type StaticParams,
 } from '../../common/simulation/physics';
 import { PlayState } from '../game/controller/game-controller';
@@ -25,6 +25,7 @@ import './controls.scss';
 import { OverlayParamEditor } from './overlay-param-editor';
 import { PowerBar } from './power-bar';
 import { Surface } from './surface';
+import { useGameNotifications } from './use-game-notifications';
 import { useIsMobile } from './use-media-query';
 
 const getStateName = (state: PlayState | undefined) => {
@@ -64,6 +65,8 @@ export const Controls = () => {
   const isMobile = useIsMobile();
 
   const localParams = useSnapshot(params);
+
+  useGameNotifications();
 
   const onEdit = (key: DeepKeyOf<StaticParams>, value: unknown) => {
     const path = key.split('.');
@@ -157,7 +160,7 @@ export const Controls = () => {
                       <Button
                         onClick={() =>
                           ecs.emit('input/setup-game', {
-                            ruleSet: RuleSet._8Ball,
+                            ruleset: Ruleset._8Ball,
                           })
                         }
                       >
@@ -166,7 +169,7 @@ export const Controls = () => {
                       <Button
                         onClick={() =>
                           ecs.emit('input/setup-game', {
-                            ruleSet: RuleSet._9Ball,
+                            ruleset: Ruleset._9Ball,
                           })
                         }
                       >
@@ -180,7 +183,7 @@ export const Controls = () => {
                           <Menu.Item
                             onClick={() =>
                               ecs.emit('input/setup-game', {
-                                ruleSet: RuleSet.Sandbox,
+                                ruleset: Ruleset.Sandbox,
                                 sandbox: 'debug',
                               })
                             }
@@ -190,7 +193,7 @@ export const Controls = () => {
                           <Menu.Item
                             onClick={() =>
                               ecs.emit('input/setup-game', {
-                                ruleSet: RuleSet.SandboxSequential,
+                                ruleset: Ruleset.SandboxSequential,
                                 sandbox: 'cubicle-troll',
                               })
                             }

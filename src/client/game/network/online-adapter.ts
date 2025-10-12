@@ -3,7 +3,7 @@ import { TypedEventTarget } from 'typescript-event-target';
 import type { LobbyData } from '../../../common/data';
 import {
   defaultParams,
-  type RuleSet,
+  type Ruleset,
   type SerializedPhysicsBall,
 } from '../../../common/simulation/physics';
 import type { SerializedOnlineGameState } from '../controller/online-game-controller';
@@ -47,7 +47,7 @@ export class OnlineAdapter
     return this.lobby.hostId === this.socket.id;
   }
 
-  setupTable(data: { rack: BallProto[]; ruleSet: RuleSet }): void {
+  setupTable(data: { rack: BallProto[]; ruleset: Ruleset }): void {
     this.socket.emit('setup-table', [this.lobby.id, data]);
   }
 

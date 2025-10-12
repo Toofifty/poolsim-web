@@ -8,6 +8,7 @@ import { settings } from '../store/settings';
 export class SystemState extends Resource {
   private _playState: PlayState = PlayState.Initializing;
   public eightBallState = EightBallState.Open;
+  public playerCount = 1;
   public turnIndex = 0;
   public isBreak = true;
   public paused = false;

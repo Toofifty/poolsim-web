@@ -1,8 +1,10 @@
+import { Ruleset } from '@common/simulation/physics';
 import type { RuleProvider } from './types';
 
 export const get8BallRules: RuleProvider = (balls, { turn, isBreak }) => {
   if (isBreak) {
     return {
+      ruleset: Ruleset._8Ball,
       validTargets: balls.slice(0, 3),
       invalidPottable: [8],
       invalidTargets: [],
@@ -13,6 +15,7 @@ export const get8BallRules: RuleProvider = (balls, { turn, isBreak }) => {
 
   if (!turn || turn === 'open') {
     return {
+      ruleset: Ruleset._8Ball,
       validTargets: balls.filter((id) => id !== 8),
       invalidPottable: [8],
       invalidTargets: [],
@@ -28,6 +31,7 @@ export const get8BallRules: RuleProvider = (balls, { turn, isBreak }) => {
   const on8Ball = targets.length === 0;
 
   return {
+    ruleset: Ruleset._8Ball,
     validTargets: on8Ball ? [8] : targets,
     invalidPottable: on8Ball ? [] : [8],
     invalidTargets: [],

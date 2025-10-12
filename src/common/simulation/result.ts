@@ -3,7 +3,7 @@ import { assert } from '../util';
 import type { Collision } from './collision';
 import {
   BallState,
-  RuleSet,
+  Ruleset,
   type PhysicsBall,
   type PhysicsBallSnapshot,
 } from './physics';
@@ -67,7 +67,7 @@ export class Result {
   }
 
   public addCollision(collision: Collision) {
-    if (this.state?.ruleSet === RuleSet.SandboxSequential) {
+    if (this.state?.ruleset === Ruleset.SandboxSequential) {
       if (collision.type === 'ball-ball') {
         // todo
       }

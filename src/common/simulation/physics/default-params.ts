@@ -1,12 +1,12 @@
 import type { Snapshot } from 'valtio';
-import { AimAssistMode, RuleSet } from './types';
+import { AimAssistMode, Ruleset } from './types';
 
 /**
  * Thread-safe default parameters
  */
 export const defaultParams = {
   game: {
-    ruleSet: RuleSet._9Ball,
+    ruleset: Ruleset._9Ball,
     aimAssist: AimAssistMode.FirstContactCurve,
   },
   ball: {

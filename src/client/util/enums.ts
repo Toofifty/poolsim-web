@@ -1,14 +1,14 @@
-import { AimAssistMode, RuleSet } from '../../common/simulation/physics';
+import { AimAssistMode, Ruleset } from '../../common/simulation/physics';
 import { EightBallState } from '../../common/simulation/table-state';
 
-export const getRuleSetName = (ruleSet: RuleSet) => {
-  switch (ruleSet) {
-    case RuleSet._8Ball:
+export const getRulesetName = (ruleset: Ruleset) => {
+  switch (ruleset) {
+    case Ruleset._8Ball:
       return '8 Ball';
-    case RuleSet._9Ball:
+    case Ruleset._9Ball:
       return '9 Ball';
-    case RuleSet.Sandbox:
-    case RuleSet.SandboxSequential:
+    case Ruleset.Sandbox:
+    case Ruleset.SandboxSequential:
       return 'sandbox';
   }
 };

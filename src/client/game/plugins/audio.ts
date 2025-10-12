@@ -14,6 +14,7 @@ export class AudioPlugin extends Plugin {
   public install(ecs: ECS<GameEvents, Game>): void {
     ecs.addResource(new Audio(ecs.game.scene));
     ecs.addEventSystem(new ShootAudioSystem());
+    ecs.addEventSystem(new FoulAudioSystem());
     ecs.addEventSystem(new BallCollisionAudioSystem());
     ecs.addEventSystem(new PocketCollisionAudioSystem());
   }
@@ -28,6 +29,17 @@ class ShootAudioSystem extends EventSystem<'game/shoot', GameEvents> {
     const audio = ecs.resource(Audio);
     const cue = ecs.query().resolveFirst(Cue);
     audio.play('hit_centre', toVector3(cue.target), cue.force / 2);
+  }
+}
+
+class FoulAudioSystem extends EventSystem<'game/foul', GameEvents> {
+  public event = 'game/foul' as const;
+  public run(
+    ecs: ECS<GameEvents, unknown>,
+    data: GameEvents['game/foul']
+  ): void {
+    const audio = ecs.resource(Audio);
+    audio.play('foul', undefined, 0.1);
   }
 }
 

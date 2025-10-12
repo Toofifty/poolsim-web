@@ -1,4 +1,7 @@
+import type { Ruleset } from '@common/simulation/physics';
+
 export type GameRules = {
+  ruleset: Ruleset;
   /** First contact must be one of these balls */
   validTargets: number[];
   /** Hitting one of these balls (at any point) results in a foul */

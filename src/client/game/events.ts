@@ -2,14 +2,14 @@ import type { Entity } from '@common/ecs';
 import type { Shot } from '@common/simulation/shot';
 import type { EightBallState } from '@common/simulation/table-state';
 import type { Quat, Vec } from '../../common/math';
-import type { RuleSet } from '../../common/simulation/physics';
+import type { Ruleset } from '../../common/simulation/physics';
 import type { Cue } from './plugins/cue/cue.component';
 import type {
   BallBallCollision,
   BallCushionCollision,
   BallPocketCollision,
 } from './plugins/physics/collision/types';
-import type { Result } from './plugins/physics/simulation/result';
+import type { Result, TurnFoul } from './plugins/physics/simulation/result';
 import type { Sandboxes } from './rack';
 import type { GameRules } from './resources/game-rules/types';
 
@@ -22,7 +22,7 @@ export type GameEvents = {
       position: Vec;
       orientation: Quat;
     }[];
-    ruleSet: RuleSet;
+    ruleset: Ruleset;
   };
   'game/start-shooting': {};
   'game/shoot': {
@@ -37,6 +37,9 @@ export type GameEvents = {
   'game/ball-collision': BallBallCollision;
   'game/cushion-collision': BallCushionCollision;
   'game/pocket-collision': BallPocketCollision;
+  'game/ball-ejected': number;
+  'game/foul': TurnFoul;
+  'game/change-player': number;
   'game/cue-update': Cue;
   'game/8-ball-state-change': {
     state: EightBallState;
@@ -64,9 +67,9 @@ export type GameEvents = {
     lift?: number;
   };
   'input/setup-game':
-    | { ruleSet: RuleSet._8Ball | RuleSet._9Ball }
+    | { ruleset: Ruleset._8Ball | Ruleset._9Ball }
     | {
-        ruleSet: RuleSet.Sandbox | RuleSet.SandboxSequential;
+        ruleset: Ruleset.Sandbox | Ruleset.SandboxSequential;
         sandbox: Sandboxes;
       };
 };

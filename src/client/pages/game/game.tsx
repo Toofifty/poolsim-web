@@ -16,7 +16,6 @@ import { UIContainer } from '../../ui/ui-container';
 import { getIsMobile } from '../../ui/use-media-query';
 import { GameContext } from '../../util/game-provider';
 import { useLobby } from '../../util/use-lobby';
-import { useGameNotifications } from './use-game-events';
 
 let lastBootstrappedFor: string | undefined = undefined;
 let game: Game | undefined = undefined;
@@ -41,8 +40,6 @@ export const GamePage = () => {
   const game = useMemo(() => {
     return bootstrapGame(lobby);
   }, [lobby]);
-
-  useGameNotifications(game);
 
   useEffect(() => {
     if (window.innerHeight > window.innerWidth) {

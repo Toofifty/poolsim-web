@@ -1,9 +1,12 @@
+import type { GameRules } from '../../../resources/game-rules/types';
 import type { Collision } from '../collision/types';
 import { Physics, type PhysicsSnapshot } from '../physics.component';
 
 export type Result = {
   readonly steps: number;
   readonly ballsPotted: readonly number[];
+  /** balls sent off table during shot */
+  readonly ballsEjected: readonly number[];
   readonly collisions: readonly Collision[];
   readonly cueBallCollisions: number;
   readonly ballCollisions: number;
@@ -24,6 +27,7 @@ type Writable<T> = {
 export const createResult = (): Result => ({
   steps: 1,
   ballsPotted: [],
+  ballsEjected: [],
   collisions: [],
   cueBallCollisions: 0,
   ballCollisions: 0,
@@ -76,6 +80,11 @@ export const addTrackingPoint = (result: Result, ball: Physics) => {
   }
 };
 
+export const addEjectedBall = (result: Result, ball: Physics) => {
+  const write = result as Writable<Result>;
+  write.ballsEjected.push(ball.id);
+};
+
 const combineMaps = <T extends Map<any, any[]>>(map1: T, map2: T): T => {
   const combined = new Map(map1) as T;
 
@@ -104,6 +113,7 @@ const combineMaps = <T extends Map<any, any[]>>(map1: T, map2: T): T => {
 export const combine = (first: Result, second: Result): Result => ({
   steps: first.steps + second.steps,
   ballsPotted: [...first.ballsPotted, ...second.ballsPotted],
+  ballsEjected: [...first.ballsEjected, ...second.ballsEjected],
   collisions: [...first.collisions, ...second.collisions],
   cueBallCollisions: first.cueBallCollisions + second.cueBallCollisions,
   ballCollisions: first.ballCollisions + second.ballCollisions,
@@ -114,3 +124,56 @@ export const combine = (first: Result, second: Result): Result => ({
   firstStruck: first.firstStruck ?? second.firstStruck,
   scratched: first.scratched || second.scratched,
 });
+
+export type TurnFoul = {
+  fouled: true;
+  foulReason:
+    | 'scratched'
+    | 'hit-nothing'
+    | 'hit-invalid'
+    | 'potted-invalid'
+    | 'ball-ejected'
+    | 'no-cushion-contact';
+};
+
+type TurnResult =
+  | {
+      fouled: false;
+      success: boolean;
+    }
+  | TurnFoul;
+
+export const getFoul = (result: Result, rules: GameRules): boolean => {
+  return (
+    result.ballsPotted.includes(0) ||
+    result.ballsEjected.length > 0 ||
+    result.firstStruck === undefined ||
+    !rules.validTargets.includes(result.firstStruck) ||
+    result.ballsPotted.some((ball) => rules.invalidPottable.includes(ball))
+  );
+};
+
+export const getTurnResult = (result: Result, rules: GameRules): TurnResult => {
+  switch (true) {
+    case result.ballsPotted.includes(0):
+      return { fouled: true, foulReason: 'scratched' };
+    case result.ballsEjected.length > 0:
+      return { fouled: true, foulReason: 'ball-ejected' };
+    case result.firstStruck === undefined:
+      return { fouled: true, foulReason: 'hit-nothing' };
+    case result.ballsPotted.some((ball) =>
+      rules.invalidPottable.includes(ball)
+    ):
+      return { fouled: true, foulReason: 'potted-invalid' };
+    case !rules.validTargets.includes(result.firstStruck!):
+      return { fouled: true, foulReason: 'hit-invalid' };
+    default: {
+      return {
+        fouled: false,
+        success: rules.validPottable.some((ball) =>
+          result.ballsPotted.includes(ball)
+        ),
+      };
+    }
+  }
+};

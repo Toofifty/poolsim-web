@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSnapshot } from 'valtio';
-import { RuleSet } from '../../../common/simulation/physics';
+import { Ruleset } from '../../../common/simulation/physics';
 import { EightBallState } from '../../../common/simulation/table-state';
 import { assert } from '../../../common/util';
 import { createBallCanvas } from '../../game/models/ball/create-ball-texture';
 import { makeTheme, theme } from '../../game/store/theme';
-import { getPlayer8BallState } from '../../pages/game/use-game-events';
 import { Surface } from '../surface';
-import { useGameEvent } from '../use-game-event';
+import { useGameBinding } from '../use-game-binding';
+import { getPlayer8BallState, useGameEvent } from '../use-game-event';
 import './ball-indicator.scss';
 
 const setInArray = <T,>(arr: (T | undefined)[], value: T) => {
@@ -23,17 +23,13 @@ const opposite = (state: 'solids' | 'stripes') =>
   state === 'solids' ? 'stripes' : 'solids';
 
 export const BallIndicator = () => {
-  const [ruleSet, setRuleSet] = useState<RuleSet>(RuleSet._8Ball);
-
-  useGameEvent(
+  const ruleset = useGameBinding(
     'game/setup',
-    (data) => {
-      setRuleSet(data.ruleSet);
-    },
-    []
+    (data) => data.ruleset,
+    Ruleset._8Ball
   );
 
-  return ruleSet === RuleSet._8Ball ? (
+  return ruleset === Ruleset._8Ball ? (
     <EightBallIndicator />
   ) : (
     <NineBallIndicator />
@@ -98,19 +94,18 @@ const EightBallIndicator = () => {
       setEightBallState(state);
       setIsPlayer1(currentPlayer === 0);
 
-      console.log({ state, isPlayer1 });
-
       if (unclaimedBalls.length > 0) {
-        sortAndAddBalls(unclaimedBalls, state, isPlayer1);
+        sortAndAddBalls(unclaimedBalls, state, currentPlayer === 0);
         setUnclaimedBalls([]);
       }
     },
     [unclaimedBalls]
   );
 
-  useGameEvent(
-    'game/pocket-collision',
-    ({ initiator: { id } }) => {
+  const addBall = useCallback(
+    (id: number) => {
+      if (id === 0) return;
+
       if (eightBallState === EightBallState.Open) {
         setUnclaimedBalls((b) => [...b, id]);
         return;
@@ -120,6 +115,17 @@ const EightBallIndicator = () => {
     },
     [eightBallState, isPlayer1]
   );
+
+  useGameEvent(
+    'game/pocket-collision',
+    ({ initiator: { id } }) => addBall(id),
+    [addBall]
+  );
+
+  useGameEvent('game/ball-ejected', (id) => addBall(id), [
+    eightBallState,
+    isPlayer1,
+  ]);
 
   return (
     <div className="ball-indicator__container">
@@ -171,6 +177,8 @@ const NineBallIndicator = () => {
   useGameEvent(
     'game/pocket-collision',
     ({ initiator: { id } }) => {
+      if (id === 0) return;
+
       setBalls((v) => {
         v[id - 1] = id;
         return [...v];

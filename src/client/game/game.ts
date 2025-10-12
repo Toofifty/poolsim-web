@@ -279,7 +279,7 @@ export class Game {
     this.ecs = createECS(this);
     // this.ecs.emit('game/setup', {
     //   rack: Rack.generateSandboxGame(this.params, 'debug'),
-    //   ruleSet: RuleSet.Sandbox,
+    //   ruleset: RuleSet.Sandbox,
     // });
     this.renderer.setAnimationLoop(this.draw.bind(this));
 

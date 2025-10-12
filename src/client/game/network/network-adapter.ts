@@ -1,7 +1,7 @@
 import type { TypedEventTarget } from 'typescript-event-target';
 import type { PlayerData } from '../../../common/data';
 import type {
-  RuleSet,
+  Ruleset,
   SerializedPhysicsBall,
 } from '../../../common/simulation/physics';
 import type { SerializedOnlineGameState } from '../controller/online-game-controller';
@@ -9,7 +9,7 @@ import type { BallProto } from '../objects/ball';
 import type { SerializedCue } from '../objects/cue';
 
 export type NetworkEventMap = {
-  ['setup-table']: CustomEvent<{ rack: BallProto[]; ruleSet: RuleSet }>;
+  ['setup-table']: CustomEvent<{ rack: BallProto[]; ruleset: Ruleset }>;
   ['reset-cue-ball']: Event;
   ['set-game-state']: CustomEvent<SerializedOnlineGameState>;
   ['place-ball-in-hand']: CustomEvent<SerializedPhysicsBall>;
@@ -23,7 +23,7 @@ export type NetworkEventMap = {
 export interface NetworkAdapter extends TypedEventTarget<NetworkEventMap> {
   isHost: boolean;
   isMultiplayer: boolean;
-  setupTable(data: { rack: BallProto[]; ruleSet: RuleSet }): void;
+  setupTable(data: { rack: BallProto[]; ruleset: Ruleset }): void;
   resetCueBall(): void;
   setGameState(state: SerializedOnlineGameState): void;
   placeBallInHand(ball: SerializedPhysicsBall): void;

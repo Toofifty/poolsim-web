@@ -1,11 +1,23 @@
+import { EightBallState } from '@common/simulation/table-state';
 import { useCallback, useEffect } from 'react';
 import type { GameEvents } from '../game/events';
 import { useGameContext } from '../util/game-provider';
 
+// todo: put somewhere better
+export const getPlayer8BallState = (
+  eightballState: EightBallState,
+  isPlayer1: boolean
+) => {
+  if (eightballState === EightBallState.Open) return 'open';
+  return isPlayer1 === (eightballState === EightBallState.Player1Solids)
+    ? 'solids'
+    : 'stripes';
+};
+
 export const useGameEvent = <T extends keyof GameEvents>(
   event: T,
   callback: (data: GameEvents[T]) => void,
-  deps: unknown[]
+  deps: unknown[] = []
 ) => {
   const ecs = useGameContext().ecs;
 

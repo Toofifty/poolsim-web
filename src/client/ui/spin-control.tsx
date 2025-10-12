@@ -10,24 +10,17 @@ import { useMemo, useState } from 'react';
 import { useGameContext } from '../util/game-provider';
 import './spin-control.scss';
 import { Surface } from './surface';
-import { useGameEvent } from './use-game-event';
+import { useGameBinding } from './use-game-binding';
 import { useIsMobile } from './use-media-query';
 import { useMouseInputs } from './use-mouse-inputs';
 
 export const SpinControl = () => {
   const ecs = useGameContext().ecs;
-  const [lift, setLift] = useState(0);
-  const [side, setSide] = useState(0);
-  const [top, setTop] = useState(0);
 
-  useGameEvent(
+  const [lift, side, top] = useGameBinding(
     'game/cue-update',
-    (cue) => {
-      setLift(cue.lift);
-      setSide(-cue.side);
-      setTop(-cue.top);
-    },
-    []
+    (cue) => [cue.lift, -cue.side, -cue.top],
+    [0, 0, 0]
   );
 
   const isMobile = useIsMobile();

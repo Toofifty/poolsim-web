@@ -4,6 +4,7 @@ import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: { hmr: false },
   plugins: [react()],
   resolve: {
     alias: {

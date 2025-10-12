@@ -2,7 +2,7 @@ import type { ECS } from './main';
 
 export abstract class EventSystem<
   TEvent extends keyof TEventMap,
-  TEventMap extends Record<string, object> = any,
+  TEventMap extends Record<string, any> = any,
   TWorld = unknown
 > {
   public abstract event: TEvent;

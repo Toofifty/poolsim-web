@@ -1,4 +1,4 @@
-import { defaultParams } from '@common/simulation/physics';
+import { defaultParams, type Params } from '@common/simulation/physics';
 import { assert, assertExists } from '@common/util';
 import { Profiler, type IProfiler } from '@common/util/profiler';
 import {
@@ -15,9 +15,10 @@ import {
   evolveOrientation,
   evolvePocket,
 } from '../evolution/evolve';
-import { PhysicsState } from '../physics.component';
+import { Physics, PhysicsState } from '../physics.component';
 import {
   addCollision,
+  addEjectedBall,
   addTrackingPoint,
   createResult,
   type Result,
@@ -56,6 +57,14 @@ const simulationSubstep = (
 
   const endBallUpdate = profiler.start('ball-update');
   for (const ball of state.balls) {
+    if (
+      outOfBounds(defaultParams, ball) &&
+      ball.state !== PhysicsState.OutOfPlay
+    ) {
+      ball.state = PhysicsState.OutOfPlay;
+      addEjectedBall(result, ball);
+    }
+
     if (ball.state === PhysicsState.Pocketed) {
       assertExists(ball.pocketId, 'Missing pocket id for pocketed ball');
       assert(
@@ -67,6 +76,7 @@ const simulationSubstep = (
     } else {
       evolveMotion(ball, dt);
     }
+
     evolveOrientation(ball, dt);
     if (doTrackPath) {
       addTrackingPoint(result, ball);
@@ -141,4 +151,17 @@ export const simulationStep = (
   }
 
   return result;
+};
+
+const outOfBounds = (params: Params, ball: Physics) => {
+  if (ball.state === PhysicsState.Pocketed) return false;
+  const {
+    table: { length, width },
+  } = params;
+  return (
+    ball.r[0] > length / 2 ||
+    ball.r[0] < -length / 2 ||
+    ball.r[1] > width / 2 ||
+    ball.r[1] < -width / 2
+  );
 };

@@ -12,10 +12,10 @@ import {
 import type { ReactNode } from 'react';
 import {
   AimAssistMode,
-  RuleSet,
+  Ruleset,
   type StaticParams,
 } from '../../common/simulation/physics';
-import { getAimAssistName, getRuleSetName } from '../util/enums';
+import { getAimAssistName, getRulesetName } from '../util/enums';
 import type { DeepKeyOf } from '../util/types';
 import './param-editor.scss';
 
@@ -129,10 +129,10 @@ export const ParamEditor = ({
           <>
             <Item title="Game mode">
               <SelectOrText
-                value={params.game.ruleSet}
-                options={[RuleSet._8Ball, RuleSet._9Ball, RuleSet.Sandbox]}
-                getLabel={getRuleSetName}
-                onChange={onEdit && ((v) => onEdit('game.ruleSet', v))}
+                value={params.game.ruleset}
+                options={[Ruleset._8Ball, Ruleset._9Ball, Ruleset.Sandbox]}
+                getLabel={getRulesetName}
+                onChange={onEdit && ((v) => onEdit('game.ruleset', v))}
               />
             </Item>
             <Item title="Guidelines">

@@ -4,27 +4,9 @@ import { PlayState } from '../../controller/game-controller';
 import { GameRuleProvider } from '../../resources/game-rules';
 import type { GameRules } from '../../resources/game-rules/types';
 import { SystemState } from '../../resources/system-state';
-import { Physics, PhysicsState } from '../physics/physics.component';
+import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
+import { Physics } from '../physics/physics.component';
 import { BallHighlight } from './ball-highlight.component';
-
-const getActiveBallIds = (ecs: ECS, entities?: Set<Entity>) => {
-  const ballEntities = entities
-    ? [...entities].splice(1)
-    : ecs.query().has(Physics).findAll();
-
-  const active: number[] = [];
-  for (const entity of ballEntities) {
-    const [physics] = ecs.get(entity, Physics);
-    if (
-      physics.state !== PhysicsState.Pocketed &&
-      physics.state !== PhysicsState.OutOfPlay
-    ) {
-      active.push(physics.id);
-    }
-  }
-
-  return active;
-};
 
 export class BallHighlightSystem extends System {
   public components: Set<Function> = new Set([BallId, Physics]);

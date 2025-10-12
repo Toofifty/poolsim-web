@@ -55,6 +55,8 @@ import { GraphicsDetail, settings } from './store/settings';
 import { makeTheme } from './store/theme';
 import { toVector2 } from './util/three-interop';
 
+const hdrTextureUrl = new URL('../assets/map.hdr', import.meta.url).toString();
+
 export class Game {
   // rendering
   public scene!: Scene;
@@ -280,6 +282,21 @@ export class Game {
     //   ruleSet: RuleSet.Sandbox,
     // });
     this.renderer.setAnimationLoop(this.draw.bind(this));
+
+    // HDR image
+    // new HDRLoader().load(hdrTextureUrl, (texture) => {
+    //   texture.mapping = EquirectangularReflectionMapping;
+
+    //   const rotX90 = new Matrix3().set(1, 0, 0, 0, 0, 1, 0, -1, 0);
+    //   texture.matrixAutoUpdate = false;
+    //   texture.matrix = rotX90;
+
+    //   this.scene.background = texture;
+    //   this.scene.environment = texture;
+
+    //   this.scene.backgroundRotation = new Euler(Math.PI / 2, 0, 0, 'XYZ');
+    //   this.scene.environmentRotation = new Euler(Math.PI / 2, 0, 0, 'XYZ');
+    // });
   }
 
   public safeInit() {
@@ -414,7 +431,7 @@ export class Game {
     };
 
     const sp = 0.4;
-    const spy = 0.4;
+    const spy = 0.8;
 
     const { lighting } = makeTheme();
 
@@ -437,8 +454,8 @@ export class Game {
       return;
     }
 
-    createCeilingLight(0, -spy, 40);
-    createCeilingLight(0, spy, 40);
+    createCeilingLight(-spy, 0, 40);
+    createCeilingLight(spy, 0, 40);
   }
 
   private setupAmbientLight() {

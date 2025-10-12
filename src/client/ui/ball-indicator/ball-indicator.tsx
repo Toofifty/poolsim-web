@@ -5,11 +5,9 @@ import { EightBallState } from '../../../common/simulation/table-state';
 import { assert } from '../../../common/util';
 import { createBallCanvas } from '../../game/models/ball/create-ball-texture';
 import { makeTheme, theme } from '../../game/store/theme';
-import {
-  getPlayer8BallState,
-  useGameEvent,
-} from '../../pages/game/use-game-events';
+import { getPlayer8BallState } from '../../pages/game/use-game-events';
 import { Surface } from '../surface';
+import { useGameEvent } from '../use-game-event';
 import './ball-indicator.scss';
 
 const setInArray = <T,>(arr: (T | undefined)[], value: T) => {
@@ -28,9 +26,9 @@ export const BallIndicator = () => {
   const [ruleSet, setRuleSet] = useState<RuleSet>(RuleSet._8Ball);
 
   useGameEvent(
-    'setup-table',
-    ({ detail: { ruleSet } }) => {
-      setRuleSet(ruleSet);
+    'game/setup',
+    (data) => {
+      setRuleSet(data.ruleSet);
     },
     []
   );
@@ -83,7 +81,7 @@ const EightBallIndicator = () => {
   );
 
   useGameEvent(
-    'setup-table',
+    'game/setup',
     () => {
       setPlayer1Balls(new Array(7).fill(undefined));
       setPlayer2Balls(new Array(7).fill(undefined));
@@ -95,10 +93,10 @@ const EightBallIndicator = () => {
   );
 
   useGameEvent(
-    '8-ball-state-change',
-    ({ detail: { state, isPlayer1 } }) => {
+    'game/8-ball-state-change',
+    ({ state, currentPlayer }) => {
       setEightBallState(state);
-      setIsPlayer1(isPlayer1);
+      setIsPlayer1(currentPlayer === 0);
 
       console.log({ state, isPlayer1 });
 
@@ -111,14 +109,14 @@ const EightBallIndicator = () => {
   );
 
   useGameEvent(
-    'balls-potted',
-    ({ detail: { ids } }) => {
+    'game/pocket-collision',
+    ({ initiator: { id } }) => {
       if (eightBallState === EightBallState.Open) {
-        setUnclaimedBalls((b) => [...b, ...ids]);
+        setUnclaimedBalls((b) => [...b, id]);
         return;
       }
 
-      sortAndAddBalls(ids, eightBallState, isPlayer1);
+      sortAndAddBalls([id], eightBallState, isPlayer1);
     },
     [eightBallState, isPlayer1]
   );
@@ -163,7 +161,7 @@ const NineBallIndicator = () => {
   );
 
   useGameEvent(
-    'setup-table',
+    'game/setup',
     () => {
       setBalls(new Array(9).fill(undefined));
     },
@@ -171,10 +169,10 @@ const NineBallIndicator = () => {
   );
 
   useGameEvent(
-    'balls-potted',
-    ({ detail: { ids } }) => {
+    'game/pocket-collision',
+    ({ initiator: { id } }) => {
       setBalls((v) => {
-        ids.forEach((id) => (v[id - 1] = id));
+        v[id - 1] = id;
         return [...v];
       });
     },

@@ -13,6 +13,9 @@ import { makeTheme } from '../store/theme';
 import { Renderable } from './renderable';
 
 const normalMap = new TextureLoader().load(normalMapUrl);
+// const envMap = new HDRLoader().load(
+//   new URL('../../assets/map.hdr', import.meta.url).toString()
+// );
 
 const geometry = new SphereGeometry(defaultParams.ball.radius, 32, 16);
 
@@ -25,6 +28,7 @@ export class BallMesh extends Renderable {
     texturePool.set(id, texture);
 
     const material = createMaterial({
+      // envMap,
       map: texture,
       roughness: theme.balls.roughness,
       metalness: theme.balls.metalness,

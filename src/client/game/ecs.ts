@@ -3,6 +3,7 @@ import { Game } from './game';
 import { AudioPlugin } from './plugins/audio';
 import { BallPlugin } from './plugins/ball';
 import { CuePlugin } from './plugins/cue';
+import { GameplayPlugin } from './plugins/gameplay';
 import { GuidelinePlugin } from './plugins/guideline';
 import { MousePlugin } from './plugins/mouse';
 import { PhysicsPlugin } from './plugins/physics';
@@ -15,7 +16,6 @@ import { BillboardUpdateSystem } from './systems/billboard-update.system';
 import { InputSetupSystem } from './systems/input-setup.system';
 import { MeshRegisterSystem } from './systems/mesh-register.system';
 import { OverlayRegisterSystem } from './systems/overlay-register.system';
-import { StateUpdateSystem } from './systems/state-update.system';
 import { TableSetupSystem } from './systems/table-setup-system';
 import { WorldSetupSystem } from './systems/world-setup-system';
 
@@ -45,6 +45,7 @@ export const createECS = (game: Game) => {
   new PhysicsPlugin().install(ecs);
   new AudioPlugin().install(ecs);
   new GuidelinePlugin().install(ecs);
+  new GameplayPlugin().install(ecs);
 
   ecs.addStartupSystem(new WorldSetupSystem());
 
@@ -53,6 +54,5 @@ export const createECS = (game: Game) => {
   ecs.addEventSystem(new InputSetupSystem());
   ecs.addEventSystem(new TableSetupSystem());
   ecs.addEventSystem(new BallShootSystem());
-  ecs.addEventSystem(new StateUpdateSystem());
   return ecs;
 };

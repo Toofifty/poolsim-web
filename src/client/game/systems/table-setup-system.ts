@@ -1,4 +1,5 @@
 import { defaultParams } from '@common/simulation/physics';
+import { EightBallState } from '@common/simulation/table-state';
 import { ECS, EventSystem } from '../../../common/ecs';
 import { BallId } from '../components/ball-id';
 import { PlayState } from '../controller/game-controller';
@@ -23,8 +24,12 @@ export class TableSetupSystem extends EventSystem<'game/setup', GameEvents> {
       spawnBall(ecs, data);
     });
 
-    const systemState = ecs.resource(SystemState);
-    systemState.playState = PlayState.PlayerShoot;
+    const system = ecs.resource(SystemState);
+    system.playState = PlayState.PlayerShoot;
+    system.isBreak = true;
+    system.eightBallState = EightBallState.Open;
+    // todo: random player start
+    system.turnIndex = 0;
 
     const ruleProvider = ecs.resource(GameRuleProvider);
     ruleProvider.ruleSet = data.ruleSet;

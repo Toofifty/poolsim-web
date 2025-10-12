@@ -5,7 +5,8 @@ import { SystemState } from '../../resources/system-state';
 import { Cushion } from '../table/cushion.component';
 import { Pocket } from '../table/pocket.component';
 import { Physics } from './physics.component';
-import { createSimulationState, simulationStep } from './simulation/step';
+import { createSimulationState } from './simulation/state';
+import { simulationStep } from './simulation/step';
 import { settled } from './simulation/tools';
 
 export class PhysicsSystem extends System {

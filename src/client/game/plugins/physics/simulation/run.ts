@@ -3,7 +3,8 @@ import type { Shot } from '@common/simulation/shot';
 import { Profiler, type IProfiler } from '@common/util/profiler';
 import { shoot } from '../actions/shoot';
 import { addTrackingPoint, createResult, type Result } from './result';
-import { simulationStep, type SimulationState } from './step';
+import type { SimulationState } from './state';
+import { simulationStep } from './step';
 import { settled } from './tools';
 
 export type RunSimulationParameters = {

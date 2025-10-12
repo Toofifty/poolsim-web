@@ -6,6 +6,7 @@ import { PlayState } from '../../controller/game-controller';
 import { SystemState } from '../../resources/system-state';
 import { settings } from '../../store/settings';
 import { toVector3 } from '../../util/three-interop';
+import { Cue } from '../cue/cue.component';
 import { PhysicsState } from '../physics/physics.component';
 import { GuidelineMesh } from './guideline-mesh.component';
 import { Guideline } from './guideline.component';
@@ -59,7 +60,8 @@ export class GuidelineUpdateSystem extends System {
     const systemState = ecs.resource(SystemState);
     if (
       systemState.playState !== PlayState.PlayerShoot ||
-      (guideline.trackingPoints.length === 0 && !guideline.computing)
+      (guideline.trackingPoints.length === 0 && !guideline.computing) ||
+      ecs.query().resolveFirst(Cue).shooting
     ) {
       line.visible = false;
       ring.visible = false;

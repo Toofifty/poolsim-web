@@ -5,7 +5,7 @@ import { PlayState } from '../../controller/game-controller';
 import { SystemState } from '../../resources/system-state';
 import { Cue } from '../cue/cue.component';
 import { Physics } from '../physics/physics.component';
-import { createSimulationState } from '../physics/simulation/step';
+import { createSimulationState } from '../physics/simulation/state';
 import { runWorkerSimulation } from '../physics/simulation/worker/run';
 import { Cushion } from '../table/cushion.component';
 import { Pocket } from '../table/pocket.component';

@@ -79,11 +79,11 @@ export const defaultParams = {
   },
   simulation: {
     maxIterations: 10_000,
-    updatesPerSecond: 30,
+    updatesPerSecond: 300,
     stepsAfterFirstContact: 200,
     cueBallRollDist: 0.25,
     playbackSpeed: 1,
-    trackingPointDist: 10,
+    trackingPointDist: 2,
     useWorkerForAimAssist: false,
     useWorkerForAI: true,
   },

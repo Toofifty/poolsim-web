@@ -6,13 +6,18 @@ import {
   IconLogout2,
 } from '@tabler/icons-react';
 import { useSnapshot } from 'valtio';
-import { params, type StaticParams } from '../../common/simulation/physics';
+import {
+  params,
+  RuleSet,
+  type StaticParams,
+} from '../../common/simulation/physics';
 import { PlayState } from '../game/controller/game-controller';
 import { Game } from '../game/game';
 import { gameStore } from '../game/store/game';
 import { Players, settings } from '../game/store/settings';
 import { socket } from '../socket';
 import { getAimAssistName, getAimAssistValues } from '../util/enums';
+import { useGameContext } from '../util/game-provider';
 import type { DeepKeyOf } from '../util/types';
 import { useLobby } from '../util/use-lobby';
 import { BallIndicator } from './ball-indicator/ball-indicator';
@@ -48,6 +53,7 @@ const getStateName = (state: PlayState | undefined) => {
 };
 
 export const Controls = () => {
+  const ecs = useGameContext().ecs;
   const { preferencesOpen, paramEditorOpen, controlsOpen } =
     useSnapshot(settings);
   const { state, analysisProgress } = useSnapshot(gameStore);
@@ -149,12 +155,20 @@ export const Controls = () => {
                   {isHost && (
                     <>
                       <Button
-                        onClick={() => Game.instance.controller.setup8Ball()}
+                        onClick={() =>
+                          ecs.emit('input/setup-game', {
+                            ruleSet: RuleSet._8Ball,
+                          })
+                        }
                       >
                         8 ball
                       </Button>
                       <Button
-                        onClick={() => Game.instance.controller.setup9Ball()}
+                        onClick={() =>
+                          ecs.emit('input/setup-game', {
+                            ruleSet: RuleSet._9Ball,
+                          })
+                        }
                       >
                         9 ball
                       </Button>
@@ -165,16 +179,20 @@ export const Controls = () => {
                         <Menu.Dropdown>
                           <Menu.Item
                             onClick={() =>
-                              Game.instance.controller.setupSandboxGame('debug')
+                              ecs.emit('input/setup-game', {
+                                ruleSet: RuleSet.Sandbox,
+                                sandbox: 'debug',
+                              })
                             }
                           >
                             Debug
                           </Menu.Item>
                           <Menu.Item
                             onClick={() =>
-                              Game.instance.controller.setupSandboxGame(
-                                'cubicle-troll'
-                              )
+                              ecs.emit('input/setup-game', {
+                                ruleSet: RuleSet.Sandbox,
+                                sandbox: 'cubicle-troll',
+                              })
                             }
                           >
                             Cubicle troll

@@ -10,6 +10,7 @@ import { SystemState } from './resources/system-state';
 import { BallShootSystem } from './systems/ball-shoot.system';
 import { BallUpdateSystem } from './systems/ball-update.system';
 import { BillboardUpdateSystem } from './systems/billboard-update.system';
+import { InputSetupSystem } from './systems/input-setup.system';
 import { MeshRegisterSystem } from './systems/mesh-register.system';
 import { OverlayRegisterSystem } from './systems/overlay-register.system';
 import { StateUpdateSystem } from './systems/state-update.system';
@@ -37,6 +38,7 @@ export const createECS = (game: Game) => {
 
   ecs.addSystem(new BallUpdateSystem());
 
+  ecs.addEventSystem(new InputSetupSystem());
   ecs.addEventSystem(new TableSetupSystem());
   ecs.addEventSystem(new BallShootSystem());
   ecs.addEventSystem(new StateUpdateSystem());

@@ -4,6 +4,7 @@ import { ImpactArrow } from '../../components/arrow-type.component';
 import { PlayState } from '../../controller/game-controller';
 import { SystemState } from '../../resources/system-state';
 import { toVector3 } from '../../util/three-interop';
+import { Cue } from '../cue/cue.component';
 import { Guideline } from './guideline.component';
 
 export class GuidelineArrowUpdateSystem extends System {
@@ -15,7 +16,8 @@ export class GuidelineArrowUpdateSystem extends System {
     const systemState = ecs.resource(SystemState);
     if (
       systemState.playState !== PlayState.PlayerShoot ||
-      (guideline.trackingPoints.length === 0 && !guideline.computing)
+      (guideline.trackingPoints.length === 0 && !guideline.computing) ||
+      ecs.query().resolveFirst(Cue).shooting
     ) {
       arrow.mesh.visible = false;
       return;

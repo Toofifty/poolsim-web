@@ -8,6 +8,7 @@ import type {
   BallCushionCollision,
   BallPocketCollision,
 } from './plugins/physics/collision/types';
+import type { Sandboxes } from './rack';
 
 export type GameEvents = {
   'game/setup': {
@@ -52,4 +53,10 @@ export type GameEvents = {
     side?: number;
     lift?: number;
   };
+  'input/setup-game':
+    | { ruleSet: RuleSet._8Ball | RuleSet._9Ball }
+    | {
+        ruleSet: RuleSet.Sandbox | RuleSet.SandboxSequential;
+        sandbox: Sandboxes;
+      };
 };

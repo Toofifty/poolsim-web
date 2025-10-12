@@ -14,7 +14,7 @@ export const computeBallCollisionTime = (
 ): number => {
   if (ball1 === ball2) return Infinity;
   if (
-    ball1.state === PhysicsState.Stationary ||
+    ball1.state === PhysicsState.Stationary &&
     ball2.state === PhysicsState.Stationary
   )
     return Infinity;

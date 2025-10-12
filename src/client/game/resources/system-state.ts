@@ -1,3 +1,4 @@
+import { EightBallState } from '@common/simulation/table-state';
 import { subscribe } from 'valtio';
 import { Resource } from '../../../common/ecs';
 import { PlayState } from '../controller/game-controller';
@@ -6,6 +7,9 @@ import { settings } from '../store/settings';
 
 export class SystemState extends Resource {
   private _playState: PlayState = PlayState.Initializing;
+  public eightBallState = EightBallState.Open;
+  public turnIndex = 0;
+  public isBreak = true;
   public paused = false;
 
   constructor() {
@@ -27,5 +31,20 @@ export class SystemState extends Resource {
 
   public static create() {
     return new SystemState();
+  }
+
+  get currentPlayer8BallState() {
+    if (this.eightBallState === EightBallState.Open) {
+      return 'open';
+    }
+
+    if (
+      (this.turnIndex === 0) ===
+      (this.eightBallState === EightBallState.Player1Solids)
+    ) {
+      return 'solids';
+    }
+
+    return 'stripes';
   }
 }

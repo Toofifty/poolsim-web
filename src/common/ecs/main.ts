@@ -3,6 +3,7 @@ import {
   type ECSComponent,
   type ExtractComponents,
 } from './component';
+import type { ComponentTrackingSystem } from './component-tracking-system';
 import { EventSystem } from './event-system';
 import { Query } from './query';
 import type { Resource } from './resource';
@@ -59,8 +60,10 @@ export class ECS<
     keyof TEventMap,
     Set<EventSystem<keyof TEventMap, TEventMap, TWorld>>
   >();
-  private resources = new Map<Ctor<Resource>, Resource>();
   private startupSystems: StartupSystem[] = [];
+  private componentTrackingSystems: Set<ComponentTrackingSystem<ECSComponent>> =
+    new Set();
+  private resources = new Map<Ctor<Resource>, Resource>();
   private spawners: (() => void)[] = [];
 
   private externalListeners = new Map<
@@ -146,6 +149,11 @@ export class ECS<
     const ctor = customCtor ?? (component.constructor as Ctor<ECSComponent>);
 
     this.entities.get(entity)!.add(component, ctor);
+    this.componentTrackingSystems.forEach((system) => {
+      if (system.predicate(component)) {
+        system.added(this, entity, component);
+      }
+    });
     this.checkE(entity);
   }
 
@@ -185,10 +193,19 @@ export class ECS<
       .findAll();
   }
 
-  public removeComponent(entity: Entity, componentClass: Function): void {
+  public removeComponent(
+    entity: Entity,
+    componentClass: Ctor<ECSComponent>
+  ): void {
     if (!this.entities.has(entity)) {
       throw new Error(`Tried remove component of non-tracked entity ${entity}`);
     }
+    const component = this.get(entity, componentClass)[0];
+    this.componentTrackingSystems.forEach((system) => {
+      if (system.predicate(component)) {
+        system.removed(this, entity, component);
+      }
+    });
     this.entities.get(entity)!.delete(componentClass);
     this.checkE(entity);
   }
@@ -202,6 +219,18 @@ export class ECS<
 
   public removeSystem(system: System<TWorld>): void {
     this.systems.delete(system);
+  }
+
+  public addComponentTrackingSystem(
+    system: ComponentTrackingSystem<ECSComponent>
+  ) {
+    this.componentTrackingSystems.add(system);
+  }
+
+  public removeComponentTrackingSystem(
+    system: ComponentTrackingSystem<ECSComponent>
+  ) {
+    this.componentTrackingSystems.delete(system);
   }
 
   public addEventSystem(
@@ -259,8 +288,15 @@ export class ECS<
 
   private destroyEntity(entity: Entity): void {
     [...this.systems.entries()].forEach(([system, entitySet]) => {
-      system.removed(this, entity);
       entitySet.delete(entity);
+    });
+    const components = this.getComponents(entity);
+    this.componentTrackingSystems.forEach((system) => {
+      for (const component of components.values()) {
+        if (system.predicate(component)) {
+          system.removed(this, entity, component);
+        }
+      }
     });
     this.entities.get(entity)?.dispose();
     this.entities.delete(entity);
@@ -286,11 +322,9 @@ export class ECS<
     if (have.hasAll(need) || need.size === 0) {
       if (!this.systems.get(system)!.has(entity)) {
         this.systems.get(system)!.add(entity);
-        system.added(this, entity);
       }
     } else {
       if (this.systems.get(system)!.has(entity)) {
-        system.removed(this, entity);
         this.systems.get(system)!.delete(entity);
       }
     }
@@ -302,7 +336,7 @@ export class ECS<
    *
    * Should only be used within startup systems.
    */
-  public createAndSpawnImmediate(
+  public spawnImmediate(
     ...components: (ECSComponent | [ECSComponent, Ctor<ECSComponent>])[]
   ) {
     const eid = this.addEntity();
@@ -312,7 +346,7 @@ export class ECS<
       }
       return this.addComponent(eid, component);
     });
-    return this.spawn(eid);
+    return eid;
   }
 
   /**
@@ -320,24 +354,10 @@ export class ECS<
    *
    * Runs in the next frame.
    */
-  public createAndSpawn(
+  public spawn(
     ...components: (ECSComponent | [ECSComponent, Ctor<ECSComponent>])[]
   ) {
-    this.spawners.push(() => this.createAndSpawnImmediate(...components));
-  }
-
-  /**
-   * Adds the entity into the world.
-   */
-  public spawn(entity: number) {
-    for (let [system] of this.systems.entries()) {
-      const have = this.entities.get(entity)!;
-      const need = system.components;
-      if (have.hasAll(need)) {
-        system.added(this, entity);
-      }
-    }
-    return entity;
+    this.spawners.push(() => this.spawnImmediate(...components));
   }
 
   public debug(entity: number) {

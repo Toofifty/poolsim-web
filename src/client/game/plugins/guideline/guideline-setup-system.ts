@@ -8,18 +8,18 @@ import { ImpactPointMesh } from './impact-point-mesh.component';
 export class GuidelineSetupSystem extends StartupSystem {
   public run(ecs: ECS): void {
     // guideline
-    ecs.createAndSpawnImmediate(
+    ecs.spawnImmediate(
       Guideline.create(),
       GuidelineMesh.create(),
       ImpactPointMesh.create()
     );
 
     // impact arrows
-    ecs.createAndSpawnImmediate(
+    ecs.spawnImmediate(
       ImpactArrow.create({ kind: 'cue-ball' }),
       ArrowMesh.create({ scale: 0.2 })
     );
-    ecs.createAndSpawnImmediate(
+    ecs.spawnImmediate(
       ImpactArrow.create({ kind: 'object-ball' }),
       ArrowMesh.create({ scale: 0.2 })
     );

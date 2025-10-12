@@ -23,7 +23,7 @@ export class ArrowMesh extends OverlayRenderable {
     private material: MeshPhysicalMaterial,
     private scale: number
   ) {
-    super(new Object3D(), true);
+    super(new Object3D(), { outline: true, outlineColor: 'dark' });
     this.mesh.add(stem, cone);
     this.mesh.visible = false;
   }

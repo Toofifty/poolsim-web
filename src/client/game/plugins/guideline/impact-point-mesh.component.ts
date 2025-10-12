@@ -7,7 +7,8 @@ const width = 0.1;
 
 export class ImpactPointMesh extends OverlayBillboardRenderable {
   constructor(public ring: Mesh, public material: MeshPhysicalMaterial) {
-    super(ring, true);
+    super(ring, { outline: true });
+    ring.visible = false;
   }
 
   public static create() {

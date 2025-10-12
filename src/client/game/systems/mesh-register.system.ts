@@ -1,30 +1,26 @@
 import type { Scene } from 'three';
-import { ECS, System, type Entity } from '../../../common/ecs';
+import {
+  ComponentTrackingSystem,
+  ECS,
+  ECSComponent,
+  type Entity,
+} from '../../../common/ecs';
 import { Renderable } from '../components/renderable';
-import type { Game } from '../game';
 
-export class MeshRegisterSystem extends System<Game> {
-  public components: Set<Function> = new Set([]);
+export class MeshRegisterSystem extends ComponentTrackingSystem<Renderable> {
+  public predicate: (component: ECSComponent) => component is Renderable = (
+    component
+  ) => component instanceof Renderable;
 
   constructor(private scene: Scene) {
     super();
   }
 
-  public added(ecs: ECS<any, Game>, entity: Entity): void {
-    const components = ecs.getComponents(entity);
-    for (const component of components.values()) {
-      if (component instanceof Renderable) {
-        this.scene.add(component.mesh);
-      }
-    }
+  public added(ecs: ECS, entity: Entity, component: Renderable): void {
+    this.scene.add(component.mesh);
   }
 
-  public removed(ecs: ECS<any, Game>, entity: Entity): void {
-    const components = ecs.getComponents(entity);
-    for (const component of components.values()) {
-      if (component instanceof Renderable) {
-        this.scene.remove(component.mesh);
-      }
-    }
+  public removed(ecs: ECS, entity: Entity, component: Renderable): void {
+    this.scene.remove(component.mesh);
   }
 }

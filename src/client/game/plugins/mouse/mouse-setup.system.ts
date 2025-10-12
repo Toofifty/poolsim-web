@@ -4,6 +4,6 @@ import { Plane } from './plane.component';
 
 export class MouseSetupSystem extends StartupSystem {
   public run(ecs: ECS): void {
-    ecs.createAndSpawn(Plane.create(), PlaneMesh.create());
+    ecs.spawn(Plane.create(), PlaneMesh.create());
   }
 }

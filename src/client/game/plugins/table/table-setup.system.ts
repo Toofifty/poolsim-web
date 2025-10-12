@@ -9,6 +9,6 @@ export class TableSetupSystem extends StartupSystem {
       .map((entity) => ecs.get(entity, Pocket))
       .flat();
 
-    ecs.createAndSpawnImmediate(TableMesh.create({ pockets }));
+    ecs.spawnImmediate(TableMesh.create({ pockets }));
   }
 }

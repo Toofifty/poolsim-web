@@ -190,7 +190,7 @@ export const Controls = () => {
                           <Menu.Item
                             onClick={() =>
                               ecs.emit('input/setup-game', {
-                                ruleSet: RuleSet.Sandbox,
+                                ruleSet: RuleSet.SandboxSequential,
                                 sandbox: 'cubicle-troll',
                               })
                             }

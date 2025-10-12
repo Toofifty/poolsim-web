@@ -18,7 +18,7 @@ export const spawnBall = (
     orientation: Quat;
   }
 ) => {
-  return ecs.createAndSpawn(
+  return ecs.spawn(
     BallId.create({ id }),
     Physics.create({ id, r: position, R: defaultParams.ball.radius }),
     BallMesh.create({ id })

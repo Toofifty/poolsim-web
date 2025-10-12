@@ -12,7 +12,8 @@ const material = new LineMaterial({
 
 export class GuidelineMesh extends OverlayRenderable {
   constructor(public line: Line2, public geometry: LineGeometry) {
-    super(line, true);
+    super(line, { outline: true });
+    line.visible = false;
   }
 
   public static create() {

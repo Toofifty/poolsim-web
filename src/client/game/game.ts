@@ -37,7 +37,7 @@ import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
 import { subscribe } from 'valtio';
 import type { ECS } from '../../common/ecs';
 import type { Vec } from '../../common/math';
-import { RuleSet, type Params } from '../../common/simulation/physics';
+import { type Params } from '../../common/simulation/physics';
 import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
 import type { GameController } from './controller/game-controller';
@@ -50,7 +50,6 @@ import type { GameEvents } from './events';
 import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
-import { Rack } from './rack';
 import { BlackOutlinePass } from './rendering/black-outline-pass';
 import { GraphicsDetail, settings } from './store/settings';
 import { makeTheme } from './store/theme';
@@ -64,7 +63,10 @@ export class Game {
   public renderer!: WebGLRenderer;
   public composer!: EffectComposer;
   public overlayComposer!: EffectComposer;
+  /** dark outline pass */
   public outlinePass!: OutlinePass;
+  public lightOutlinePass!: OutlinePass;
+  public redOutlinePass!: OutlinePass;
   public camera!: Camera;
   public controls!: OrbitControls;
   public stats!: Stats;
@@ -185,8 +187,35 @@ export class Game {
     overlayRender.clear = false;
     this.composer.addPass(overlayRender);
 
+    // apparently this is the pass resolution??
+    const outlinePassSize = new Vector2(1, 1);
+
+    this.lightOutlinePass = new OutlinePass(
+      outlinePassSize,
+      this.overlay,
+      this.camera
+    );
+    this.lightOutlinePass.visibleEdgeColor = new Color(0xffffff);
+    this.lightOutlinePass.hiddenEdgeColor = new Color(0xffffff);
+    this.lightOutlinePass.edgeStrength = 1;
+    this.lightOutlinePass.pulsePeriod = 2;
+    this.lightOutlinePass.edgeGlow = 5;
+    this.composer.addPass(this.lightOutlinePass);
+
+    this.redOutlinePass = new OutlinePass(
+      outlinePassSize,
+      this.overlay,
+      this.camera
+    );
+    this.redOutlinePass.visibleEdgeColor = new Color(0xff0000);
+    this.redOutlinePass.hiddenEdgeColor = new Color(0xff0000);
+    this.redOutlinePass.edgeStrength = 5;
+    this.redOutlinePass.pulsePeriod = 10;
+    // this.redOutlinePass.edgeGlow = 0;
+    this.composer.addPass(this.redOutlinePass);
+
     this.outlinePass = new BlackOutlinePass(
-      new Vector2(window.innerWidth, window.innerHeight),
+      outlinePassSize,
       this.overlay,
       this.camera
     );
@@ -273,12 +302,6 @@ export class Game {
           return;
         case 'Shift':
           this.controls.enableZoom = true;
-          return;
-        case 'c':
-          this.ecs.emit('game/setup', {
-            rack: Rack.generate9Ball(Rack.getTip(this.params)),
-            ruleSet: RuleSet.Sandbox,
-          });
           return;
       }
     });

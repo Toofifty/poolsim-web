@@ -1,11 +1,13 @@
 import { ECS } from '../../common/ecs';
 import { Game } from './game';
 import { AudioPlugin } from './plugins/audio';
+import { BallPlugin } from './plugins/ball';
 import { CuePlugin } from './plugins/cue';
 import { GuidelinePlugin } from './plugins/guideline';
 import { MousePlugin } from './plugins/mouse';
 import { PhysicsPlugin } from './plugins/physics';
 import { TablePlugin } from './plugins/table';
+import { GameRuleProvider } from './resources/game-rules';
 import { SystemState } from './resources/system-state';
 import { BallShootSystem } from './systems/ball-shoot.system';
 import { BallUpdateSystem } from './systems/ball-update.system';
@@ -21,15 +23,22 @@ export const createECS = (game: Game) => {
   const ecs = new ECS(game);
 
   ecs.addResource(SystemState.create());
-  ecs.addSystem(new MeshRegisterSystem(game.scene));
-  ecs.addSystem(
-    new OverlayRegisterSystem(game.overlay, game.outlinePass.selectedObjects)
+  ecs.addResource(new GameRuleProvider());
+  ecs.addComponentTrackingSystem(new MeshRegisterSystem(game.scene));
+  ecs.addComponentTrackingSystem(
+    new OverlayRegisterSystem(
+      game.overlay,
+      game.outlinePass.selectedObjects,
+      game.lightOutlinePass.selectedObjects,
+      game.redOutlinePass.selectedObjects
+    )
   );
   ecs.addSystem(new BillboardUpdateSystem(game.camera));
 
   new MousePlugin().install(ecs);
   new CuePlugin().install(ecs);
   new TablePlugin().install(ecs);
+  new BallPlugin().install(ecs);
   new PhysicsPlugin().install(ecs);
   new AudioPlugin().install(ecs);
   new GuidelinePlugin().install(ecs);

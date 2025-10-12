@@ -4,6 +4,7 @@ import { BallId } from '../components/ball-id';
 import { PlayState } from '../controller/game-controller';
 import { spawnBall } from '../entities/ball';
 import type { GameEvents } from '../events';
+import { GameRuleProvider } from '../resources/game-rules';
 import { SystemState } from '../resources/system-state';
 
 export class TableSetupSystem extends EventSystem<'game/setup', GameEvents> {
@@ -24,6 +25,10 @@ export class TableSetupSystem extends EventSystem<'game/setup', GameEvents> {
 
     const systemState = ecs.resource(SystemState);
     systemState.playState = PlayState.PlayerShoot;
+
+    const ruleProvider = ecs.resource(GameRuleProvider);
+    ruleProvider.ruleSet = data.ruleSet;
+
     ecs.emit('input/cue-update', {
       force: defaultParams.cue.defaultForce,
       top: 0,

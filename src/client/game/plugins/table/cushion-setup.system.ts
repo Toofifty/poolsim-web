@@ -70,7 +70,7 @@ export class CushionSetupSystem extends StartupSystem {
     ];
 
     cushions.forEach((vertices) => {
-      ecs.createAndSpawnImmediate(Cushion.create(vertices), [
+      ecs.spawnImmediate(Cushion.create(vertices), [
         CushionMesh.create(vertices),
         Renderable,
       ]);

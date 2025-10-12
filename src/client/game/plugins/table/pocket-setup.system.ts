@@ -29,10 +29,7 @@ export class PocketSetupSystem extends StartupSystem {
     ];
 
     pockets.forEach((pocket) => {
-      ecs.createAndSpawnImmediate(
-        Pocket.create(pocket),
-        PocketMesh.create(pocket)
-      );
+      ecs.spawnImmediate(Pocket.create(pocket), PocketMesh.create(pocket));
     });
   }
 }

@@ -1,3 +1,4 @@
+import { Profiler, type IProfiler } from '@common/util/profiler';
 import {
   type Ctor,
   type ECSComponent,
@@ -78,7 +79,10 @@ export class ECS<
   public frameId = 0;
   public midframe = false;
 
-  constructor(public game: TWorld) {}
+  constructor(
+    public game: TWorld,
+    private profiler: IProfiler = Profiler.none
+  ) {}
 
   public emit<T extends keyof TEventMap>(event: T, data: TEventMap[T]) {
     const systems = this.eventSystems.get(event);
@@ -263,27 +267,41 @@ export class ECS<
     }
     this.midframe = true;
 
+    const end = this.profiler.start('ecs-update');
+
     this.deltaTime = deltaTime;
     this.frameId++;
 
-    for (let [system, entities] of this.systems.entries()) {
-      system.runAll(this, entities);
-    }
+    this.profiler.profile('system-calls', () => {
+      for (let [system, entities] of this.systems.entries()) {
+        this.profiler.profile('system', () => {
+          system.runAll(this, entities);
+        });
+      }
+    });
 
     while (this.entitiesToDestroy.length > 0) {
-      this.destroyEntity(this.entitiesToDestroy.shift()!);
+      this.profiler.profile('entity-destroy', () => {
+        this.destroyEntity(this.entitiesToDestroy.shift()!);
+      });
     }
 
     while (this.spawners.length > 0) {
-      this.spawners.shift()!();
+      this.profiler.profile('spawner', () => {
+        this.spawners.shift()!();
+      });
     }
 
     while (this.startupSystems.length > 0) {
-      const system = this.startupSystems.shift()!;
-      system.run(this);
+      this.profiler.profile('startup-system-call', () => {
+        const system = this.startupSystems.shift()!;
+        system.run(this);
+      });
     }
 
     this.midframe = false;
+
+    end();
   }
 
   private destroyEntity(entity: Entity): void {

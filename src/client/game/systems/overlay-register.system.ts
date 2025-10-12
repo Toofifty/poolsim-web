@@ -16,11 +16,22 @@ export class OverlayRegisterSystem extends ComponentTrackingSystem<OverlayRender
 
   constructor(
     private scene: Scene,
+    private darkOutlineScene: Scene,
+    private lightOutlineScene: Scene,
+    private redOutlineScene: Scene,
     private darkOutlines: Object3D[],
     private lightOutlines: Object3D[],
     private redOutlines: Object3D[]
   ) {
     super();
+  }
+
+  private getOutlineScene(color: 'light' | 'dark' | 'red' = 'dark') {
+    return color === 'light'
+      ? this.lightOutlineScene
+      : color === 'red'
+      ? this.redOutlineScene
+      : this.darkOutlineScene;
   }
 
   private getOutlinesArray(color: 'light' | 'dark' | 'red' = 'dark') {
@@ -32,9 +43,11 @@ export class OverlayRegisterSystem extends ComponentTrackingSystem<OverlayRender
   }
 
   public added(ecs: ECS, entity: Entity, component: OverlayRenderable): void {
-    this.scene.add(component.mesh);
     if (component.config.outline) {
+      this.getOutlineScene(component.config.outlineColor).add(component.mesh);
       this.getOutlinesArray(component.config.outlineColor).push(component.mesh);
+    } else {
+      this.scene.add(component.mesh);
     }
   }
 
@@ -43,15 +56,19 @@ export class OverlayRegisterSystem extends ComponentTrackingSystem<OverlayRender
     entity: Entity,
     component: OverlayRenderable
   ): void {
-    this.scene.remove(component.mesh);
     if (component.config.outline) {
-      const arr = this.getOutlinesArray(component.config.outlineColor);
+      this.getOutlineScene(component.config.outlineColor).remove(
+        component.mesh
+      );
 
+      const arr = this.getOutlinesArray(component.config.outlineColor);
       const index = arr.indexOf(component.mesh);
       if (index === -1) {
         throw new Error('Tried to remove outline from non-outlined mesh');
       }
       arr.splice(index, 1);
+    } else {
+      this.scene.remove(component.mesh);
     }
   }
 }

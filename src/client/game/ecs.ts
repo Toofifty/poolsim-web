@@ -28,7 +28,10 @@ export const createECS = (game: Game) => {
   ecs.addComponentTrackingSystem(
     new OverlayRegisterSystem(
       game.overlay,
-      game.outlinePass.selectedObjects,
+      game.darkOutlineScene,
+      game.lightOutlineScene,
+      game.redOutlineScene,
+      game.darkOutlinePass.selectedObjects,
       game.lightOutlinePass.selectedObjects,
       game.redOutlinePass.selectedObjects
     )

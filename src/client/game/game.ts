@@ -63,10 +63,14 @@ export class Game {
   public renderer!: WebGLRenderer;
   public composer!: EffectComposer;
   public overlayComposer!: EffectComposer;
-  /** dark outline pass */
-  public outlinePass!: OutlinePass;
+
+  public darkOutlineScene!: Scene;
+  public lightOutlineScene!: Scene;
+  public redOutlineScene!: Scene;
+  public darkOutlinePass!: OutlinePass;
   public lightOutlinePass!: OutlinePass;
   public redOutlinePass!: OutlinePass;
+
   public camera!: Camera;
   public controls!: OrbitControls;
   public stats!: Stats;
@@ -112,6 +116,9 @@ export class Game {
 
     this.scene = new Scene();
     this.overlay = new Scene();
+    this.darkOutlineScene = new Scene();
+    this.lightOutlineScene = new Scene();
+    this.redOutlineScene = new Scene();
 
     const aspect = window.innerWidth / window.innerHeight;
 
@@ -190,9 +197,15 @@ export class Game {
     // apparently this is the pass resolution??
     const outlinePassSize = new Vector2(1, 1);
 
+    const lightOutlineRender = new RenderPass(
+      this.lightOutlineScene,
+      this.camera
+    );
+    lightOutlineRender.clear = false;
+    this.composer.addPass(lightOutlineRender);
     this.lightOutlinePass = new OutlinePass(
       outlinePassSize,
-      this.overlay,
+      this.lightOutlineScene,
       this.camera
     );
     this.lightOutlinePass.visibleEdgeColor = new Color(0xffffff);
@@ -202,9 +215,12 @@ export class Game {
     this.lightOutlinePass.edgeGlow = 5;
     this.composer.addPass(this.lightOutlinePass);
 
+    const redOutlineRender = new RenderPass(this.redOutlineScene, this.camera);
+    redOutlineRender.clear = false;
+    this.composer.addPass(redOutlineRender);
     this.redOutlinePass = new OutlinePass(
       outlinePassSize,
-      this.overlay,
+      this.redOutlineScene,
       this.camera
     );
     this.redOutlinePass.visibleEdgeColor = new Color(0xff0000);
@@ -214,16 +230,22 @@ export class Game {
     // this.redOutlinePass.edgeGlow = 0;
     this.composer.addPass(this.redOutlinePass);
 
-    this.outlinePass = new BlackOutlinePass(
-      outlinePassSize,
-      this.overlay,
+    const darkOutlineRender = new RenderPass(
+      this.darkOutlineScene,
       this.camera
     );
-    this.outlinePass.visibleEdgeColor = new Color(0x000000);
-    this.outlinePass.hiddenEdgeColor = new Color(0x000000);
-    this.outlinePass.edgeStrength = 2;
-    this.outlinePass.edgeGlow = 0;
-    this.composer.addPass(this.outlinePass);
+    darkOutlineRender.clear = false;
+    this.composer.addPass(darkOutlineRender);
+    this.darkOutlinePass = new BlackOutlinePass(
+      outlinePassSize,
+      this.darkOutlineScene,
+      this.camera
+    );
+    this.darkOutlinePass.visibleEdgeColor = new Color(0x000000);
+    this.darkOutlinePass.hiddenEdgeColor = new Color(0x000000);
+    this.darkOutlinePass.edgeStrength = 2;
+    this.darkOutlinePass.edgeGlow = 0;
+    this.composer.addPass(this.darkOutlinePass);
 
     this.composer.addPass(new OutputPass());
 
@@ -420,12 +442,12 @@ export class Game {
   }
 
   private setupAmbientLight() {
-    const light = new AmbientLight(0xffffff);
-    light.intensity = 0.5;
-    this.scene.add(light);
+    this.scene.add(new AmbientLight(0xffffff, 0.5));
 
-    const overlayLight = new AmbientLight(0xffffff, 10);
-    this.overlay.add(overlayLight);
+    this.overlay.add(new AmbientLight(0xffffff, 10));
+    this.darkOutlineScene.add(new AmbientLight(0xffffff, 10));
+    this.lightOutlineScene.add(new AmbientLight(0xffffff, 10));
+    this.redOutlineScene.add(new AmbientLight(0xffffff, 10));
   }
 
   private setupSky() {
@@ -453,7 +475,7 @@ export class Game {
     this.overlay.add(obj);
     if (outline) {
       this.outlinedOverlays.add(obj);
-      this.outlinePass.selectedObjects = [...this.outlinedOverlays];
+      this.darkOutlinePass.selectedObjects = [...this.outlinedOverlays];
     }
   }
 
@@ -465,7 +487,7 @@ export class Game {
     this.overlay.remove(obj);
     if (this.outlinedOverlays.has(obj)) {
       this.outlinedOverlays.delete(obj);
-      this.outlinePass.selectedObjects = [...this.outlinedOverlays];
+      this.darkOutlinePass.selectedObjects = [...this.outlinedOverlays];
     }
   }
 

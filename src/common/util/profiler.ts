@@ -7,6 +7,8 @@ export interface IProfiler {
   start(key: string): () => void;
 }
 
+const noop = () => {};
+
 export class Profiler implements IProfiler {
   private profiles: Record<string, number[]> = {};
   private activeProfiles: Record<string, number> = {};
@@ -16,7 +18,7 @@ export class Profiler implements IProfiler {
   public static none: IProfiler = {
     dump: () => {},
     profile: <T = void>(_: string, fn: () => T) => fn(),
-    start: (_) => () => {},
+    start: (_) => noop,
   };
 
   public dump() {

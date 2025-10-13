@@ -148,9 +148,9 @@ const getBallTheme = (): ThemeObject['balls'] => {
       return {
         ...base,
         colorBallNumber: new Color(0xffffff),
-        colorCueBallAccent: new Color(0xffffff),
-        colorBallCircle: new Color(0x333333),
-        colors: [0x333333, ...base.colors.slice(1)],
+        colorCueBallAccent: new Color(0x000000),
+        colorBallCircle: new Color(0x000000),
+        colors: [0xaaaaaa, ...base.colors.slice(1)],
       };
     case 'chrome':
       return {

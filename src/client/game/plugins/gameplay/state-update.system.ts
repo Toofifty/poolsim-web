@@ -3,10 +3,9 @@ import { vec } from '@common/math';
 import { Ruleset } from '@common/simulation/physics';
 import { EightBallState } from '@common/simulation/table-state';
 import { assert, assertExists } from '@common/util';
-import { PlayState } from '../../controller/game-controller';
 import type { GameEvents } from '../../events';
 import { GameRuleProvider } from '../../resources/game-rules';
-import { SystemState } from '../../resources/system-state';
+import { GameState, SystemState } from '../../resources/system-state';
 import { Physics } from '../physics/physics.component';
 import { getTurnResult, isGameOver } from '../physics/simulation/result';
 
@@ -19,8 +18,8 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
   ): void {
     const system = ecs.resource(SystemState);
 
-    if (system.playState === PlayState.PlayerInPlay) {
-      system.playState = PlayState.PlayerShoot;
+    if (system.gameState === GameState.Playing) {
+      system.gameState = GameState.Shooting;
     }
 
     const turnResult = getTurnResult(data.result, data.rules);
@@ -36,6 +35,9 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
         });
         return;
       }
+
+      system.turnIndex = (system.turnIndex + 1) % system.playerCount;
+      ecs.emit('game/change-player', system.turnIndex);
 
       const cueBallEntity = ecs.query().has(Physics).findOne();
       assertExists(cueBallEntity);
@@ -74,7 +76,6 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
           : EightBallState.Player1Stripes;
         ecs.emit('game/8-ball-state-change', {
           state: system.eightBallState,
-          currentPlayer: system.turnIndex,
         });
       } else if (pottedStripe && !pottedSolid) {
         system.eightBallState = isPlayer1
@@ -82,12 +83,9 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
           : EightBallState.Player1Solids;
         ecs.emit('game/8-ball-state-change', {
           state: system.eightBallState,
-          currentPlayer: system.turnIndex,
         });
       }
     }
-
-    // todo: game over check here
 
     if (!turnResult.success) {
       system.turnIndex = (system.turnIndex + 1) % system.playerCount;

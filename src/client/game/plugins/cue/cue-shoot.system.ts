@@ -2,10 +2,9 @@ import { ECS, EventSystem } from '@common/ecs';
 import { defaultParams } from '@common/simulation/physics';
 import { Shot } from '@common/simulation/shot';
 import { assertExists } from '@common/util';
-import { PlayState } from '../../controller/game-controller';
 import { dlerp } from '../../dlerp';
 import type { GameEvents } from '../../events';
-import { SystemState } from '../../resources/system-state';
+import { GameState, SystemState } from '../../resources/system-state';
 import { Cue } from './cue.component';
 
 export class CueShootSystem extends EventSystem<
@@ -19,7 +18,7 @@ export class CueShootSystem extends EventSystem<
     data: GameEvents['input/mouse-pressed']
   ): Promise<void> {
     const systemState = ecs.resource(SystemState);
-    if (systemState.playState !== PlayState.PlayerShoot) return;
+    if (systemState.gameState !== GameState.Shooting) return;
     if (data.button !== 0) return;
 
     const cueEntity = ecs.query().firstWith(Cue);

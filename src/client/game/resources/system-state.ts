@@ -1,20 +1,30 @@
 import { EightBallState } from '@common/simulation/table-state';
 import { subscribe } from 'valtio';
-import { Resource } from '../../../common/ecs';
-import { PlayState } from '../controller/game-controller';
-import { gameStore } from '../store/game';
+import { ECS, Resource } from '../../../common/ecs';
+import type { GameEvents } from '../events';
 import { settings } from '../store/settings';
 
+export enum GameState {
+  Initializing = 'Initializing',
+  /** A player is aiming */
+  Shooting = 'Shooting',
+  /** Simulation running / playing */
+  Playing = 'Playing',
+  /** A player has ball in hand */
+  BallInHand = 'BallInHand',
+  GameOver = 'GameOver',
+}
+
 export class SystemState extends Resource {
-  // todo: new PlayState enum
-  private _playState: PlayState = PlayState.Initializing;
+  private _gameState: GameState = GameState.Initializing;
   public eightBallState = EightBallState.Open;
-  public playerCount = 1;
+  private _currentPlayer = 0;
+  public playerCount = 2;
   public turnIndex = 0;
   public isBreak = true;
   public paused = false;
 
-  constructor() {
+  constructor(private ecs: ECS<GameEvents>) {
     super();
 
     subscribe(settings, () => {
@@ -22,17 +32,26 @@ export class SystemState extends Resource {
     });
   }
 
-  get playState() {
-    return this._playState;
+  get gameState() {
+    return this._gameState;
   }
 
-  set playState(value: PlayState) {
-    this._playState = value;
-    gameStore.state = value;
+  set gameState(value: GameState) {
+    this._gameState = value;
+    this.ecs.emit('game/state-update', value);
   }
 
-  public static create() {
-    return new SystemState();
+  get currentPlayer() {
+    return this._currentPlayer;
+  }
+
+  set currentPlayer(value: number) {
+    this._currentPlayer = value;
+    this.ecs.emit('game/current-player-update', value);
+  }
+
+  public static create(ecs: ECS<GameEvents>) {
+    return new SystemState(ecs);
   }
 
   get currentPlayer8BallState() {

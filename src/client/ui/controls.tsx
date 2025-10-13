@@ -11,8 +11,8 @@ import {
   Ruleset,
   type StaticParams,
 } from '../../common/simulation/physics';
-import { PlayState } from '../game/controller/game-controller';
 import { Game } from '../game/game';
+import { GameState } from '../game/resources/system-state';
 import { gameStore } from '../game/store/game';
 import { Players, settings } from '../game/store/settings';
 import { socket } from '../socket';
@@ -25,30 +25,25 @@ import './controls.scss';
 import { OverlayParamEditor } from './overlay-param-editor';
 import { PowerBar } from './power-bar';
 import { Surface } from './surface';
+import { useGameBinding } from './use-game-binding';
 import { useGameNotifications } from './use-game-notifications';
 import { useIsMobile } from './use-media-query';
 
-const getStateName = (state: PlayState | undefined) => {
+const getStateName = (state: GameState, isCurrentPlayer = false) => {
   switch (state) {
-    case PlayState.Initializing:
+    case GameState.Initializing:
       return 'Initializing';
-    case PlayState.AIInPlay:
-      return 'AI turn';
-    case PlayState.AIShoot:
-      return 'AI is thinking';
-    case PlayState.PlayerInPlay:
-      return 'Your turn (playing)';
-    case PlayState.PlayerShoot:
-      return 'Your turn';
-    case PlayState.PlayerBallInHand:
-      return 'You have ball in hand';
-    case PlayState.OpponentInPlay:
-      return "Opponent's turn (playing)";
-    case PlayState.OpponentShoot:
-      return "Opponent's turn";
-    case PlayState.OpponentBallInHand:
-      return 'Opponent has ball in hand';
-    case PlayState.GameOver:
+    case GameState.Playing:
+      return isCurrentPlayer
+        ? 'Your turn (playing)'
+        : "Opponent's turn (playing)";
+    case GameState.Shooting:
+      return isCurrentPlayer ? 'Your turn' : "Opponent's turn";
+    case GameState.BallInHand:
+      return isCurrentPlayer
+        ? 'You have ball in hand'
+        : 'Opponent has ball in hand';
+    case GameState.GameOver:
       return 'Game over';
     default:
       return `Unknown ${state}`;
@@ -59,7 +54,7 @@ export const Controls = () => {
   const ecs = useGameContext().ecs;
   const { preferencesOpen, paramEditorOpen, controlsOpen } =
     useSnapshot(settings);
-  const { state, analysisProgress } = useSnapshot(gameStore);
+  const { analysisProgress } = useSnapshot(gameStore);
   const { lobby } = useLobby();
   const isHost = !lobby || lobby?.hostId === socket.id;
   const isMultiplayer = !!lobby;
@@ -69,6 +64,18 @@ export const Controls = () => {
   const localParams = useSnapshot(params);
 
   useGameNotifications();
+
+  const gameState = useGameBinding(
+    'game/state-update',
+    (state) => state,
+    GameState.Initializing
+  );
+  const currentPlayer = useGameBinding(
+    'game/current-player-update',
+    (p) => p,
+    0
+  );
+  const playerIndex = useGameBinding('game/change-player', (p) => p, 0);
 
   const onEdit = (key: DeepKeyOf<StaticParams>, value: unknown) => {
     const path = key.split('.');
@@ -117,10 +124,10 @@ export const Controls = () => {
           <div className="group lower">
             {lobby && <span>{lobby.id}</span>}
             <span>
-              {getStateName(state)}
-              {state === PlayState.AIShoot && (
+              {getStateName(gameState, currentPlayer === playerIndex)}
+              {/* {gameState === GameState.Shooting && (
                 <code> {analysisProgress.toFixed(0)}%</code>
-              )}
+              )} */}
             </span>
           </div>
         </Surface>

@@ -1,9 +1,8 @@
 import { ECS, System, type Entity } from '@common/ecs';
 import { Shot } from '@common/simulation/shot';
 import { assert } from '@common/util';
-import { PlayState } from '../../controller/game-controller';
 import { GameRuleProvider } from '../../resources/game-rules';
-import { SystemState } from '../../resources/system-state';
+import { GameState, SystemState } from '../../resources/system-state';
 import { Cue } from '../cue/cue.component';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
 import { Physics } from '../physics/physics.component';
@@ -22,7 +21,7 @@ export class GuidelineTargetSystem extends System {
   public async run(ecs: ECS<any, unknown>, entity: Entity): Promise<void> {
     const system = ecs.resource(SystemState);
     const [guideline] = ecs.get(entity, Guideline);
-    if (system.playState !== PlayState.PlayerShoot) {
+    if (system.gameState !== GameState.Shooting) {
       if (guideline.key !== undefined) {
         guideline.reset();
       }

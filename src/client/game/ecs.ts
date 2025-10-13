@@ -22,7 +22,7 @@ import { WorldSetupSystem } from './systems/world-setup-system';
 export const createECS = (game: Game) => {
   const ecs = new ECS(game);
 
-  ecs.addResource(SystemState.create());
+  ecs.addResource(SystemState.create(ecs));
   ecs.addResource(new GameRuleProvider());
   ecs.addComponentTrackingSystem(new MeshRegisterSystem(game.scene));
   ecs.addComponentTrackingSystem(

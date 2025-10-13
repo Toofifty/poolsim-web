@@ -1,4 +1,5 @@
 import { Ruleset } from '@common/simulation/physics';
+import { EightBallState } from '@common/simulation/table-state';
 import { notifications } from '@mantine/notifications';
 import type { TurnFoul } from '../game/plugins/physics/simulation/result';
 import { useGameBinding } from './use-game-binding';
@@ -45,7 +46,11 @@ export const useGameNotifications = () => {
     (data) => data.ruleset,
     Ruleset._8Ball
   );
-  const currentPlayer = 0;
+  const currentPlayer = useGameBinding(
+    'game/current-player-update',
+    (p) => p,
+    0
+  );
 
   useGameEvent('game/foul', ({ foulReason }) => {
     notifications.show({ message: `Foul: ${foulLabels[ruleset][foulReason]}` });
@@ -64,4 +69,18 @@ export const useGameNotifications = () => {
       });
     }
   });
+
+  useGameEvent(
+    'game/8-ball-state-change',
+    ({ state }) => {
+      if (state === EightBallState.Open) return;
+
+      if ((currentPlayer === 0) === (state === EightBallState.Player1Solids)) {
+        notifications.show({ message: 'You are solids' });
+      } else {
+        notifications.show({ message: 'You are stripes' });
+      }
+    },
+    [currentPlayer]
+  );
 };

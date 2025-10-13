@@ -1,9 +1,8 @@
 import { ECS, System, type Entity } from '@common/ecs';
 import { vec } from '@common/math';
 import { BallId } from '../../components/ball-id';
-import { PlayState } from '../../controller/game-controller';
 import type { GameEvents } from '../../events';
-import { SystemState } from '../../resources/system-state';
+import { GameState, SystemState } from '../../resources/system-state';
 import { MousePosition } from '../mouse/mouse-position.resource';
 import { Physics } from '../physics/physics.component';
 import { Cue } from './cue.component';
@@ -13,7 +12,7 @@ export class CueTargetSystem extends System {
 
   public run(ecs: ECS<GameEvents, unknown>, entity: Entity): void {
     const systemState = ecs.resource(SystemState);
-    if (systemState.playState !== PlayState.PlayerShoot) {
+    if (systemState.gameState !== GameState.Shooting) {
       return;
     }
 

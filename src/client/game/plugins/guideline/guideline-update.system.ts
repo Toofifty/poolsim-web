@@ -2,8 +2,7 @@ import { ECS, System, type Entity } from '@common/ecs';
 import { assert } from '@common/util';
 import { Color } from 'three';
 import { LineMesh } from '../../components/line-mesh.component';
-import { PlayState } from '../../controller/game-controller';
-import { SystemState } from '../../resources/system-state';
+import { GameState, SystemState } from '../../resources/system-state';
 import { settings } from '../../store/settings';
 import { toVector3 } from '../../util/three-interop';
 import { Cue } from '../cue/cue.component';
@@ -66,7 +65,7 @@ export class GuidelineUpdateSystem extends System {
 
     const systemState = ecs.resource(SystemState);
     if (
-      systemState.playState !== PlayState.PlayerShoot ||
+      systemState.gameState !== GameState.Shooting ||
       (guideline.trackingPoints.length === 0 && !guideline.computing) ||
       ecs.query().resolveFirst(Cue).shooting
     ) {

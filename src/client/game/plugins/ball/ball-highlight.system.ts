@@ -1,9 +1,8 @@
 import { ECS, System, type Entity } from '@common/ecs';
 import { BallId } from '../../components/ball-id';
-import { PlayState } from '../../controller/game-controller';
 import { GameRuleProvider } from '../../resources/game-rules';
 import type { GameRules } from '../../resources/game-rules/types';
-import { SystemState } from '../../resources/system-state';
+import { GameState, SystemState } from '../../resources/system-state';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
 import { Physics } from '../physics/physics.component';
 import { BallHighlight } from './ball-highlight.component';
@@ -32,10 +31,10 @@ export class BallHighlightSystem extends System {
     const [{ id }] = ecs.get(entity, BallId);
     const components = ecs.getComponents(entity);
     const shouldHighlight =
-      systemState.playState === PlayState.PlayerShoot &&
+      systemState.gameState === GameState.Shooting &&
       this.rules.validTargets.includes(id);
     const shouldHighlightRed =
-      systemState.playState === PlayState.PlayerShoot &&
+      systemState.gameState === GameState.Shooting &&
       this.rules.invalidTargets.includes(id);
     const hasHighlight = components.has(BallHighlight);
 

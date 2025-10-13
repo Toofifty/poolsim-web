@@ -12,8 +12,12 @@ import type {
 import type { Result, TurnFoul } from './plugins/physics/simulation/result';
 import type { Sandboxes } from './rack';
 import type { GameRules } from './resources/game-rules/types';
+import type { GameState } from './resources/system-state';
 
 export type GameEvents = {
+  'game/state-update': GameState;
+  'game/current-player-update': number;
+  'game/change-player': number;
   'game/setup': {
     rack: {
       id: number;
@@ -42,11 +46,9 @@ export type GameEvents = {
   'game/game-over': {
     winner: number;
   };
-  'game/change-player': number;
   'game/cue-update': Cue;
   'game/8-ball-state-change': {
     state: EightBallState;
-    currentPlayer: number;
   };
 
   'input/mouse-move': {

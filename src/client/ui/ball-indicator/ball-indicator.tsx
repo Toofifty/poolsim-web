@@ -47,9 +47,14 @@ const EightBallIndicator = () => {
   const [eightBallState, setEightBallState] = useState<EightBallState>(
     EightBallState.Open
   );
-  const [isPlayer1, setIsPlayer1] = useState(false);
 
-  const playerState = getPlayer8BallState(eightBallState, isPlayer1);
+  const currentPlayer = useGameBinding(
+    'game/current-player-update',
+    (p) => p,
+    0
+  );
+
+  const playerState = getPlayer8BallState(eightBallState, currentPlayer === 0);
 
   const sortAndAddBalls = useCallback(
     (ids: number[], eightBallState: EightBallState, isPlayer1: boolean) => {
@@ -83,23 +88,21 @@ const EightBallIndicator = () => {
       setPlayer2Balls(new Array(7).fill(undefined));
       setUnclaimedBalls([]);
       setEightBallState(EightBallState.Open);
-      setIsPlayer1(false);
     },
     []
   );
 
   useGameEvent(
     'game/8-ball-state-change',
-    ({ state, currentPlayer }) => {
+    ({ state }) => {
       setEightBallState(state);
-      setIsPlayer1(currentPlayer === 0);
 
       if (unclaimedBalls.length > 0) {
         sortAndAddBalls(unclaimedBalls, state, currentPlayer === 0);
         setUnclaimedBalls([]);
       }
     },
-    [unclaimedBalls]
+    [unclaimedBalls, currentPlayer]
   );
 
   const addBall = useCallback(
@@ -111,9 +114,9 @@ const EightBallIndicator = () => {
         return;
       }
 
-      sortAndAddBalls([id], eightBallState, isPlayer1);
+      sortAndAddBalls([id], eightBallState, currentPlayer === 0);
     },
-    [eightBallState, isPlayer1]
+    [eightBallState, currentPlayer]
   );
 
   useGameEvent(
@@ -122,10 +125,7 @@ const EightBallIndicator = () => {
     [addBall]
   );
 
-  useGameEvent('game/ball-ejected', (id) => addBall(id), [
-    eightBallState,
-    isPlayer1,
-  ]);
+  useGameEvent('game/ball-ejected', (id) => addBall(id), [addBall]);
 
   return (
     <div className="ball-indicator__container">

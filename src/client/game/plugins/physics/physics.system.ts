@@ -1,9 +1,8 @@
 import { ECS, System, type Entity } from '@common/ecs';
-import { PlayState } from '../../controller/game-controller';
 import type { GameEvents } from '../../events';
 import { GameRuleProvider } from '../../resources/game-rules';
 import type { GameRules } from '../../resources/game-rules/types';
-import { SystemState } from '../../resources/system-state';
+import { GameState, SystemState } from '../../resources/system-state';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
 import { Cushion } from '../table/cushion.component';
 import { Pocket } from '../table/pocket.component';
@@ -21,10 +20,7 @@ export class PhysicsSystem extends System {
 
   public runAll(ecs: ECS<GameEvents, unknown>, entities: Set<Entity>): void {
     const systemState = ecs.resource(SystemState);
-    if (
-      systemState.playState !== PlayState.PlayerInPlay ||
-      systemState.paused
-    ) {
+    if (systemState.gameState !== GameState.Playing || systemState.paused) {
       if (this.accumulatedResult !== undefined) {
         this.accumulatedResult = undefined;
       }

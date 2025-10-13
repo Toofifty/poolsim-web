@@ -42,6 +42,7 @@ export enum PlayState {
   AIInPlay,
   PlayerBallInHand,
   OpponentBallInHand,
+  GameOver,
 }
 
 export type GameControllerEventMap = {

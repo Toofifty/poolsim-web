@@ -48,6 +48,8 @@ const getStateName = (state: PlayState | undefined) => {
       return "Opponent's turn";
     case PlayState.OpponentBallInHand:
       return 'Opponent has ball in hand';
+    case PlayState.GameOver:
+      return 'Game over';
     default:
       return `Unknown ${state}`;
   }
@@ -199,6 +201,16 @@ export const Controls = () => {
                             }
                           >
                             Cubicle troll
+                          </Menu.Item>
+                          <Menu.Item
+                            onClick={() =>
+                              ecs.emit('input/setup-game', {
+                                ruleset: Ruleset.Sandbox,
+                                sandbox: 'newtons-cradle',
+                              })
+                            }
+                          >
+                            Newton's cradle
                           </Menu.Item>
                         </Menu.Dropdown>
                       </Menu>

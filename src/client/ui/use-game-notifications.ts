@@ -45,8 +45,23 @@ export const useGameNotifications = () => {
     (data) => data.ruleset,
     Ruleset._8Ball
   );
+  const currentPlayer = 0;
 
   useGameEvent('game/foul', ({ foulReason }) => {
     notifications.show({ message: `Foul: ${foulLabels[ruleset][foulReason]}` });
+  });
+
+  useGameEvent('game/game-over', ({ winner }) => {
+    if (winner === currentPlayer) {
+      notifications.show({ message: 'You win!' });
+    } else {
+      notifications.show({ message: `Game over! Player ${winner + 1} wins!` });
+    }
+
+    if (currentPlayer === 0) {
+      notifications.show({
+        message: 'Press one of the buttons above to start a new game.',
+      });
+    }
   });
 };

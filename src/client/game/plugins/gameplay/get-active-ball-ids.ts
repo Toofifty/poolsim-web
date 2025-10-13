@@ -2,9 +2,9 @@ import type { ECS, Entity } from '@common/ecs';
 import { Physics, PhysicsState } from '../physics/physics.component';
 
 export const getActiveBallIds = (ecs: ECS, entities?: Set<Entity>) => {
-  const ballEntities = entities
-    ? [...entities].splice(1)
-    : ecs.query().has(Physics).findAll();
+  const ballEntities = (
+    entities ? [...entities] : ecs.query().has(Physics).findAll()
+  ).splice(1);
 
   const active: number[] = [];
   for (const entity of ballEntities) {

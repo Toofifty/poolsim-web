@@ -5,6 +5,7 @@ import { PlayState } from '../../controller/game-controller';
 import { GameRuleProvider } from '../../resources/game-rules';
 import { SystemState } from '../../resources/system-state';
 import { Cue } from '../cue/cue.component';
+import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
 import { Physics } from '../physics/physics.component';
 import { hasImmediateFoul } from '../physics/simulation/result';
 import { createSimulationState } from '../physics/simulation/state';
@@ -44,13 +45,12 @@ export class GuidelineTargetSystem extends System {
     const cushions = ecs.query().resolveAll(Cushion);
     const pockets = ecs.query().resolveAll(Pocket);
 
-    const rules = ecs.resource(GameRuleProvider).getRules(
-      balls.map((ball) => ball.id),
-      {
+    const rules = ecs
+      .resource(GameRuleProvider)
+      .getRules(getActiveBallIds(ecs), {
         isBreak: system.isBreak,
         turn: system.currentPlayer8BallState,
-      }
-    );
+      });
 
     CONSOLE_TIME && console.timeEnd('guideline-query');
 

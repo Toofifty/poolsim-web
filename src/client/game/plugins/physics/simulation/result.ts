@@ -1,3 +1,4 @@
+import { Ruleset } from '@common/simulation/physics';
 import type { GameRules } from '../../../resources/game-rules/types';
 import type { Collision } from '../collision/types';
 import { Physics, type PhysicsSnapshot } from '../physics.component';
@@ -189,5 +190,20 @@ export const getTurnResult = (result: Result, rules: GameRules): TurnResult => {
         ),
       };
     }
+  }
+};
+
+export const isGameOver = (result: Result, rules: GameRules) => {
+  switch (rules.ruleset) {
+    case Ruleset._8Ball:
+      return result.ballsPotted.includes(8) || result.ballsEjected.includes(8);
+    case Ruleset._9Ball:
+      return result.ballsPotted.includes(9) || result.ballsEjected.includes(9);
+    default:
+      return rules.validTargets.every(
+        (ball) =>
+          result.ballsPotted.includes(ball) ||
+          result.ballsEjected.includes(ball)
+      );
   }
 };

@@ -7,7 +7,7 @@ const gap = 0.001;
 
 const getGap = () => Math.random() * gap;
 
-export type Sandboxes = 'debug' | 'cubicle-troll';
+export type Sandboxes = 'debug' | 'cubicle-troll' | 'newtons-cradle';
 
 export class Rack {
   private static generateFromLayout(tip: Vec, layout: number[][]) {
@@ -118,12 +118,38 @@ export class Rack {
     });
   }
 
+  static generateNewtonsCradle(params: Params) {
+    const theme = makeTheme();
+
+    return [
+      {
+        id: 0,
+        number: 0,
+        color: theme.balls.colors[0],
+        position: vec.new(-params.table.length / 4, 0),
+        orientation: quat.new(),
+      },
+      ...new Array(5).fill(0).map((_, i) => ({
+        id: i + 1,
+        number: i + 1,
+        color: theme.balls.colors[i + 1],
+        position: vec.new(
+          params.table.length / 6 + params.ball.radius * 2 * i,
+          0
+        ),
+        orientation: quat.new(),
+      })),
+    ];
+  }
+
   static generateSandboxGame(params: Params, type: Sandboxes) {
     switch (type) {
       case 'debug':
         return this.generateDebugGame(this.getTip(params));
       case 'cubicle-troll':
         return this.generateCubicleTroll(params);
+      case 'newtons-cradle':
+        return this.generateNewtonsCradle(params);
     }
   }
 }

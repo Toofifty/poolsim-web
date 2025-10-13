@@ -8,7 +8,7 @@ import type { GameEvents } from '../../events';
 import { GameRuleProvider } from '../../resources/game-rules';
 import { SystemState } from '../../resources/system-state';
 import { Physics } from '../physics/physics.component';
-import { getTurnResult } from '../physics/simulation/result';
+import { getTurnResult, isGameOver } from '../physics/simulation/result';
 
 export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
   public event = 'game/settled' as const;
@@ -24,10 +24,19 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
     }
 
     const turnResult = getTurnResult(data.result, data.rules);
+    const gameOver = isGameOver(data.result, data.rules);
 
     // todo: ball in hand
     if (turnResult.fouled) {
       ecs.emit('game/foul', turnResult);
+
+      if (gameOver) {
+        ecs.emit('game/game-over', {
+          winner: (system.turnIndex + 1) % system.playerCount,
+        });
+        return;
+      }
+
       const cueBallEntity = ecs.query().has(Physics).findOne();
       assertExists(cueBallEntity);
       const [physics] = ecs.get(cueBallEntity, Physics);
@@ -35,6 +44,13 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
       vec.mset(physics.r, 0, 0, 0);
       vec.mset(physics.v, 0, 0, 0);
       vec.mset(physics.w, 0, 0, 0);
+      return;
+    }
+
+    if (gameOver) {
+      ecs.emit('game/game-over', {
+        winner: system.turnIndex,
+      });
       return;
     }
 

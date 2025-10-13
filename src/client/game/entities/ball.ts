@@ -10,6 +10,7 @@ export const spawnBall = (
   {
     id,
     position,
+    orientation,
   }: {
     id: number;
     number: number;
@@ -20,7 +21,12 @@ export const spawnBall = (
 ) => {
   return ecs.spawn(
     BallId.create({ id }),
-    Physics.create({ id, r: position, R: defaultParams.ball.radius }),
+    Physics.create({
+      id,
+      r: position,
+      R: defaultParams.ball.radius,
+      orientation,
+    }),
     BallMesh.create({ id })
   );
 };

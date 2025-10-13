@@ -39,6 +39,9 @@ export type GameEvents = {
   'game/pocket-collision': BallPocketCollision;
   'game/ball-ejected': number;
   'game/foul': TurnFoul;
+  'game/game-over': {
+    winner: number;
+  };
   'game/change-player': number;
   'game/cue-update': Cue;
   'game/8-ball-state-change': {

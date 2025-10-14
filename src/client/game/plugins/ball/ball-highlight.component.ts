@@ -1,15 +1,16 @@
 import type { Vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
 import { Mesh, SphereGeometry } from 'three';
-import { OverlayBillboardRenderable } from '../../components/overlay-billboard-renderable';
+import { OverlayRenderable } from '../../components/overlay-renderable';
 import { createMaterial } from '../../rendering/create-material';
 import { toVector3 } from '../../util/three-interop';
 
-const width = 0.05;
-
-export class BallHighlight extends OverlayBillboardRenderable {
-  constructor(public ring: Mesh, color?: 'light' | 'dark' | 'red') {
-    super(ring, {
+/**
+ * Draws an invisible ball onto the overlay layer with an outline
+ */
+export class BallHighlight extends OverlayRenderable {
+  constructor(public ghost: Mesh, color?: 'light' | 'dark' | 'red') {
+    super(ghost, {
       outline: true,
       outlineColor: color,
     });
@@ -23,7 +24,7 @@ export class BallHighlight extends OverlayBillboardRenderable {
     color?: 'light' | 'dark' | 'red';
   }) {
     const { ball } = defaultParams;
-    const ring = new Mesh(
+    const ghost = new Mesh(
       new SphereGeometry(ball.radius),
       createMaterial({
         depthTest: false,
@@ -32,7 +33,7 @@ export class BallHighlight extends OverlayBillboardRenderable {
         color: 0xffffff,
       })
     );
-    ring.position.copy(toVector3(position));
-    return new BallHighlight(ring, color);
+    ghost.position.copy(toVector3(position));
+    return new BallHighlight(ghost, color);
   }
 }

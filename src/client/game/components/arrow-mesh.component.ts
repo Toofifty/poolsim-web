@@ -6,6 +6,7 @@ import {
   MeshPhysicalMaterial,
   Object3D,
   Vector3,
+  type MeshPhysicalMaterialParameters,
 } from 'three';
 import { createMaterial } from '../rendering/create-material';
 import { toVector3 } from '../util/three-interop';
@@ -44,9 +45,14 @@ export class ArrowMesh extends OverlayRenderable {
   public static create({
     opacity = 1,
     scale = 1,
-  }: { opacity?: number; scale?: number } = {}) {
+    color,
+  }: {
+    opacity?: number;
+    scale?: number;
+    color?: MeshPhysicalMaterialParameters['color'];
+  } = {}) {
     const material = createMaterial({
-      color: 0xffffff,
+      color: color ?? 0xffffff,
       depthTest: false,
       depthWrite: false,
       transparent: opacity < 1,

@@ -2,6 +2,7 @@ import { proxy } from 'valtio';
 import { params } from '../../../common/simulation/physics';
 import type { PlayState } from '../controller/game-controller';
 
+/** @deprecated */
 export const gameStore = proxy({
   state: undefined as PlayState | undefined,
   cueForce: params.cue.defaultForce,

@@ -1,4 +1,4 @@
-import { defaultParams, type Params } from '@common/simulation/physics';
+import { type Params } from '@common/simulation/physics';
 import { assert, assertExists } from '@common/util';
 import { Profiler, type IProfiler } from '@common/util/profiler';
 import {
@@ -26,6 +26,7 @@ import {
 import type { SimulationState } from './state';
 
 export type SimulationStepParameters = {
+  params: Params;
   trackPath: boolean;
   stepIndex?: number;
 
@@ -46,6 +47,7 @@ const simulationSubstep = (
   state: SimulationState,
   result: Result,
   {
+    params,
     trackPath,
     stepIndex = -1,
     profiler = Profiler.none,
@@ -53,14 +55,11 @@ const simulationSubstep = (
   }: Omit<SimulationStepParameters, 'result'>
 ): Result => {
   const doTrackPath =
-    trackPath && stepIndex % defaultParams.simulation.trackingPointDist === 0;
+    trackPath && stepIndex % params.simulation.trackingPointDist === 0;
 
   const endBallUpdate = profiler.start('ball-update');
   for (const ball of state.balls) {
-    if (
-      outOfBounds(defaultParams, ball) &&
-      ball.state !== PhysicsState.OutOfPlay
-    ) {
+    if (outOfBounds(params, ball) && ball.state !== PhysicsState.OutOfPlay) {
       ball.state = PhysicsState.OutOfPlay;
       addEjectedBall(result, ball);
     }
@@ -72,12 +71,12 @@ const simulationSubstep = (
         `Could not find pocket ${ball.pocketId}`
       );
 
-      evolvePocket(ball, state.pockets[ball.pocketId], dt);
+      evolvePocket(params, ball, state.pockets[ball.pocketId], dt);
     } else {
-      evolveMotion(ball, dt);
+      evolveMotion(params, ball, dt);
     }
 
-    evolveOrientation(ball, dt);
+    evolveOrientation(params, ball, dt);
     if (doTrackPath) {
       addTrackingPoint(result, ball);
     }
@@ -88,7 +87,7 @@ const simulationSubstep = (
     const endBallBall = profiler.start('ball-ball');
     // ball <-> ball collisions
     for (const [ball1, ball2] of state.pairs) {
-      const collision = collideBallBall(ball1, ball2);
+      const collision = collideBallBall(params, ball1, ball2);
       if (collision) addCollision(result, collision);
     }
     endBallBall();
@@ -97,14 +96,14 @@ const simulationSubstep = (
   const endBallCushion = profiler.start('ball-cushion');
   // ball -> cushion collisions
   for (const [ball, cushion] of state.ballCushions) {
-    const collision = collideBallCushion(ball, cushion);
+    const collision = collideBallCushion(params, ball, cushion);
     if (collision) addCollision(result, collision);
   }
   endBallCushion();
 
   const endBallPocket = profiler.start('ball-pocket');
   for (const [ball, pocket] of state.ballPockets) {
-    const collision = collideBallPocket(ball, pocket);
+    const collision = collideBallPocket(params, ball, pocket);
     if (collision) addCollision(result, collision);
   }
   endBallPocket();
@@ -117,7 +116,7 @@ export const simulationStep = (
   data: SimulationState,
   parameters: SimulationStepParameters
 ): Result => {
-  const { ignoreBallCollisions } = parameters;
+  const { ignoreBallCollisions, params } = parameters;
   let result = parameters.result ?? createResult();
 
   let substeps = 0;
@@ -127,7 +126,7 @@ export const simulationStep = (
     if (!ignoreBallCollisions) {
       // substep ball-ball collisions
       for (let [ball1, ball2] of data.pairs) {
-        const ct = computeBallCollisionTime(ball1, ball2, dt);
+        const ct = computeBallCollisionTime(params, ball1, ball2, dt);
         if (ct > 1e-6 && ct < nextCollision) {
           nextCollision = ct;
         }
@@ -136,7 +135,7 @@ export const simulationStep = (
 
     // substep ball-cushion collisions
     for (let [ball, cushion] of data.ballCushions) {
-      const ct = computeCushionCollisionTime(ball, cushion, dt);
+      const ct = computeCushionCollisionTime(params, ball, cushion, dt);
       if (ct > 1e-6 && ct < nextCollision) {
         nextCollision = ct;
       }

@@ -64,6 +64,7 @@ export class GuidelineTargetSystem extends System {
       cueBallOnly: true,
     });
     const result = await runWorkerSimulation({
+      params: system.params,
       shot,
       state,
       trackPath: true,

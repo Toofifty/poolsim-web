@@ -33,7 +33,7 @@ export class CueShootSystem extends EventSystem<
     await dlerp(
       (v) => (cue.drawback = v),
       cue.drawback,
-      cue.force / 2,
+      cue.force / 4,
       defaultParams.cue.pullBackTime
     );
 

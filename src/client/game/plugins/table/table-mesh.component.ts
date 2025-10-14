@@ -1,6 +1,6 @@
 import { defaultParams } from '@common/simulation/physics';
 import { warn } from '@common/util';
-import { Object3D } from 'three';
+import { Mesh, Object3D } from 'three';
 import { Renderable } from '../../components/renderable';
 import { createTableClothMesh } from '../../models/table/create-table-cloth-mesh';
 import { createTableRailDiamondsMesh } from '../../models/table/create-table-rail-diamonds-mesh';
@@ -9,9 +9,13 @@ import { makeTheme } from '../../store/theme';
 import type { Pocket } from './pocket.component';
 
 export class TableMesh extends Renderable {
-  public static create({ pockets }: { pockets: Pocket[] }) {
+  constructor(public cloth: Mesh, public rail: Mesh, public diamonds: Mesh) {
     const parent = new Object3D();
+    parent.add(cloth, rail, diamonds);
+    super(parent);
+  }
 
+  public static create({ pockets }: { pockets: Pocket[] }) {
     warn(pockets.length === 0, 'No pockets used to create table mesh');
 
     const theme = makeTheme();
@@ -19,7 +23,6 @@ export class TableMesh extends Renderable {
     const rail = createTableRailMesh(defaultParams, pockets, theme);
     const diamonds = createTableRailDiamondsMesh(defaultParams, theme);
 
-    parent.add(cloth, rail, diamonds);
-    return new TableMesh(parent);
+    return new TableMesh(cloth, rail, diamonds);
   }
 }

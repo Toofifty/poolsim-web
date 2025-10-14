@@ -19,8 +19,8 @@ export class PhysicsSystem extends System {
   private gameRules?: GameRules;
 
   public runAll(ecs: ECS<GameEvents, unknown>, entities: Set<Entity>): void {
-    const systemState = ecs.resource(SystemState);
-    if (systemState.gameState !== GameState.Playing || systemState.paused) {
+    const system = ecs.resource(SystemState);
+    if (system.gameState !== GameState.Playing || system.paused) {
       if (this.accumulatedResult !== undefined) {
         this.accumulatedResult = undefined;
       }
@@ -32,8 +32,8 @@ export class PhysicsSystem extends System {
       this.gameRules = ecs
         .resource(GameRuleProvider)
         .getRules(getActiveBallIds(ecs, entities), {
-          isBreak: systemState.isBreak,
-          turn: systemState.currentPlayer8BallState,
+          isBreak: system.isBreak,
+          turn: system.currentPlayer8BallState,
         });
     }
 
@@ -44,7 +44,10 @@ export class PhysicsSystem extends System {
     const pockets = ecs.query().resolveAll(Pocket);
 
     const state = createSimulationState(balls, cushions, pockets);
-    const result = simulationStep(ecs.deltaTime, state, { trackPath: false });
+    const result = simulationStep(ecs.deltaTime, state, {
+      trackPath: false,
+      params: system.params,
+    });
 
     result.collisions.forEach((collision) => {
       if (collision.type === 'ball-ball') {
@@ -66,7 +69,7 @@ export class PhysicsSystem extends System {
         result: this.accumulatedResult,
         rules: this.gameRules!,
       });
-      systemState.isBreak = false;
+      system.isBreak = false;
     }
   }
 }

@@ -2,7 +2,8 @@ import type { Entity } from '@common/ecs';
 import type { Shot } from '@common/simulation/shot';
 import type { EightBallState } from '@common/simulation/table-state';
 import type { Quat, Vec } from '../../common/math';
-import type { Ruleset } from '../../common/simulation/physics';
+import type { Params, Ruleset } from '../../common/simulation/physics';
+import type { DeepKeyOf, DeepPathOf } from '../util/types';
 import type { Cue } from './plugins/cue/cue.component';
 import type {
   BallBallCollision,
@@ -18,6 +19,9 @@ export type GameEvents = {
   'game/state-update': GameState;
   'game/current-player-update': number;
   'game/change-player': number;
+  'game/param-update': {
+    mutated: DeepPathOf<Params>[];
+  };
   'game/setup': {
     rack: {
       id: number;
@@ -77,4 +81,8 @@ export type GameEvents = {
         ruleset: Ruleset.Sandbox | Ruleset.SandboxSequential;
         sandbox: Sandboxes;
       };
+  'input/param-change': {
+    key: DeepKeyOf<Params>;
+    value: unknown;
+  };
 };

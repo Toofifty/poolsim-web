@@ -117,6 +117,7 @@ export class Game {
     document.body.appendChild(this.stats.dom);
 
     this.scene = new Scene();
+    this.scene.background = new Color(0x151729);
     this.overlay = new Scene();
     this.darkOutlineScene = new Scene();
     this.lightOutlineScene = new Scene();
@@ -169,6 +170,7 @@ export class Game {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
+    // this.composer.addPass(new RenderPixelatedPass(5, this.scene, this.camera));
 
     if (settings.detail !== GraphicsDetail.Low) {
       const ssao = new SSAOPass(this.scene, this.camera);

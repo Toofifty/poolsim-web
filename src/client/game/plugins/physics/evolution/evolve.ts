@@ -1,6 +1,6 @@
 import { quat, vec } from '@common/math';
 import { compute } from '@common/math/computed';
-import { defaultParams } from '@common/simulation/physics';
+import { type Params } from '@common/simulation/physics';
 import type { Pocket } from '../../table/pocket.component';
 import { PhysicsState, type Physics } from '../physics.component';
 import {
@@ -11,59 +11,59 @@ import {
   computeSpinTime,
 } from './compute';
 
-export const evolveMotion = (ball: Physics, dt: number) => {
-  collideWithSlate(ball);
+export const evolveMotion = (params: Params, ball: Physics, dt: number) => {
+  collideWithSlate(params, ball);
 
   if (
     ball.state === PhysicsState.Airborne ||
     ball.state === PhysicsState.OutOfPlay
   ) {
-    evolveVertical(ball, dt);
+    evolveVertical(params, ball, dt);
     return;
   }
 
   if (ball.state === PhysicsState.Sliding) {
-    const slideTime = computeSlideTime(ball);
+    const slideTime = computeSlideTime(params, ball);
 
     if (dt >= slideTime) {
-      evolveSlide(ball, slideTime);
+      evolveSlide(params, ball, slideTime);
       ball.state = PhysicsState.Rolling;
       dt -= slideTime;
     } else {
-      evolveSlide(ball, dt);
+      evolveSlide(params, ball, dt);
       return;
     }
   }
 
   if (ball.state === PhysicsState.Rolling) {
-    const rollTime = computeRollTime(ball);
+    const rollTime = computeRollTime(params, ball);
 
     if (dt >= rollTime) {
-      evolveRoll(ball, rollTime);
+      evolveRoll(params, ball, rollTime);
       ball.state = PhysicsState.Spinning;
       dt -= rollTime;
     } else {
-      evolveRoll(ball, dt);
+      evolveRoll(params, ball, dt);
       return;
     }
   }
 
   if (ball.state === PhysicsState.Spinning) {
-    const spinTime = computeSpinTime(ball);
+    const spinTime = computeSpinTime(params, ball);
 
     if (dt >= spinTime) {
-      evolveSpin(ball, spinTime);
+      evolveSpin(params, ball, spinTime);
       ball.state = PhysicsState.Stationary;
       // dt -= spinTime;
     } else {
-      evolveSpin(ball, dt);
+      evolveSpin(params, ball, dt);
       return;
     }
   }
 };
 
-const evolveSlide = (ball: Physics, dt: number) => {
-  const { gravity: g, frictionSlide: us } = defaultParams.ball;
+const evolveSlide = (params: Params, ball: Physics, dt: number) => {
+  const { gravity: g, frictionSlide: us } = params.ball;
 
   const U = computeContactVelocity(ball);
   const dr = compute.deltaRU(ball.v, U, us, g, dt);
@@ -90,11 +90,11 @@ const evolveSlide = (ball: Physics, dt: number) => {
     vec.madd(ball.w, dw);
   }
 
-  evolveSpin(ball, dt);
+  evolveSpin(params, ball, dt);
 };
 
-const evolveRoll = (ball: Physics, dt: number) => {
-  const { gravity: g, frictionRoll: ur } = defaultParams.ball;
+const evolveRoll = (params: Params, ball: Physics, dt: number) => {
+  const { gravity: g, frictionRoll: ur } = params.ball;
 
   const deltaR = compute.deltaR(ball.v, ur, g, dt);
   const deltaV = compute.deltaV(ball.v, ur, g, dt);
@@ -119,11 +119,11 @@ const evolveRoll = (ball: Physics, dt: number) => {
   ball.w[0] = wXY[0];
   ball.w[1] = wXY[1];
 
-  evolveSpin(ball, dt);
+  evolveSpin(params, ball, dt);
 };
 
-const evolveSpin = (ball: Physics, dt: number) => {
-  const { gravity: g, frictionSpin: usp } = defaultParams.ball;
+const evolveSpin = (params: Params, ball: Physics, dt: number) => {
+  const { gravity: g, frictionSpin: usp } = params.ball;
 
   const wz = ball.w[2];
   if (Math.abs(wz) < 1e-12) return;
@@ -137,8 +137,8 @@ const evolveSpin = (ball: Physics, dt: number) => {
   ball.w[2] = wz - sign * alpha * t;
 };
 
-export const evolveVertical = (ball: Physics, dt: number) => {
-  const { gravity: g } = defaultParams.ball;
+export const evolveVertical = (params: Params, ball: Physics, dt: number) => {
+  const { gravity: g } = params.ball;
 
   // todo: air resistance
   const accel = vec.new(0, 0, -g);
@@ -152,7 +152,11 @@ export const evolveVertical = (ball: Physics, dt: number) => {
   vec.madd(ball.v, vec.mult(accel, dt));
 };
 
-export const evolveOrientation = (ball: Physics, dt: number) => {
+export const evolveOrientation = (
+  params: Params,
+  ball: Physics,
+  dt: number
+) => {
   if (vec.len(ball.w) > 0) {
     const angle = vec.len(ball.w) * dt;
     const axis = vec.norm(ball.w);
@@ -163,8 +167,8 @@ export const evolveOrientation = (ball: Physics, dt: number) => {
   }
 };
 
-const collideWithSlate = (ball: Physics) => {
-  const { restitutionSlate: es } = defaultParams.ball;
+const collideWithSlate = (params: Params, ball: Physics) => {
+  const { restitutionSlate: es } = params.ball;
 
   // out-of-bounds balls hit an imaginary floor
   const slate = ball.state === PhysicsState.OutOfPlay ? -1 : 0;
@@ -180,8 +184,13 @@ const collideWithSlate = (ball: Physics) => {
   }
 };
 
-export const evolvePocket = (ball: Physics, pocket: Pocket, dt: number) => {
-  const { gravity: g } = defaultParams.ball;
+export const evolvePocket = (
+  params: Params,
+  ball: Physics,
+  pocket: Pocket,
+  dt: number
+) => {
+  const { gravity: g } = params.ball;
 
   const r0 = vec.setZ(ball.r, 0);
   const p0 = vec.setZ(pocket.position, 0);

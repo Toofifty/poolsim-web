@@ -78,13 +78,7 @@ export const Controls = () => {
   const playerIndex = useGameBinding('game/change-player', (p) => p, 0);
 
   const onEdit = (key: DeepKeyOf<StaticParams>, value: unknown) => {
-    const path = key.split('.');
-    const obj = path.slice(0, -1).reduce((o, prop) => {
-      // @ts-ignore
-      return o[prop];
-    }, params);
-    // @ts-ignore
-    obj[path.at(-1)] = value;
+    ecs.emit('input/param-change', { key, value });
   };
 
   return (

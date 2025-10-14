@@ -1,4 +1,4 @@
-import { defaultParams } from '@common/simulation/physics';
+import { type Params } from '@common/simulation/physics';
 import type { Shot } from '@common/simulation/shot';
 import { Profiler, type IProfiler } from '@common/util/profiler';
 import { shoot } from '../actions/shoot';
@@ -8,6 +8,7 @@ import { simulationStep } from './step';
 import { settled } from './tools';
 
 export type RunSimulationParameters = {
+  params: Params;
   shot: Shot;
   /** data is cloned before the simulation is run */
   state: SimulationState;
@@ -15,9 +16,11 @@ export type RunSimulationParameters = {
   profiler?: IProfiler;
   stopAtFirstContact?: boolean;
   stopAtFirstBallContact?: boolean;
+  // todo: accept GameRules
 };
 
 export const runSimulation = ({
+  params,
   shot,
   state: original,
   trackPath,
@@ -35,9 +38,10 @@ export const runSimulation = ({
   // todo
   const isInvalidBreak = false;
 
-  for (let i = 0; i < defaultParams.simulation.maxIterations; i++) {
+  for (let i = 0; i < params.simulation.maxIterations; i++) {
     result = profiler.profile('step', () =>
-      simulationStep(1 / defaultParams.simulation.updatesPerSecond, state, {
+      simulationStep(1 / params.simulation.updatesPerSecond, state, {
+        params,
         trackPath,
         stepIndex: i,
         result,

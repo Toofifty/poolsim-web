@@ -1,5 +1,6 @@
 import { vec } from '@common/math';
 import { solveQuadraticRoots } from '@common/math/solve';
+import type { Params } from '@common/simulation/physics';
 import type { Cushion } from '../../table/cushion.component';
 import {
   computeMomentaryFrictionAccel,
@@ -8,6 +9,7 @@ import {
 import { PhysicsState, type Physics } from '../physics.component';
 
 export const computeBallCollisionTime = (
+  params: Params,
   ball1: Physics,
   ball2: Physics,
   dt: number
@@ -19,8 +21,14 @@ export const computeBallCollisionTime = (
   )
     return Infinity;
 
-  const ball1V = vec.add(ball1.v, computeMomentaryFrictionDelta(ball1, dt));
-  const ball2V = vec.add(ball2.v, computeMomentaryFrictionDelta(ball2, dt));
+  const ball1V = vec.add(
+    ball1.v,
+    computeMomentaryFrictionDelta(params, ball1, dt)
+  );
+  const ball2V = vec.add(
+    ball2.v,
+    computeMomentaryFrictionDelta(params, ball2, dt)
+  );
 
   const dr = vec.sub(ball1.r, ball2.r);
   const dv = vec.sub(ball1V, ball2V);
@@ -47,6 +55,7 @@ export const computeBallCollisionTime = (
 };
 
 export const computeCushionCollisionTime = (
+  params: Params,
   ball: Physics,
   cushion: Cushion,
   dt: number
@@ -54,7 +63,7 @@ export const computeCushionCollisionTime = (
   if (ball.state === PhysicsState.Stationary) return Infinity;
 
   const p0 = ball.r;
-  const a = computeMomentaryFrictionAccel(ball);
+  const a = computeMomentaryFrictionAccel(params, ball);
   const v0 = ball.v;
   const R = ball.R;
 

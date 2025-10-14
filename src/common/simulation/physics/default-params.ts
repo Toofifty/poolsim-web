@@ -95,3 +95,6 @@ export const defaultParams = {
 
 export type StaticParams = Snapshot<typeof defaultParams>;
 export type Params = typeof defaultParams;
+
+export const cloneParams = (params: Params): Params =>
+  JSON.parse(JSON.stringify(params));

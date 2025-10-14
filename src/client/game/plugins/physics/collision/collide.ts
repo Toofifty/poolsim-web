@@ -1,5 +1,5 @@
 import { vec } from '@common/math';
-import { defaultParams } from '@common/simulation/physics';
+import { type Params } from '@common/simulation/physics';
 import { Cushion } from '../../table/cushion.component';
 import type { Pocket } from '../../table/pocket.component';
 import { computeIdealAngularVelocity } from '../evolution/compute';
@@ -12,13 +12,14 @@ import type {
 } from './types';
 
 export const collideBallBall = (
+  params: Params,
   ball1: Physics,
   ball2: Physics,
   fixOverlap = true
 ): BallBallCollision | undefined => {
   if (ball1 === ball2) return undefined;
 
-  const { restitutionBall: eb } = defaultParams.ball;
+  const { restitutionBall: eb } = params.ball;
 
   const dist = vec.dist(ball1.r, ball2.r);
 
@@ -70,6 +71,7 @@ export const collideBallBall = (
 };
 
 export const collideBallCushion = (
+  params: Params,
   ball: Physics,
   cushion: Cushion,
   fixOverlap = true
@@ -78,7 +80,7 @@ export const collideBallCushion = (
     return undefined;
   }
 
-  const { restitutionCushion: ec, frictionCushion: fc } = defaultParams.ball;
+  const { restitutionCushion: ec, frictionCushion: fc } = params.ball;
 
   const closestPoint = Cushion.findClosestPoint(cushion, ball.r);
 
@@ -129,6 +131,7 @@ export const collideBallCushion = (
 };
 
 export const collideBallPocket = (
+  params: Params,
   ball: Physics,
   pocket: Pocket
 ): BallPocketCollision | undefined => {
@@ -143,7 +146,7 @@ export const collideBallPocket = (
   // and the ball is below rail height
   if (
     dist < pocket.radius * pocket.radius &&
-    ball.r[2] <= defaultParams.cushion.height
+    ball.r[2] <= params.cushion.height
   ) {
     ball.state = PhysicsState.Pocketed;
     ball.pocketId = pocket.id;

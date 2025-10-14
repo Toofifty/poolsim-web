@@ -1,12 +1,10 @@
 import { ECS, System, type Entity } from '@common/ecs';
 import { vec } from '@common/math';
-import { warn } from '@common/util';
+import { constrain, warn } from '@common/util';
 import type { GameEvents } from '../../events';
 import { SystemState } from '../../resources/system-state';
 import { MousePosition } from '../mouse/mouse-position.resource';
 import { Physics } from '../physics/physics.component';
-import { Cushion } from '../table/cushion.component';
-import { Pocket } from '../table/pocket.component';
 import { InHand } from './in-hand.component';
 
 export class MoveBallInHandSystem extends System {
@@ -23,51 +21,47 @@ export class MoveBallInHandSystem extends System {
     if (inHand.animating) return;
 
     const target = vec.setZ(mouse.world, 0);
-
-    const balls = ecs.query().resolveAll(Physics);
-    balls.forEach((other) => {
-      if (other.id === ball.id) return;
-
-      const dist = vec.dist(target, vec.setZ(other.r, 0));
-      if (dist < ball.R + other.R) {
-        const normal = vec.norm(vec.sub(ball.r, other.r));
-        const overlap = ball.R + other.R - dist;
-        const correction = vec.mult(normal, overlap * 10);
-        vec.madd(target, correction);
-      }
-    });
-
-    const cushions = ecs.query().resolveAll(Cushion);
-    const collidingCushion = cushions.some((cushion) => {
-      const closestPoint = Cushion.findClosestPoint(cushion, target);
-      return vec.dist(vec.setZ(closestPoint, 0), target) < ball.R;
-    });
-
-    const pockets = ecs.query().resolveAll(Pocket);
-    const collidingPocket = pockets.some(
-      (pocket) => vec.dist(vec.setZ(pocket.position, 0), target) < pocket.radius
-    );
-
     const { isBreak, params } = ecs.resource(SystemState);
-    const outOfBounds =
-      target[0] < -params.table.length / 2 ||
-      target[0] > params.table.length / 2 ||
-      target[1] < -params.table.width / 2 ||
-      target[1] > params.table.width / 2;
+    const table = params.table;
 
-    const outOfBoundsOnBreak =
-      isBreak && ball.id === 0 ? target[0] > -params.table.length / 4 : false;
+    // run a few relaxation iterations (helps resolve multiple overlaps)
+    for (let i = 0; i < 5; i++) {
+      let corrected = false;
 
-    if (
-      collidingCushion ||
-      collidingPocket ||
-      outOfBounds ||
-      outOfBoundsOnBreak
-    ) {
-      return;
+      const balls = ecs.query().resolveAll(Physics);
+      for (const other of balls) {
+        if (other.id === ball.id) continue;
+        const oPos = vec.setZ(other.r, 0);
+        const diff = vec.sub(target, oPos);
+        const dist = vec.len(diff);
+        const minDist = ball.R + other.R;
+        if (dist < minDist && dist > 0.0001) {
+          const push = vec.mult(vec.norm(diff), minDist - dist);
+          vec.madd(target, push);
+          corrected = true;
+        }
+      }
+
+      // --- clamp within bounds ---
+      target[0] = constrain(
+        target[0],
+        -table.length / 2 + ball.R + params.cushion.width,
+        table.length / 2 - ball.R - params.cushion.width
+      );
+      target[1] = constrain(
+        target[1],
+        -table.width / 2 + ball.R + params.cushion.width,
+        table.width / 2 - ball.R - params.cushion.width
+      );
+
+      if (isBreak && ball.id === 0) {
+        target[0] = Math.min(target[0], -table.length / 4);
+      }
+
+      if (!corrected) break;
     }
 
-    vec.mcopy(ball.r, mouse.world);
+    vec.mcopy(ball.r, target);
     vec.msetZ(ball.r, 0.1 + 0.01 * Math.sin(ecs.frameId / 200));
 
     ecs.emit('game/move-ball-in-hand', {

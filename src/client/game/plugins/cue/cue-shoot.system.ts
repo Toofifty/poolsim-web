@@ -4,7 +4,7 @@ import { Shot } from '@common/simulation/shot';
 import { assertExists } from '@common/util';
 import { dlerp } from '../../dlerp';
 import type { GameEvents } from '../../events';
-import { GameState, SystemState } from '../../resources/system-state';
+import { SystemState } from '../../resources/system-state';
 import { InHand } from '../gameplay/in-hand.component';
 import { Cue } from './cue.component';
 
@@ -18,9 +18,9 @@ export class CueShootSystem extends EventSystem<
     ecs: ECS<GameEvents, unknown>,
     data: GameEvents['input/mouse-pressed']
   ): Promise<void> {
-    const systemState = ecs.resource(SystemState);
-    if (systemState.gameState !== GameState.Shooting) return;
-    if (data.button !== 0) return;
+    const system = ecs.resource(SystemState);
+    if (!system.isShootable || data.button !== 0) return;
+
     const ballInHandEntity = ecs.query().has(InHand).findOne();
     if (ballInHandEntity !== undefined) return;
 

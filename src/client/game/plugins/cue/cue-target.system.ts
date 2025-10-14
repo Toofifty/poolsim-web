@@ -2,7 +2,7 @@ import { ECS, System, type Entity } from '@common/ecs';
 import { vec } from '@common/math';
 import { BallId } from '../../components/ball-id';
 import type { GameEvents } from '../../events';
-import { GameState, SystemState } from '../../resources/system-state';
+import { SystemState } from '../../resources/system-state';
 import { InHand } from '../gameplay/in-hand.component';
 import { MousePosition } from '../mouse/mouse-position.resource';
 import { Physics } from '../physics/physics.component';
@@ -12,10 +12,9 @@ export class CueTargetSystem extends System {
   public components: Set<Function> = new Set([Cue]);
 
   public run(ecs: ECS<GameEvents, unknown>, entity: Entity): void {
-    const systemState = ecs.resource(SystemState);
-    if (systemState.gameState !== GameState.Shooting) {
-      return;
-    }
+    const system = ecs.resource(SystemState);
+    if (!system.isShootable) return;
+
     const ballInHandEntity = ecs.query().has(InHand).findOne();
     if (ballInHandEntity !== undefined) return;
 
@@ -29,7 +28,10 @@ export class CueTargetSystem extends System {
     vec.mcopy(cue.target, ball.r);
 
     const mouse = ecs.resource(MousePosition);
-    cue.angle = vec.angle2D(cue.target, mouse.world);
+    // only update cue if cursor is not too close
+    if (vec.dist(cue.target, mouse.world) > ball.R * 2) {
+      cue.angle = vec.angle2D(cue.target, mouse.world);
+    }
 
     ecs.emit('game/cue-update', cue);
   }

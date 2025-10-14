@@ -14,6 +14,7 @@ import type { Result, TurnFoul } from './plugins/physics/simulation/result';
 import type { Sandboxes } from './rack';
 import type { GameRules } from './resources/game-rules/types';
 import type { GameState } from './resources/system-state';
+import type { settings } from './store/settings';
 
 export type GameEvents = {
   'game/state-update': GameState;
@@ -21,6 +22,9 @@ export type GameEvents = {
   'game/change-player': number;
   'game/param-update': {
     mutated: DeepPathOf<Params>[];
+  };
+  'game/setting-update': {
+    mutated: DeepPathOf<typeof settings>[];
   };
   'game/setup': {
     rack: {

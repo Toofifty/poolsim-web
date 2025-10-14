@@ -2,7 +2,8 @@ import { ECS, System, type Entity } from '@common/ecs';
 import { BallId } from '../../components/ball-id';
 import { GameRuleProvider } from '../../resources/game-rules';
 import type { GameRules } from '../../resources/game-rules/types';
-import { GameState, SystemState } from '../../resources/system-state';
+import { SystemState } from '../../resources/system-state';
+import { settings } from '../../store/settings';
 import { toVector3 } from '../../util/three-interop';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
 import { Physics } from '../physics/physics.component';
@@ -27,16 +28,18 @@ export class BallHighlightSystem extends System {
 
   public run(ecs: ECS<any, unknown>, entity: Entity): void {
     if (!this.rules) return;
-    const systemState = ecs.resource(SystemState);
+    const system = ecs.resource(SystemState);
 
     const [{ id }] = ecs.get(entity, BallId);
     const components = ecs.getComponents(entity);
     const shouldHighlight =
-      systemState.gameState === GameState.Shooting &&
-      this.rules.validTargets.includes(id);
+      system.isShootable &&
+      this.rules.validTargets.includes(id) &&
+      settings.highlightTargetBalls;
     const shouldHighlightRed =
-      systemState.gameState === GameState.Shooting &&
-      this.rules.invalidTargets.includes(id);
+      system.isShootable &&
+      this.rules.invalidTargets.includes(id) &&
+      settings.highlightTargetBalls;
     const hasHighlight = components.has(BallHighlight);
 
     if (!hasHighlight) {

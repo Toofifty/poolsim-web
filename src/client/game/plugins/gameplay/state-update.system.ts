@@ -51,6 +51,7 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
 
       ecs.addComponent(cueBallEntity, InHand.create({ animating: false }));
       ecs.emit('game/pickup-ball', { id: physics.id });
+      system.gameState = GameState.BallInHand;
       return;
     }
 

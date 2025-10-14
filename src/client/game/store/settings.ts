@@ -22,6 +22,11 @@ const readFromStorage = <T>(def: T): T => {
 
 const isMobile = typeof window !== 'undefined' && getIsMobile();
 
+/**
+ * Access in ECS:
+ * Do not subscribe to this directly. Use a SettingUpdateSystem to be
+ * notified about specific mutations.
+ */
 export const settings = proxy({
   // not persisted - must also be removed from subscribe below
   players: Players.PlayerVsPlayer,

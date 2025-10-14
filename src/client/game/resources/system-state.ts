@@ -1,4 +1,4 @@
-import { cloneParams, type Params } from '@common/simulation/physics';
+import { type Params } from '@common/simulation/physics';
 import { EightBallState } from '@common/simulation/table-state';
 import { subscribe } from 'valtio';
 import { ECS, Resource } from '../../../common/ecs';
@@ -75,10 +75,6 @@ export class SystemState extends Resource {
     });
   }
 
-  public static create(ecs: ECS<GameEvents>, params: Params) {
-    return new SystemState(ecs, cloneParams(params));
-  }
-
   get currentPlayer8BallState() {
     if (this.eightBallState === EightBallState.Open) {
       return 'open';
@@ -92,5 +88,25 @@ export class SystemState extends Resource {
     }
 
     return 'stripes';
+  }
+
+  /**
+   * Whether to allow the player to shoot (and update cue etc)
+   *
+   * "BallInHand" is just an alias for "Shooting" that allows the
+   * player to pick up the cue ball at will.
+   */
+  get isShootable() {
+    return (
+      this.gameState === GameState.Shooting ||
+      this.gameState === GameState.BallInHand
+    );
+  }
+
+  get canPickupCueBall() {
+    return (
+      this.gameState === GameState.BallInHand ||
+      (this.gameState === GameState.Shooting && this.isBreak)
+    );
   }
 }

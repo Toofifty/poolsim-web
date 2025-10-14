@@ -473,10 +473,10 @@ export class Game {
   private setupAmbientLight() {
     this.scene.add(new AmbientLight(0xffffff, 0.5));
 
-    this.overlay.add(new AmbientLight(0xffffff, 10));
-    this.darkOutlineScene.add(new AmbientLight(0xffffff, 10));
-    this.lightOutlineScene.add(new AmbientLight(0xffffff, 10));
-    this.redOutlineScene.add(new AmbientLight(0xffffff, 10));
+    this.overlay.add(new AmbientLight(0xffffff, 5));
+    this.darkOutlineScene.add(new AmbientLight(0xffffff, 5));
+    this.lightOutlineScene.add(new AmbientLight(0xffffff, 5));
+    this.redOutlineScene.add(new AmbientLight(0xffffff, 5));
   }
 
   private setupSky() {

@@ -124,6 +124,13 @@ export const vec = {
     v1[2] + (v2[2] - v1[2]) * t,
   ],
 
+  mlerp: (v1: Vec, v2: Vec, t: number): Vec => {
+    v1[0] += (v2[0] - v1[0]) * t;
+    v1[1] += (v2[1] - v1[1]) * t;
+    v1[2] += (v2[2] - v1[2]) * t;
+    return v1;
+  },
+
   /** Set components to 0 if near 0 */
   minimise: (v: Vec, epsilon = 1e-8): Vec => [
     Math.abs(v[0]) < epsilon ? 0 : v[0],

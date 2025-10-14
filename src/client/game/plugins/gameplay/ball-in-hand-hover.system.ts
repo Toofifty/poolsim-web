@@ -1,6 +1,8 @@
 import { ECS, System } from '@common/ecs';
 import { vec } from '@common/math';
 import type { GameEvents } from '../../events';
+import { SystemState } from '../../resources/system-state';
+import { settings } from '../../store/settings';
 import { MousePosition } from '../mouse/mouse-position.resource';
 import { Physics, PhysicsState } from '../physics/physics.component';
 import { InHand } from './in-hand.component';
@@ -38,7 +40,14 @@ export class BallInHandHoverSystem extends System {
       }
     }
 
-    if (closestEntity !== undefined && closestBall !== undefined) {
+    const system = ecs.resource(SystemState);
+
+    if (
+      closestEntity !== undefined &&
+      closestBall !== undefined &&
+      ((closestBall.id === 0 && system.canPickupCueBall) ||
+        settings.enableBallPickup)
+    ) {
       if (document.body.style.cursor !== 'grab') {
         document.body.style.cursor = 'grab';
       }

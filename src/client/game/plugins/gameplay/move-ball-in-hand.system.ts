@@ -64,7 +64,7 @@ export class MoveBallInHandSystem extends System {
       if (!corrected) break;
     }
 
-    vec.mcopy(ball.r, target);
+    vec.mlerp(ball.r, target, 0.1);
     vec.msetZ(ball.r, 0.1 + 0.01 * Math.sin(ecs.frameId / 200));
 
     ecs.emit('game/move-ball-in-hand', {

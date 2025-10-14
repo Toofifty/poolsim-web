@@ -2,6 +2,8 @@ import { ECS, EventSystem } from '@common/ecs';
 import { vec } from '@common/math';
 import { dlerp } from '../../dlerp';
 import type { GameEvents } from '../../events';
+import { SystemState } from '../../resources/system-state';
+import { settings } from '../../store/settings';
 import { MousePosition } from '../mouse/mouse-position.resource';
 import { Physics, PhysicsState } from '../physics/physics.component';
 import { InHand } from './in-hand.component';
@@ -29,8 +31,14 @@ export class BallInHandInputSystem extends EventSystem<
       return;
     }
 
+    const system = ecs.resource(SystemState);
+
     // todo: check settings / ball in hand state
-    if (data.button === 2 && ballInHandEntity === undefined) {
+    if (
+      data.button === 2 &&
+      ballInHandEntity === undefined &&
+      (settings.enableBallPickup || system.canPickupCueBall)
+    ) {
       const target = vec.setZ(mouse.world, 0);
 
       const ballEntities = ecs.query().has(Physics).findAll();
@@ -50,7 +58,12 @@ export class BallInHandInputSystem extends EventSystem<
           closestDist = dist;
         }
       }
-      if (closestEntity !== undefined && closestBall !== undefined) {
+      if (
+        closestEntity !== undefined &&
+        closestBall !== undefined &&
+        ((closestBall.id === 0 && system.canPickupCueBall) ||
+          settings.enableBallPickup)
+      ) {
         ecs.addComponent(closestEntity, InHand.create());
         await dlerp(
           (v) => vec.msetZ(closestBall.r, v),

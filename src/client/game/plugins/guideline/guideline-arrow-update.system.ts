@@ -1,7 +1,7 @@
 import { ECS, System, type Entity } from '@common/ecs';
 import { ArrowMesh } from '../../components/arrow-mesh.component';
 import { ImpactArrow } from '../../components/arrow-type.component';
-import { GameState, SystemState } from '../../resources/system-state';
+import { SystemState } from '../../resources/system-state';
 import { toVector3 } from '../../util/three-interop';
 import { Cue } from '../cue/cue.component';
 import { Guideline } from './guideline.component';
@@ -12,9 +12,9 @@ export class GuidelineArrowUpdateSystem extends System {
   public run(ecs: ECS<any, unknown>, entity: Entity): void {
     const [{ kind }, arrow] = ecs.get(entity, ImpactArrow, ArrowMesh);
     const guideline = ecs.query().resolveFirst(Guideline);
-    const systemState = ecs.resource(SystemState);
+    const system = ecs.resource(SystemState);
     if (
-      systemState.gameState !== GameState.Shooting ||
+      !system.isShootable ||
       (guideline.trackingPoints.length === 0 && !guideline.computing) ||
       ecs.query().resolveFirst(Cue).shooting
     ) {

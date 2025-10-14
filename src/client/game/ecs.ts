@@ -1,4 +1,4 @@
-import { defaultParams } from '@common/simulation/physics';
+import { cloneParams, defaultParams } from '@common/simulation/physics';
 import { ECS } from '../../common/ecs';
 import { Game } from './game';
 import { AudioPlugin } from './plugins/audio';
@@ -18,14 +18,16 @@ import { ExternalParamChangeSystem } from './systems/external-param-change.syste
 import { InputSetupSystem } from './systems/input-setup.system';
 import { MeshRegisterSystem } from './systems/mesh-register.system';
 import { OverlayRegisterSystem } from './systems/overlay-register.system';
+import { SettingsListenerSystem } from './systems/settings-listener.system';
 import { TableSetupSystem } from './systems/table-setup-system';
 import { WorldSetupSystem } from './systems/world-setup-system';
 
 export const createECS = (game: Game) => {
   const ecs = new ECS(game);
 
-  ecs.addResource(SystemState.create(ecs, defaultParams));
+  ecs.addResource(new SystemState(ecs, cloneParams(defaultParams)));
   ecs.addResource(new GameRuleProvider());
+
   ecs.addComponentTrackingSystem(new MeshRegisterSystem(game.scene));
   ecs.addComponentTrackingSystem(
     new OverlayRegisterSystem(
@@ -49,6 +51,7 @@ export const createECS = (game: Game) => {
   new GuidelinePlugin().install(ecs);
   new GameplayPlugin().install(ecs);
 
+  ecs.addStartupSystem(new SettingsListenerSystem());
   ecs.addStartupSystem(new WorldSetupSystem());
 
   ecs.addSystem(new BallUpdateSystem());

@@ -1,8 +1,9 @@
 import { ECS, System, type Entity } from '@common/ecs';
+import { vec } from '@common/math';
 import { assert } from '@common/util';
 import { Color } from 'three';
 import { LineMesh } from '../../components/line-mesh.component';
-import { GameState, SystemState } from '../../resources/system-state';
+import { SystemState } from '../../resources/system-state';
 import { settings } from '../../store/settings';
 import { toVector3 } from '../../util/three-interop';
 import { Cue } from '../cue/cue.component';
@@ -57,15 +58,10 @@ export class GuidelineUpdateSystem extends System {
       ImpactPointMesh
     );
 
-    // always update the line mesh to ensure it billboards
-    LineMesh.update(
-      line,
-      guideline.trackingPoints.map((tp) => tp.position)
-    );
+    const system = ecs.resource(SystemState);
 
-    const systemState = ecs.resource(SystemState);
     if (
-      systemState.gameState !== GameState.Shooting ||
+      !system.isShootable ||
       (guideline.trackingPoints.length === 0 && !guideline.computing) ||
       ecs.query().resolveFirst(Cue).shooting
     ) {
@@ -74,10 +70,29 @@ export class GuidelineUpdateSystem extends System {
       return;
     }
 
-    if (
-      guideline.key === this.lastKey ||
-      guideline.trackingPoints.length === 0
-    ) {
+    if (guideline.trackingPoints.length === 0) {
+      return;
+    }
+
+    // remove tracking points inside ball / collision point
+    const first = guideline.trackingPoints[0].position;
+    const last = guideline.trackingPoints.at(-1)!.position;
+    const innerTrackingPoints = guideline.trackingPoints.filter(
+      (tp) =>
+        vec.dist(tp.position, first) >= system.params.ball.radius &&
+        vec.dist(tp.position, last) >= system.params.ball.radius
+    );
+
+    // always update the line mesh to ensure it billboards
+    LineMesh.update(
+      line,
+      innerTrackingPoints.map((tp) => tp.position),
+      physicsGuidelines
+        ? innerTrackingPoints.map((tp) => getColor(tp.state))
+        : undefined
+    );
+
+    if (guideline.key === this.lastKey) {
       return;
     }
 

@@ -1,4 +1,5 @@
 import { ECS, Plugin } from '@common/ecs';
+import type { GameEvents } from '../../events';
 import {
   BallDebugUArrowUpdateSystem,
   BallDebugVArrowUpdateSystem,
@@ -13,7 +14,7 @@ import { BallTableIndicatorSystem } from './ball-table-indicator.system';
  * Ball-adjacent features, not including physics.
  */
 export class BallPlugin extends Plugin {
-  public install(ecs: ECS): void {
+  public install(ecs: ECS<GameEvents>): void {
     ecs.addSystem(new BallHighlightSystem());
     ecs.addSystem(new BallTableIndicatorSystem());
 

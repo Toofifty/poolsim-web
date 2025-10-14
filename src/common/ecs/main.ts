@@ -51,10 +51,7 @@ export class ComponentContainer {
   }
 }
 
-export class ECS<
-  TEventMap extends Record<string, any> = any,
-  TWorld = unknown
-> {
+export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
   private entities = new Map<Entity, ComponentContainer>();
   private systems = new Map<System<TWorld>, Set<Entity>>();
   private eventSystems = new Map<

@@ -1,5 +1,6 @@
 import { cloneParams, defaultParams } from '@common/simulation/physics';
 import { ECS } from '../../common/ecs';
+import type { GameEvents } from './events';
 import { Game } from './game';
 import { AudioPlugin } from './plugins/audio';
 import { BallPlugin } from './plugins/ball';
@@ -23,7 +24,7 @@ import { TableSetupSystem } from './systems/table-setup-system';
 import { WorldSetupSystem } from './systems/world-setup-system';
 
 export const createECS = (game: Game) => {
-  const ecs = new ECS(game);
+  const ecs = new ECS<GameEvents, Game>(game);
 
   ecs.addResource(new SystemState(ecs, cloneParams(defaultParams)));
   ecs.addResource(new GameRuleProvider());

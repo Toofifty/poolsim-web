@@ -43,6 +43,7 @@ export class MoveBallInHandSystem extends System {
       }
 
       // --- clamp within bounds ---
+      const preconstrain = vec.clone(target);
       target[0] = constrain(
         target[0],
         -table.length / 2 + ball.R + params.cushion.width,
@@ -57,6 +58,8 @@ export class MoveBallInHandSystem extends System {
       if (isBreak && ball.id === 0) {
         target[0] = Math.min(target[0], -table.length / 4);
       }
+
+      corrected ||= !vec.eq(preconstrain, target);
 
       if (!corrected) break;
     }

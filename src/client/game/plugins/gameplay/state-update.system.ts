@@ -6,8 +6,9 @@ import { assert, assertExists } from '@common/util';
 import type { GameEvents } from '../../events';
 import { GameRuleProvider } from '../../resources/game-rules';
 import { GameState, SystemState } from '../../resources/system-state';
-import { Physics } from '../physics/physics.component';
+import { Physics, PhysicsState } from '../physics/physics.component';
 import { getTurnResult, isGameOver } from '../physics/simulation/result';
+import { InHand } from './in-hand.component';
 
 export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
   public event = 'game/settled' as const;
@@ -43,9 +44,13 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
       assertExists(cueBallEntity);
       const [physics] = ecs.get(cueBallEntity, Physics);
       assert(physics.id === 0, 'Expected cue ball to be first ball entity');
-      vec.mset(physics.r, 0, 0, 0);
+      vec.mset(physics.r, 0, 0, 0.1);
       vec.mset(physics.v, 0, 0, 0);
       vec.mset(physics.w, 0, 0, 0);
+      physics.state = PhysicsState.Stationary;
+
+      ecs.addComponent(cueBallEntity, InHand.create({ animating: false }));
+      ecs.emit('game/pickup-ball', { id: physics.id });
       return;
     }
 

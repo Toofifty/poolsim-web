@@ -402,8 +402,14 @@ export class Game {
     lightParent.position.set(0, 0, 1);
     this.scene.add(lightParent);
 
-    const createCeilingLight = (x: number, y: number, intensity: number) => {
-      const ral = new RectAreaLight(0xfff1e0, intensity, 0.8, 0.4);
+    const createCeilingLight = (
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      intensity: number
+    ) => {
+      const ral = new RectAreaLight(0xfff1e0, intensity, w, h);
       ral.position.set(x, y, 0);
       lightParent.add(ral);
       const ralh = new RectAreaLightHelper(ral);
@@ -442,11 +448,15 @@ export class Game {
       createCeilingLight(
         0,
         -spy,
+        0.8,
+        0.4,
         settings.detail === GraphicsDetail.High ? 2 : 4
       );
       createCeilingLight(
         0,
         spy,
+        0.8,
+        0.4,
         settings.detail === GraphicsDetail.High ? 2 : 4
       );
 
@@ -456,8 +466,8 @@ export class Game {
       return;
     }
 
-    createCeilingLight(-spy, 0, 40);
-    createCeilingLight(spy, 0, 40);
+    createCeilingLight(0, 0, 1.6, 0.1, 120);
+    // createCeilingLight(spy, 0, 0.8, 0.4, 40);
   }
 
   private setupAmbientLight() {

@@ -1,12 +1,16 @@
 import {
   CanvasTexture,
+  EquirectangularRefractionMapping,
+  Euler,
   Mesh,
   MeshPhysicalMaterial,
   SphereGeometry,
+  SRGBColorSpace,
   TextureLoader,
   Vector2,
 } from 'three';
 import { defaultParams } from '../../../common/simulation/physics';
+import envMapUrl from '../../assets/envmap.jpg';
 import normalMapUrl from '../../assets/scratch_normal.png';
 import { createBallTexture } from '../models/ball/create-ball-texture';
 import { createMaterial } from '../rendering/create-material';
@@ -14,9 +18,9 @@ import { makeTheme } from '../store/theme';
 import { Renderable } from './renderable';
 
 const normalMap = new TextureLoader().load(normalMapUrl);
-// const envMap = new HDRLoader().load(
-//   new URL('../../assets/map.hdr', import.meta.url).toString()
-// );
+const envMap = new TextureLoader().load(envMapUrl);
+envMap.mapping = EquirectangularRefractionMapping;
+envMap.colorSpace = SRGBColorSpace;
 
 const geometry = new SphereGeometry(defaultParams.ball.radius, 32, 16);
 
@@ -33,7 +37,8 @@ export class BallMesh extends Renderable {
     texturePool.set(id, texture);
 
     const material = createMaterial({
-      // envMap,
+      envMap,
+      envMapRotation: new Euler(Math.PI / 2, 0, 0, 'XYZ'),
       map: texture,
       roughness: theme.balls.roughness,
       metalness: theme.balls.metalness,

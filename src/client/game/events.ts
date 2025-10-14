@@ -54,6 +54,9 @@ export type GameEvents = {
   'game/8-ball-state-change': {
     state: EightBallState;
   };
+  'game/pickup-ball': { id: number };
+  'game/move-ball-in-hand': { id: number; position: Vec };
+  'game/place-ball': { id: number; position: Vec };
 
   'input/mouse-move': {
     x: number;

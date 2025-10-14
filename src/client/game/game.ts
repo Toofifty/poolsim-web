@@ -159,8 +159,8 @@ export class Game {
     this.controls.screenSpacePanning = false;
     this.controls.mouseButtons = {
       LEFT: null,
-      MIDDLE: MOUSE.ROTATE,
-      RIGHT: MOUSE.PAN,
+      MIDDLE: MOUSE.PAN,
+      RIGHT: MOUSE.ROTATE,
     };
     this.controls.enabled = settings.enableZoomPan;
 

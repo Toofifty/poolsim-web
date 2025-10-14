@@ -1,6 +1,7 @@
 import {
   CanvasTexture,
   Mesh,
+  MeshPhysicalMaterial,
   SphereGeometry,
   TextureLoader,
   Vector2,
@@ -22,6 +23,10 @@ const geometry = new SphereGeometry(defaultParams.ball.radius, 32, 16);
 const texturePool = new Map<number, CanvasTexture>();
 
 export class BallMesh extends Renderable {
+  constructor(public mesh: Mesh, public material: MeshPhysicalMaterial) {
+    super(mesh);
+  }
+
   public static create({ id }: { id: number }) {
     const theme = makeTheme();
     const texture = texturePool.get(id) ?? createBallTexture(theme, id);
@@ -40,7 +45,7 @@ export class BallMesh extends Renderable {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     // Game.reflectives.push(mesh);
-    return new BallMesh(mesh);
+    return new BallMesh(mesh, material);
   }
 
   public dispose(): void {

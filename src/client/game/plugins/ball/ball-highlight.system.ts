@@ -3,6 +3,7 @@ import { BallId } from '../../components/ball-id';
 import { GameRuleProvider } from '../../resources/game-rules';
 import type { GameRules } from '../../resources/game-rules/types';
 import { GameState, SystemState } from '../../resources/system-state';
+import { toVector3 } from '../../util/three-interop';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
 import { Physics } from '../physics/physics.component';
 import { BallHighlight } from './ball-highlight.component';
@@ -52,10 +53,16 @@ export class BallHighlightSystem extends System {
           BallHighlight.create({ position: physics.r, color: 'red' })
         );
       }
+      return;
     }
 
     if (!(shouldHighlight || shouldHighlightRed) && hasHighlight) {
       ecs.removeComponent(entity, BallHighlight);
+      return;
     }
+
+    // already has highlight, update its position
+    const [ball, highlight] = ecs.get(entity, Physics, BallHighlight);
+    highlight.mesh.position.copy(toVector3(ball.r));
   }
 }

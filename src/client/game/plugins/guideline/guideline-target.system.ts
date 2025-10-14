@@ -5,6 +5,7 @@ import { GameRuleProvider } from '../../resources/game-rules';
 import { GameState, SystemState } from '../../resources/system-state';
 import { Cue } from '../cue/cue.component';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
+import { InHand } from '../gameplay/in-hand.component';
 import { Physics } from '../physics/physics.component';
 import { hasImmediateFoul } from '../physics/simulation/result';
 import { createSimulationState } from '../physics/simulation/state';
@@ -21,7 +22,11 @@ export class GuidelineTargetSystem extends System {
   public async run(ecs: ECS<any, unknown>, entity: Entity): Promise<void> {
     const system = ecs.resource(SystemState);
     const [guideline] = ecs.get(entity, Guideline);
-    if (system.gameState !== GameState.Shooting) {
+    const ballInHandEntity = ecs.query().has(InHand).findOne();
+    if (
+      system.gameState !== GameState.Shooting ||
+      ballInHandEntity !== undefined
+    ) {
       if (guideline.key !== undefined) {
         guideline.reset();
       }

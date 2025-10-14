@@ -1,0 +1,52 @@
+import { ECS, System } from '@common/ecs';
+import { vec } from '@common/math';
+import type { GameEvents } from '../../events';
+import { MousePosition } from '../mouse/mouse-position.resource';
+import { Physics, PhysicsState } from '../physics/physics.component';
+import { InHand } from './in-hand.component';
+
+export class BallInHandHoverSystem extends System {
+  public components: Set<Function> = new Set([]);
+
+  public run(ecs: ECS<GameEvents, unknown>): void {
+    const ballInHandEntity = ecs.query().has(InHand).findOne();
+    if (ballInHandEntity !== undefined) {
+      if (document.body.style.cursor !== 'grabbing') {
+        document.body.style.cursor = 'grabbing';
+      }
+      return;
+    }
+
+    const mouse = ecs.resource(MousePosition);
+    const target = vec.setZ(mouse.world, 0);
+
+    const ballEntities = ecs.query().has(Physics).findAll();
+    let closestEntity: number | undefined = undefined;
+    let closestBall: Physics | undefined = undefined;
+    let closestDist = Infinity;
+    for (const ballEntity of ballEntities) {
+      const [ball] = ecs.get(ballEntity, Physics);
+      if (ball.state !== PhysicsState.Stationary) {
+        continue;
+      }
+
+      const dist = vec.distSq(ball.r, target);
+      if (dist < ball.R * ball.R && dist < closestDist) {
+        closestEntity = ballEntity;
+        closestBall = ball;
+        closestDist = dist;
+      }
+    }
+
+    if (closestEntity !== undefined && closestBall !== undefined) {
+      if (document.body.style.cursor !== 'grab') {
+        document.body.style.cursor = 'grab';
+      }
+      return;
+    }
+
+    if (document.body.style.cursor !== '') {
+      document.body.style.cursor = '';
+    }
+  }
+}

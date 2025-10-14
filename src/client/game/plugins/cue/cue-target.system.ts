@@ -3,6 +3,7 @@ import { vec } from '@common/math';
 import { BallId } from '../../components/ball-id';
 import type { GameEvents } from '../../events';
 import { GameState, SystemState } from '../../resources/system-state';
+import { InHand } from '../gameplay/in-hand.component';
 import { MousePosition } from '../mouse/mouse-position.resource';
 import { Physics } from '../physics/physics.component';
 import { Cue } from './cue.component';
@@ -15,6 +16,8 @@ export class CueTargetSystem extends System {
     if (systemState.gameState !== GameState.Shooting) {
       return;
     }
+    const ballInHandEntity = ecs.query().has(InHand).findOne();
+    if (ballInHandEntity !== undefined) return;
 
     const [cue] = ecs.get(entity, Cue);
     cue.targetEntity = ecs.query().has(BallId, Physics).findOne();

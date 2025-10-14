@@ -5,6 +5,7 @@ import { assertExists } from '@common/util';
 import { dlerp } from '../../dlerp';
 import type { GameEvents } from '../../events';
 import { GameState, SystemState } from '../../resources/system-state';
+import { InHand } from '../gameplay/in-hand.component';
 import { Cue } from './cue.component';
 
 export class CueShootSystem extends EventSystem<
@@ -20,6 +21,8 @@ export class CueShootSystem extends EventSystem<
     const systemState = ecs.resource(SystemState);
     if (systemState.gameState !== GameState.Shooting) return;
     if (data.button !== 0) return;
+    const ballInHandEntity = ecs.query().has(InHand).findOne();
+    if (ballInHandEntity !== undefined) return;
 
     const cueEntity = ecs.query().firstWith(Cue);
     assertExists(cueEntity, 'No cue found when shooting');

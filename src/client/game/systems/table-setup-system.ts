@@ -2,8 +2,8 @@ import { defaultParams } from '@common/simulation/physics';
 import { EightBallState } from '@common/simulation/table-state';
 import { ECS, EventSystem } from '../../../common/ecs';
 import { BallId } from '../components/ball-id';
-import { spawnBall } from '../entities/ball';
 import type { GameEvents } from '../events';
+import { spawnBall } from '../plugins/ball/spawn-ball';
 import { GameRuleProvider } from '../resources/game-rules';
 import { GameState, SystemState } from '../resources/system-state';
 
@@ -19,8 +19,9 @@ export class TableSetupSystem extends EventSystem<'game/setup', GameEvents> {
       ecs.removeEntity(ball);
     }
 
+    const params = ecs.resource(SystemState).params;
     data.rack.forEach((data) => {
-      spawnBall(ecs, data);
+      spawnBall(ecs, params, data);
     });
 
     const system = ecs.resource(SystemState);

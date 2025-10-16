@@ -2,11 +2,12 @@ import { ECS, StartupSystem } from '@common/ecs';
 import { ArrowMesh } from '../../components/arrow-mesh.component';
 import { ImpactArrow } from '../../components/arrow-type.component';
 import { LineMesh } from '../../components/line-mesh.component';
+import type { GameEvents } from '../../events';
 import { Guideline } from './guideline.component';
 import { ImpactPointMesh } from './impact-point-mesh.component';
 
 export class GuidelineSetupSystem extends StartupSystem {
-  public run(ecs: ECS): void {
+  public run(ecs: ECS<GameEvents>): void {
     // guideline
     ecs.spawnImmediate(
       Guideline.create(),

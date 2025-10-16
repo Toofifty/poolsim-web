@@ -5,7 +5,6 @@ import {
   Camera,
   Clock,
   Color,
-  MathUtils,
   Mesh,
   MOUSE,
   Object3D,
@@ -13,12 +12,8 @@ import {
   PCFSoftShadowMap,
   PerspectiveCamera,
   Raycaster,
-  RectAreaLight,
   Scene,
-  SpotLight,
-  SpotLightHelper,
   Vector2,
-  Vector3,
   WebGLRenderer,
 } from 'three';
 import {
@@ -26,10 +21,7 @@ import {
   OrbitControls,
   OutlinePass,
   OutputPass,
-  RectAreaLightHelper,
-  RectAreaLightUniformsLib,
   RenderPass,
-  Sky,
   SSAOPass,
   SSRPass,
 } from 'three/examples/jsm/Addons.js';
@@ -47,12 +39,10 @@ import { OnlineGameController } from './controller/online-game-controller';
 import { _dlerpGame } from './dlerp';
 import { createECS } from './ecs';
 import type { GameEvents } from './events';
-import { createNeonLightStrips } from './models/table/create-neon-light-strips';
 import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
 import { BlackOutlinePass } from './rendering/black-outline-pass';
 import { GraphicsDetail, settings } from './store/settings';
-import { makeTheme } from './store/theme';
 import { toVector2 } from './util/three-interop';
 
 const hdrTextureUrl = new URL('../assets/map.hdr', import.meta.url).toString();
@@ -267,9 +257,7 @@ export class Game {
     this.setupInputController();
     window.addEventListener('resize', this.onResize);
 
-    this.setupRectLights();
     this.setupAmbientLight();
-    this.setupSky();
 
     this.controller = this.adapter.isMultiplayer
       ? new OnlineGameController(this.params, this.input, this.adapter)
@@ -303,14 +291,6 @@ export class Game {
 
   public safeInit() {
     if (!this.mounted) this.init();
-  }
-
-  get width() {
-    return window.innerWidth;
-  }
-
-  get height() {
-    return window.innerHeight;
   }
 
   private setupInputController() {
@@ -395,81 +375,6 @@ export class Game {
     }
   };
 
-  private setupRectLights() {
-    RectAreaLightUniformsLib.init();
-
-    const lightParent = new Object3D();
-    lightParent.position.set(0, 0, 1);
-    this.scene.add(lightParent);
-
-    const createCeilingLight = (
-      x: number,
-      y: number,
-      w: number,
-      h: number,
-      intensity: number
-    ) => {
-      const ral = new RectAreaLight(0xfff1e0, intensity, w, h);
-      ral.position.set(x, y, 0);
-      lightParent.add(ral);
-      const ralh = new RectAreaLightHelper(ral);
-      lightParent.add(ralh);
-      const sl = new SpotLight(0xfff1e0, 1);
-      sl.decay = 2;
-      sl.castShadow = true;
-      sl.shadow.bias = -0.00000000005;
-      sl.shadow.mapSize.set(2048, 2048);
-      sl.shadow.camera.near = 0.1;
-      sl.shadow.camera.far = 5;
-      sl.position.set(x, y, 1);
-      sl.target.position.set(x, y, 0);
-      sl.target.updateMatrixWorld();
-      lightParent.add(sl);
-      const slh = new SpotLightHelper(sl);
-      lightParent.add(slh);
-
-      ralh.visible = false;
-      slh.visible = false;
-      subscribe(settings, () => {
-        ralh.visible = settings.debugLights;
-        slh.visible = settings.debugLights;
-      });
-
-      return ral;
-    };
-
-    const sp = 0.4;
-    const spy = 0.8;
-
-    const { lighting } = makeTheme();
-
-    if (lighting.theme === 'neon') {
-      console.log('neon');
-      createCeilingLight(
-        0,
-        -spy,
-        0.8,
-        0.4,
-        settings.detail === GraphicsDetail.High ? 2 : 4
-      );
-      createCeilingLight(
-        0,
-        spy,
-        0.8,
-        0.4,
-        settings.detail === GraphicsDetail.High ? 2 : 4
-      );
-
-      const lights = createNeonLightStrips(this.params);
-      this.scene.add(...lights);
-
-      return;
-    }
-
-    createCeilingLight(0, 0, 1.6, 0.1, 120);
-    // createCeilingLight(spy, 0, 0.8, 0.4, 40);
-  }
-
   private setupAmbientLight() {
     this.scene.add(new AmbientLight(0xffffff, 0.5));
 
@@ -477,17 +382,6 @@ export class Game {
     this.darkOutlineScene.add(new AmbientLight(0xffffff, 5));
     this.lightOutlineScene.add(new AmbientLight(0xffffff, 5));
     this.redOutlineScene.add(new AmbientLight(0xffffff, 5));
-  }
-
-  private setupSky() {
-    const sky = new Sky();
-    sky.scale.setScalar(45000);
-    const phi = MathUtils.degToRad(190);
-    const theta = MathUtils.degToRad(45);
-    const sunPosition = new Vector3().setFromSphericalCoords(1, phi, theta);
-    sky.material.uniforms.sunPosition.value = sunPosition;
-    sky.material.uniforms.up.value = new Vector3(0, 0, 1);
-    this.scene.add(sky);
   }
 
   public static getFirstMouseIntersection(object: Object3D, point?: Vec) {

@@ -10,6 +10,7 @@ import { GuidelinePlugin } from './plugins/guideline';
 import { MousePlugin } from './plugins/mouse';
 import { PhysicsPlugin } from './plugins/physics';
 import { TablePlugin } from './plugins/table';
+import { WorldPlugin } from './plugins/world';
 import { GameRuleProvider } from './resources/game-rules';
 import { SystemState } from './resources/system-state';
 import { BallShootSystem } from './systems/ball-shoot.system';
@@ -21,7 +22,6 @@ import { MeshRegisterSystem } from './systems/mesh-register.system';
 import { OverlayRegisterSystem } from './systems/overlay-register.system';
 import { SettingsListenerSystem } from './systems/settings-listener.system';
 import { TableSetupSystem } from './systems/table-setup-system';
-import { WorldSetupSystem } from './systems/world-setup-system';
 
 export const createECS = (game: Game) => {
   const ecs = new ECS<GameEvents, Game>(game);
@@ -53,7 +53,6 @@ export const createECS = (game: Game) => {
   new GameplayPlugin().install(ecs);
 
   ecs.addStartupSystem(new SettingsListenerSystem());
-  ecs.addStartupSystem(new WorldSetupSystem());
 
   ecs.addSystem(new BallUpdateSystem());
 
@@ -61,5 +60,9 @@ export const createECS = (game: Game) => {
   ecs.addEventSystem(new TableSetupSystem());
   ecs.addEventSystem(new BallShootSystem());
   ecs.addEventSystem(new ExternalParamChangeSystem());
+
+  // must be last - emits an event to start the game
+  new WorldPlugin().install(ecs);
+
   return ecs;
 };

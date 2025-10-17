@@ -25,8 +25,8 @@ export class SystemState extends Resource {
   public turnIndex = 0;
   public isBreak = true;
   public paused = false;
-  public ballInHand?: number;
 
+  public isOnline = false;
   public isHost = true;
 
   constructor(private ecs: ECS<GameEvents>, private _params: Params) {

@@ -1,4 +1,6 @@
+import type { LobbyData } from '@common/data';
 import { cloneParams, defaultParams } from '@common/simulation/physics';
+import type { Socket } from 'socket.io-client';
 import { ECS } from '../../common/ecs';
 import type { GameEvents } from './events';
 import { Game } from './game';
@@ -8,6 +10,7 @@ import { CuePlugin } from './plugins/cue';
 import { GameplayPlugin } from './plugins/gameplay';
 import { GuidelinePlugin } from './plugins/guideline';
 import { MousePlugin } from './plugins/mouse';
+import { createNetworkPlugin } from './plugins/network';
 import { PhysicsPlugin } from './plugins/physics';
 import { TablePlugin } from './plugins/table';
 import { WorldPlugin } from './plugins/world';
@@ -23,7 +26,7 @@ import { OverlayRegisterSystem } from './systems/overlay-register.system';
 import { SettingsListenerSystem } from './systems/settings-listener.system';
 import { TableSetupSystem } from './systems/table-setup-system';
 
-export const createECS = (game: Game) => {
+export const createECS = (game: Game, socket?: Socket, lobby?: LobbyData) => {
   const ecs = new ECS<GameEvents, Game>(game);
 
   ecs.addResource(new SystemState(ecs, cloneParams(defaultParams)));
@@ -60,6 +63,11 @@ export const createECS = (game: Game) => {
   ecs.addEventSystem(new TableSetupSystem());
   ecs.addEventSystem(new BallShootSystem());
   ecs.addEventSystem(new ExternalParamChangeSystem());
+
+  if (socket && lobby) {
+    const networkPlugin = createNetworkPlugin(socket, lobby);
+    networkPlugin.install(ecs);
+  }
 
   // must be last - emits an event to start the game
   new WorldPlugin().install(ecs);

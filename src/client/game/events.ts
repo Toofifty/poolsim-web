@@ -16,6 +16,14 @@ import type { GameRules } from './resources/game-rules/types';
 import type { GameState } from './resources/system-state';
 import type { settings } from './store/settings';
 
+type BallProto = {
+  id: number;
+  number: number;
+  color: number;
+  position: Vec;
+  orientation: Quat;
+};
+
 export type GameEvents = {
   'game/state-update': GameState;
   'game/current-player-update': number;
@@ -27,13 +35,7 @@ export type GameEvents = {
     mutated: DeepPathOf<typeof settings>[];
   };
   'game/setup': {
-    rack: {
-      id: number;
-      number: number;
-      color: number;
-      position: Vec;
-      orientation: Quat;
-    }[];
+    rack: BallProto[];
     ruleset: Ruleset;
   };
   'game/start-shooting': {};
@@ -92,4 +94,56 @@ export type GameEvents = {
     key: DeepKeyOf<Params>;
     value: unknown;
   };
+
+  // network
+  'send/setup-table': {
+    rack: BallProto[];
+    ruleset: Ruleset;
+  };
+  'send/system-state': {
+    gameState: GameState;
+    eightBallState: EightBallState;
+    turnIndex: number;
+    playerCount: number;
+    isBreak: boolean;
+  };
+  'send/pickup-ball': { id: number };
+  'send/move-ball': {
+    id: number;
+    position: Vec;
+  };
+  'send/place-ball': {
+    id: number;
+    position: Vec;
+  };
+  'send/move-cue': Cue;
+  'send/shoot': {
+    targetEntity: Entity;
+    shot: Shot;
+  };
+  'send/params': Params;
+
+  'receive/setup-table': {
+    rack: BallProto[];
+    ruleset: Ruleset;
+  };
+  'receive/system-state': {
+    gameState: GameState;
+    eightBallState: EightBallState;
+    turnIndex: number;
+    playerCount: number;
+    isBreak: boolean;
+  };
+  'receive/pickup-ball': { id: number };
+  'receive/move-ball': {
+    id: number;
+    position: Vec;
+  };
+  'receive/place-ball': {
+    id: number;
+    position: Vec;
+  };
+  'receive/move-cue': Cue;
+  'receive/shoot': Cue;
+  'receive/params': Params;
 };

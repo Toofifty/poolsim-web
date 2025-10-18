@@ -16,7 +16,7 @@ const getScale = () => {
   }
 };
 
-export const createCueTexture = (params: Params, theme: ThemeObject) => {
+export const createCueCanvas = (params: Params, theme: ThemeObject) => {
   const scale = getScale();
 
   const canvas = document.createElement('canvas');
@@ -47,6 +47,12 @@ export const createCueTexture = (params: Params, theme: ThemeObject) => {
   ctx.fill();
 
   ctx.fillRect(0, spikeBottom, canvas.width, canvas.height);
+
+  return canvas;
+};
+
+export const createCueTexture = (params: Params, theme: ThemeObject) => {
+  const canvas = createCueCanvas(params, theme);
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;

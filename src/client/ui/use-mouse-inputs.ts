@@ -12,31 +12,28 @@ export const useMouseInputs = (
     fn({ x, y, rect });
   }, deps);
 
-  const onMouseDown = useCallback(
-    (event: React.MouseEvent) => {
-      const rect = (event.target as HTMLElement).getBoundingClientRect();
+  const onMouseDown = useCallback((event: React.MouseEvent) => {
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    event.preventDefault();
+
+    const onMouseMove = (event: MouseEvent) => {
+      const x = (event.clientX - rect.left) / rect.width;
+      const y = (event.clientY - rect.top) / rect.height;
+      fn({ x: constrain(x, 0, 1), y: constrain(y, 0, 1), rect });
+
       event.preventDefault();
+      event.stopPropagation();
+      return false;
+    };
 
-      const onMouseMove = (event: MouseEvent) => {
-        const x = (event.clientX - rect.left) / rect.width;
-        const y = (event.clientY - rect.top) / rect.height;
-        fn({ x: constrain(x, 0, 1), y: constrain(y, 0, 1), rect });
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
 
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
-      };
-
-      const onMouseUp = (event: MouseEvent) => {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      };
-
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-    },
-    [deps]
-  );
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, deps);
 
   const onTouchStart = useCallback(
     (event: React.TouchEvent) => {

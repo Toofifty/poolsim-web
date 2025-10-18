@@ -33,7 +33,7 @@ export const startCueShootSystem = createEventSystem(
 
 export const animateCueShootSystem = createEventSystem(
   'game/start-shooting',
-  async (ecs) => {
+  async (ecs, { skipDrawback }) => {
     const cueEntity = ecs.query().firstWith(Cue);
     assertExists(cueEntity, 'No cue found when shooting');
     const [cue] = ecs.get(cueEntity, Cue);
@@ -42,12 +42,14 @@ export const animateCueShootSystem = createEventSystem(
     cue.shooting = true;
 
     // draw back
-    await dlerp(
-      (v) => (cue.drawback = v),
-      cue.drawback,
-      cue.force / 4,
-      defaultParams.cue.pullBackTime
-    );
+    if (!skipDrawback) {
+      await dlerp(
+        (v) => (cue.drawback = v),
+        cue.drawback,
+        cue.force / 16,
+        defaultParams.cue.pullBackTime
+      );
+    }
 
     // shoot
     await dlerp(

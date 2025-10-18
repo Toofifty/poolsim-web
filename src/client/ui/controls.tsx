@@ -13,7 +13,6 @@ import {
 } from '../../common/simulation/physics';
 import { Game } from '../game/game';
 import { GameState } from '../game/resources/system-state';
-import { gameStore } from '../game/store/game';
 import { Players, settings } from '../game/store/settings';
 import { socket } from '../socket';
 import { getAimAssistName, getAimAssistValues } from '../util/enums';
@@ -52,9 +51,8 @@ const getStateName = (state: GameState, isCurrentPlayer = false) => {
 
 export const Controls = () => {
   const ecs = useGameContext().ecs;
-  const { preferencesOpen, paramEditorOpen, controlsOpen } =
+  const { preferencesOpen, paramEditorOpen, controlsOpen, pullToShoot } =
     useSnapshot(settings);
-  const { analysisProgress } = useSnapshot(gameStore);
   const { lobby } = useLobby();
   const isHost = !lobby || lobby?.hostId === socket.id;
   const isMultiplayer = !!lobby;
@@ -92,7 +90,7 @@ export const Controls = () => {
         mt={controlsOpen ? 164 : 108}
         pt="sm"
       />
-      <BallIndicator />
+      {!pullToShoot && <BallIndicator />}
       <div className="group">
         <ActionIcon
           className="surface button icon"
@@ -125,11 +123,14 @@ export const Controls = () => {
             </span>
           </div>
         </Surface>
-        <Surface className="grow">
-          <div className="group">
-            <PowerBar />
-          </div>
-        </Surface>
+        {!pullToShoot && (
+          <Surface className="grow">
+            <div className="group">
+              <PowerBar />
+            </div>
+          </Surface>
+        )}
+        {pullToShoot && <BallIndicator />}
       </div>
       {controlsOpen && (
         <>

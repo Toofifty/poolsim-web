@@ -2,7 +2,6 @@ export * from './component';
 export * from './component-tracking-system';
 export * from './event-system';
 export * from './main';
-export * from './plugin';
 export * from './query';
 export * from './resource';
 export * from './startup-system';

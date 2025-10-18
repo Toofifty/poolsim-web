@@ -19,11 +19,11 @@ const getTextureSize = () => {
   }
 };
 
-export function createBallCanvas(
+export const createBallCanvas = (
   theme: ThemeObject,
   id: number,
   { height, width }: { height: number; width: number }
-) {
+) => {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -122,12 +122,12 @@ export function createBallCanvas(
   }
 
   return canvas;
-}
+};
 
-export function createBallTexture(
+export const createBallTexture = (
   theme: ThemeObject,
   id: number
-): CanvasTexture {
+): CanvasTexture => {
   const tsize = getTextureSize();
   const texture = new CanvasTexture(
     createBallCanvas(theme, id, { height: tsize, width: tsize * 2 })
@@ -136,4 +136,4 @@ export function createBallTexture(
   texture.minFilter = LinearFilter;
   texture.needsUpdate = true;
   return texture;
-}
+};

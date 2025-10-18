@@ -7,6 +7,8 @@ import {
   IconRotate360,
 } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
+import { useSnapshot } from 'valtio';
+import { settings } from '../game/store/settings';
 import { useGameContext } from '../util/game-provider';
 import './spin-control.scss';
 import { Surface } from './surface';
@@ -24,7 +26,7 @@ export const SpinControl = () => {
   );
 
   const isMobile = useIsMobile();
-  const [visible, setVisible] = useState(!isMobile);
+  const { spinControlOpen } = useSnapshot(settings);
 
   const [lockTopSpin, setLockTopSpin] = useState(false);
   const [lockSideSpin, setLockSideSpin] = useState(false);
@@ -66,11 +68,11 @@ export const SpinControl = () => {
 
   return (
     <div className="spin-control__container">
-      {visible ? (
+      {spinControlOpen ? (
         <ActionIcon
           className="surface button icon"
           size="40"
-          onClick={() => setVisible((v) => !v)}
+          onClick={() => (settings.spinControlOpen = !spinControlOpen)}
         >
           <IconChevronRight size={16} />
         </ActionIcon>
@@ -78,13 +80,13 @@ export const SpinControl = () => {
         <Button
           className="surface button"
           size="40"
-          onClick={() => setVisible((v) => !v)}
+          onClick={() => (settings.spinControlOpen = !spinControlOpen)}
           rightSection={<IconRotate360 size="16" />}
         >
           Spin
         </Button>
       )}
-      {visible && (
+      {spinControlOpen && (
         <Surface className="spin-control" p="md">
           <Stack justify="space-evenly">
             <ActionIcon

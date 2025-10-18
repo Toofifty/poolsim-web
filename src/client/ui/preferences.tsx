@@ -42,6 +42,8 @@ export const Preferences = () => {
     detail,
     highlightTargetBalls,
     physicsGuidelines,
+    pullToShoot,
+    controlMode,
     // debug
     lockCue,
     pauseSimulation,
@@ -135,6 +137,34 @@ export const Preferences = () => {
               </Button>
             ))}
           </Item>
+          <Title mt="lg" order={4}>
+            Controls
+          </Title>
+          <Divider style={{ borderTop: '1px solid #FFF2' }} />
+          <Flex w="100%" justify="stretch" align="stretch" wrap="wrap" gap="md">
+            <Stack style={{ flexGrow: 1 }} miw={'calc(50% - 8px)'}>
+              <Item title="Pull to shoot">
+                <Checkbox
+                  pr="4px"
+                  checked={pullToShoot}
+                  onChange={(e) => (settings.pullToShoot = e.target.checked)}
+                />
+              </Item>
+            </Stack>
+            <Stack style={{ flexGrow: 1 }} miw={'calc(50% - 8px)'}>
+              <Item title="Touch controls">
+                <Checkbox
+                  pr="4px"
+                  checked={controlMode === 'touch'}
+                  onChange={(e) =>
+                    (settings.controlMode = e.target.checked
+                      ? 'touch'
+                      : 'cursor')
+                  }
+                />
+              </Item>
+            </Stack>
+          </Flex>
           <Title mt="lg" order={4}>
             Overlays
           </Title>

@@ -17,6 +17,7 @@ export class CueUIUpdateSystem extends EventSystem<
 
     const cue = ecs.query().resolveFirst(Cue);
 
+    if (data.drawback !== undefined) cue.drawback = data.drawback;
     if (data.force !== undefined) cue.force = data.force;
     if (data.top !== undefined) cue.top = data.top;
     if (data.side !== undefined) cue.side = data.side;

@@ -8,7 +8,20 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: space-between;
+  justify-content: stretch;
+
+  &__mid {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    > div {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+  }
 
   &__bottom {
     display: flex;

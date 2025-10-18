@@ -32,8 +32,10 @@ export const settings = proxy({
   players: Players.PlayerVsPlayer,
   enableZoomPan: !isMobile,
   controlMode: isMobile ? ('touch' as const) : ('cursor' as const),
+  pullToShoot: true,
   preferencesOpen: false,
   paramEditorOpen: false,
+  spinControlOpen: false,
   pauseSimulation: false,
   lockCue: false,
 
@@ -63,6 +65,8 @@ subscribe(settings, () => {
     pauseSimulation,
     lockCue,
     controlMode,
+    pullToShoot,
+    spinControlOpen,
     ...serializable
   } = settings;
   localStorage.setItem('pool:settings', JSON.stringify(serializable));

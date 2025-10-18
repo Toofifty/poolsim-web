@@ -38,7 +38,9 @@ export type GameEvents = {
     rack: BallProto[];
     ruleset: Ruleset;
   };
-  'game/start-shooting': {};
+  'game/start-shooting': {
+    skipDrawback?: boolean;
+  };
   'game/shoot': {
     /** Ball ID */
     id: number;
@@ -87,6 +89,7 @@ export type GameEvents = {
   };
   'input/lock-cue': {};
   'input/cue-update': {
+    drawback?: number;
     force?: number;
     top?: number;
     side?: number;

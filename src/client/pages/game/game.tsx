@@ -9,6 +9,7 @@ import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
 import { Canvas } from '../../ui/canvas';
 import { Controls } from '../../ui/controls';
+import { PullToShoot } from '../../ui/pull-to-shoot/pull-to-shoot';
 import { QuickControls } from '../../ui/quick-controls';
 import { SpinControl } from '../../ui/spin-control';
 import { UIContainer } from '../../ui/ui-container';
@@ -31,8 +32,10 @@ const bootstrapGame = (lobby: LobbyData | undefined) => {
   return game;
 };
 
+const canvasEnabled = true;
+
 export const GamePage = () => {
-  const { canvasEnabled } = useSnapshot(settings);
+  const { pullToShoot } = useSnapshot(settings);
   const { lobby } = useLobby();
 
   const game = useMemo(() => {
@@ -51,6 +54,8 @@ export const GamePage = () => {
     <GameContext.Provider value={game}>
       {canvasEnabled && <Canvas game={game} />}
       <UIContainer
+        top={<Controls />}
+        left={pullToShoot ? <PullToShoot /> : undefined}
         bottom={
           <>
             <span />
@@ -58,9 +63,7 @@ export const GamePage = () => {
             <SpinControl />
           </>
         }
-      >
-        <Controls />
-      </UIContainer>
+      />
     </GameContext.Provider>
   );
 };

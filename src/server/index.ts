@@ -155,6 +155,7 @@ io.on('connection', (socket) => {
   forward('move-cue');
   forward('shoot');
   forward('params');
+  forward('physics-sync');
 
   socket.on('disconnect', () => {
     Object.entries(lobbies).forEach(([lobbyId, lobby]) => {

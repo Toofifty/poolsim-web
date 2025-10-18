@@ -1,4 +1,3 @@
-import type { Entity } from '@common/ecs';
 import type { Shot } from '@common/simulation/shot';
 import type { EightBallState } from '@common/simulation/table-state';
 import type { Quat, Vec } from '../../common/math';
@@ -10,6 +9,7 @@ import type {
   BallCushionCollision,
   BallPocketCollision,
 } from './plugins/physics/collision/types';
+import type { Physics } from './plugins/physics/physics.component';
 import type { Result, TurnFoul } from './plugins/physics/simulation/result';
 import type { Sandboxes } from './rack';
 import type { GameRules } from './resources/game-rules/types';
@@ -40,7 +40,8 @@ export type GameEvents = {
   };
   'game/start-shooting': {};
   'game/shoot': {
-    targetEntity: Entity;
+    /** Ball ID */
+    id: number;
     shot: Shot;
   };
   /** Called when no balls are moving and we can update the state */
@@ -61,7 +62,7 @@ export type GameEvents = {
     state: EightBallState;
   };
   'game/pickup-ball': { id: number };
-  'game/move-ball-in-hand': { id: number; position: Vec };
+  'game/move-ball': { id: number; position: Vec };
   'game/place-ball': { id: number; position: Vec };
 
   'input/mouse-move': {
@@ -117,11 +118,11 @@ export type GameEvents = {
     position: Vec;
   };
   'send/move-cue': Cue;
-  'send/shoot': {
-    targetEntity: Entity;
-    shot: Shot;
-  };
+  'send/shoot': Cue;
   'send/params': Params;
+  'send/physics-sync': {
+    balls: Physics[];
+  };
 
   'receive/setup-table': {
     rack: BallProto[];
@@ -146,4 +147,7 @@ export type GameEvents = {
   'receive/move-cue': Cue;
   'receive/shoot': Cue;
   'receive/params': Params;
+  'receive/physics-sync': {
+    balls: Physics[];
+  };
 };

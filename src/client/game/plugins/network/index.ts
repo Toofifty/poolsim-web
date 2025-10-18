@@ -16,6 +16,7 @@ const listenerEvents: (keyof GameEvents)[] = [
   'receive/move-cue',
   'receive/shoot',
   'receive/params',
+  'receive/physics-sync',
 ];
 
 const broadcastEvents: (keyof GameEvents)[] = [
@@ -27,11 +28,15 @@ const broadcastEvents: (keyof GameEvents)[] = [
   'send/move-cue',
   'send/shoot',
   'send/params',
+  'send/physics-sync',
 ];
 
 const createNetworkListeners = (ecs: ECS<GameEvents>, socket: Socket) =>
   listenerEvents.forEach((event) =>
-    socket.on(event, (data) => ecs.emit(event, data))
+    socket.on(event, (data) => {
+      console.log('listener:', event);
+      return ecs.emit(event, data);
+    })
   );
 
 const disposeNetworkListeners = (ecs: ECS<GameEvents>, socket: Socket) =>
@@ -42,9 +47,10 @@ const createNetworkBroadcastSystems = (socket: Socket, lobby: LobbyData) => {
 
   // todo: filter events based on host/client
   return broadcastEvents.map((event) =>
-    createEventSystem(event, (ecs, data) =>
-      socket.emit(event, [lobby.id, data])
-    )
+    createEventSystem(event, (ecs, data) => {
+      console.log('broadcast:', event);
+      return socket.emit(event, [lobby.id, data]);
+    })
   );
 };
 

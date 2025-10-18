@@ -16,6 +16,9 @@ export class MoveBallInHandSystem extends System {
   }
 
   public run(ecs: ECS<GameEvents>, entity: Entity): void {
+    const system = ecs.resource(SystemState);
+    if (!system.isActivePlayer) return;
+
     const mouse = ecs.resource(MousePosition);
     const [ball, inHand] = ecs.get(entity, Physics, InHand);
     if (inHand.animating) return;
@@ -67,9 +70,9 @@ export class MoveBallInHandSystem extends System {
     vec.mlerp(ball.r, target, 0.1);
     vec.msetZ(ball.r, 0.1 + 0.01 * Math.sin(ecs.frameId / 200));
 
-    ecs.emit('game/move-ball-in-hand', {
+    ecs.emit('game/move-ball', {
       id: ball.id,
-      position: ball.r,
+      position: vec.clone(ball.r),
     });
   }
 }

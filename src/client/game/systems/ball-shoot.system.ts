@@ -1,7 +1,7 @@
 import { ECS, EventSystem } from '@common/ecs';
 import type { GameEvents } from '../events';
+import { findBallById } from '../plugins/gameplay/find-ball-by-id';
 import { shoot } from '../plugins/physics/actions/shoot';
-import { Physics } from '../plugins/physics/physics.component';
 import { GameState, SystemState } from '../resources/system-state';
 
 export class BallShootSystem extends EventSystem<'game/shoot', GameEvents> {
@@ -9,9 +9,9 @@ export class BallShootSystem extends EventSystem<'game/shoot', GameEvents> {
 
   public run(
     ecs: ECS<GameEvents, unknown>,
-    { targetEntity, shot }: GameEvents['game/shoot']
+    { id, shot }: GameEvents['game/shoot']
   ): void {
-    const [ball] = ecs.get(targetEntity, Physics);
+    const [_, ball] = findBallById(ecs, id);
     shoot(ball, shot);
 
     const system = ecs.resource(SystemState);

@@ -1,11 +1,6 @@
 import type { LobbyData } from '@common/data';
 import { createStartupSystem } from '@common/ecs/func';
-import {
-  cloneParams,
-  defaultParams,
-  Ruleset,
-  type Params,
-} from '@common/simulation/physics';
+import { Ruleset, type Params } from '@common/simulation/physics';
 import type { Socket } from 'socket.io-client';
 import { ECS } from '../../common/ecs';
 import type { GameEvents } from './events';
@@ -43,7 +38,7 @@ export const createECS = (
   const game = new Game(ecs, params);
   ecs.game = game;
 
-  ecs.addResource(new SystemState(ecs, cloneParams(defaultParams)));
+  ecs.addResource(SystemState.create(ecs, params, socket, lobby));
   ecs.addResource(new GameRuleProvider());
 
   ecs.addComponentTrackingSystem(createMeshRegisterSystem(game.scene));

@@ -1,4 +1,4 @@
-import { ECS, EventSystem } from '@common/ecs';
+import { createEventSystemFactory } from '@common/ecs/func';
 import { defaultParams } from '@common/simulation/physics';
 import { Shot } from '@common/simulation/shot';
 import { assertExists } from '@common/util';
@@ -8,18 +8,15 @@ import { SystemState } from '../../resources/system-state';
 import { InHand } from '../gameplay/in-hand.component';
 import { Cue } from './cue.component';
 
-export class CueShootSystem extends EventSystem<
-  'input/mouse-pressed',
-  GameEvents
-> {
-  public event = 'input/mouse-pressed' as const;
+const createEventSystem = createEventSystemFactory<GameEvents>();
 
-  public async run(
-    ecs: ECS<GameEvents, unknown>,
-    data: GameEvents['input/mouse-pressed']
-  ): Promise<void> {
+export const startCueShootSystem = createEventSystem(
+  'input/mouse-pressed',
+  async (ecs, data) => {
+    if (data.button !== 0) return;
+
     const system = ecs.resource(SystemState);
-    if (!system.isShootable || data.button !== 0) return;
+    if (!system.isShootable || !system.isActivePlayer) return;
 
     const ballInHandEntity = ecs.query().has(InHand).findOne();
     if (ballInHandEntity !== undefined) return;
@@ -27,9 +24,20 @@ export class CueShootSystem extends EventSystem<
     const cueEntity = ecs.query().firstWith(Cue);
     assertExists(cueEntity, 'No cue found when shooting');
     const [cue] = ecs.get(cueEntity, Cue);
-    assertExists(cue.targetEntity, 'No target ball found when shooting');
+    assertExists(cue.targetId, 'No target ball found when shooting');
 
     ecs.emit('game/start-shooting', {});
+  }
+);
+
+export const animateCueShootSystem = createEventSystem(
+  'game/start-shooting',
+  async (ecs) => {
+    const cueEntity = ecs.query().firstWith(Cue);
+    assertExists(cueEntity, 'No cue found when shooting');
+    const [cue] = ecs.get(cueEntity, Cue);
+    assertExists(cue.targetId, 'No target ball found when shooting');
+
     cue.shooting = true;
 
     // draw back
@@ -49,7 +57,7 @@ export class CueShootSystem extends EventSystem<
     );
 
     ecs.emit('game/shoot', {
-      targetEntity: cue.targetEntity,
+      id: cue.targetId,
       shot: Shot.from(cue),
     });
 
@@ -62,4 +70,4 @@ export class CueShootSystem extends EventSystem<
     );
     cue.shooting = false;
   }
-}
+);

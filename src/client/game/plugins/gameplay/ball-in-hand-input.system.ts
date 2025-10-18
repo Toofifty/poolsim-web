@@ -1,6 +1,5 @@
 import { ECS, EventSystem } from '@common/ecs';
 import { vec } from '@common/math';
-import { dlerp } from '../../dlerp';
 import type { GameEvents } from '../../events';
 import { SystemState } from '../../resources/system-state';
 import { settings } from '../../store/settings';
@@ -23,10 +22,7 @@ export class BallInHandInputSystem extends EventSystem<
     const ballInHandEntity = ecs.query().has(InHand).findOne();
 
     if (data.button === 0 && ballInHandEntity !== undefined) {
-      const [ball, inHand] = ecs.get(ballInHandEntity, Physics, InHand);
-      inHand.animating = true;
-      await dlerp((v) => vec.msetZ(ball.r, v), ball.r[2], 0, 100);
-      ecs.removeComponent(ballInHandEntity, InHand);
+      const [ball] = ecs.get(ballInHandEntity, Physics);
       ecs.emit('game/place-ball', { id: ball.id, position: ball.r });
       return;
     }
@@ -64,15 +60,6 @@ export class BallInHandInputSystem extends EventSystem<
         ((closestBall.id === 0 && system.canPickupCueBall) ||
           settings.enableBallPickup)
       ) {
-        ecs.addComponent(closestEntity, InHand.create());
-        await dlerp(
-          (v) => vec.msetZ(closestBall.r, v),
-          closestBall.r[2],
-          0.1,
-          100
-        );
-        const [inHand] = ecs.get(closestEntity, InHand);
-        inHand.animating = false;
         ecs.emit('game/pickup-ball', { id: closestBall.id });
       }
     }

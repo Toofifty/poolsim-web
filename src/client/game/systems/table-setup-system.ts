@@ -19,12 +19,11 @@ export class TableSetupSystem extends EventSystem<'game/setup', GameEvents> {
       ecs.removeEntity(ball);
     }
 
-    const params = ecs.resource(SystemState).params;
+    const system = ecs.resource(SystemState);
     data.rack.forEach((data) => {
-      spawnBall(ecs, params, data);
+      spawnBall(ecs, system.params, data);
     });
 
-    const system = ecs.resource(SystemState);
     system.gameState = GameState.Shooting;
     system.isBreak = true;
     system.eightBallState = EightBallState.Open;

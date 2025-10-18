@@ -1,5 +1,7 @@
-import { type Params } from '@common/simulation/physics';
+import type { LobbyData } from '@common/data';
+import { cloneParams, type Params } from '@common/simulation/physics';
 import { EightBallState } from '@common/simulation/table-state';
+import type { Socket } from 'socket.io-client';
 import { subscribe } from 'valtio';
 import { ECS, Resource } from '../../../common/ecs';
 import type { DeepKeyOf, DeepPathOf, DeepReadonly } from '../../util/types';
@@ -20,21 +22,40 @@ export enum GameState {
 export class SystemState extends Resource {
   private _gameState: GameState = GameState.Initializing;
   public eightBallState = EightBallState.Open;
+  /** Index of the current player. Host will always be 0 */
   private _currentPlayer = 0;
   public playerCount = 2;
-  public turnIndex = 0;
+  private _turnIndex = 0;
   public isBreak = true;
   public paused = false;
 
-  public isOnline = false;
-  public isHost = true;
-
-  constructor(private ecs: ECS<GameEvents>, private _params: Params) {
+  constructor(
+    private ecs: ECS<GameEvents>,
+    private _params: Params,
+    public isOnline: boolean,
+    public isHost: boolean
+  ) {
     super();
 
-    subscribe(settings, () => {
-      this.paused = settings.pauseSimulation;
-    });
+    if (!isOnline || isHost) {
+      subscribe(settings, () => {
+        this.paused = settings.pauseSimulation;
+      });
+    }
+  }
+
+  public static create(
+    ecs: ECS<GameEvents>,
+    params: Params,
+    socket?: Socket,
+    lobby?: LobbyData
+  ) {
+    return new SystemState(
+      ecs,
+      cloneParams(params),
+      !!(socket && lobby),
+      !socket || !lobby || lobby.hostId === socket.id
+    );
   }
 
   get gameState() {
@@ -53,6 +74,15 @@ export class SystemState extends Resource {
   set currentPlayer(value: number) {
     this._currentPlayer = value;
     this.ecs.emit('game/current-player-update', value);
+  }
+
+  get turnIndex() {
+    return this._turnIndex;
+  }
+
+  set turnIndex(value: number) {
+    this._turnIndex = value;
+    this.ecs.emit('game/change-player', value);
   }
 
   get params(): DeepReadonly<Params> {
@@ -90,6 +120,12 @@ export class SystemState extends Resource {
     return 'stripes';
   }
 
+  get isActivePlayer() {
+    if (!this.isOnline) return true;
+
+    return this.turnIndex === this.currentPlayer;
+  }
+
   /**
    * Whether to allow the player to shoot (and update cue etc)
    *
@@ -104,6 +140,8 @@ export class SystemState extends Resource {
   }
 
   get canPickupCueBall() {
+    if (!this.isActivePlayer) return false;
+
     return (
       this.gameState === GameState.BallInHand ||
       (this.gameState === GameState.Shooting && this.isBreak)

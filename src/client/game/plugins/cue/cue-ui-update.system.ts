@@ -1,5 +1,6 @@
 import { ECS, EventSystem } from '@common/ecs';
 import type { GameEvents } from '../../events';
+import { SystemState } from '../../resources/system-state';
 import { Cue } from './cue.component';
 
 export class CueUIUpdateSystem extends EventSystem<
@@ -11,6 +12,9 @@ export class CueUIUpdateSystem extends EventSystem<
     ecs: ECS<GameEvents, unknown>,
     data: GameEvents['input/cue-update']
   ): void {
+    const system = ecs.resource(SystemState);
+    if (!system.isActivePlayer) return;
+
     const cue = ecs.query().resolveFirst(Cue);
 
     if (data.force !== undefined) cue.force = data.force;

@@ -38,7 +38,6 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
       }
 
       system.turnIndex = (system.turnIndex + 1) % system.playerCount;
-      ecs.emit('game/change-player', system.turnIndex);
 
       const cueBallEntity = ecs.query().has(Physics).findOne();
       assertExists(cueBallEntity);
@@ -95,7 +94,6 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
 
     if (!turnResult.success) {
       system.turnIndex = (system.turnIndex + 1) % system.playerCount;
-      ecs.emit('game/change-player', system.turnIndex);
     }
   }
 }

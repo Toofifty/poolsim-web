@@ -17,6 +17,9 @@ export class BallInHandInputSystem extends EventSystem<
     ecs: ECS<GameEvents, unknown>,
     data: GameEvents['input/mouse-pressed']
   ): Promise<void> {
+    const system = ecs.resource(SystemState);
+    if (!system.isActivePlayer) return;
+
     const mouse = ecs.resource(MousePosition);
 
     const ballInHandEntity = ecs.query().has(InHand).findOne();
@@ -26,8 +29,6 @@ export class BallInHandInputSystem extends EventSystem<
       ecs.emit('game/place-ball', { id: ball.id, position: ball.r });
       return;
     }
-
-    const system = ecs.resource(SystemState);
 
     // todo: check settings / ball in hand state
     if (

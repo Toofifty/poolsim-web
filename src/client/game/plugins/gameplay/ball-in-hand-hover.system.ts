@@ -11,6 +11,9 @@ export class BallInHandHoverSystem extends System {
   public components: Set<Function> = new Set([]);
 
   public run(ecs: ECS<GameEvents, unknown>): void {
+    const system = ecs.resource(SystemState);
+    if (!system.isActivePlayer) return;
+
     const ballInHandEntity = ecs.query().has(InHand).findOne();
     if (ballInHandEntity !== undefined) {
       if (document.body.style.cursor !== 'grabbing') {
@@ -39,8 +42,6 @@ export class BallInHandHoverSystem extends System {
         closestDist = dist;
       }
     }
-
-    const system = ecs.resource(SystemState);
 
     if (
       closestEntity !== undefined &&

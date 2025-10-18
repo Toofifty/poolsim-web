@@ -8,6 +8,7 @@ import { SystemState } from '../../resources/system-state';
 import { throttle } from '../../util/throttle';
 import { Cue } from '../cue/cue.component';
 import { findBallById } from '../gameplay/find-ball-by-id';
+import { InHand } from '../gameplay/in-hand.component';
 
 const createEventSystem = createEventSystemFactory<GameEvents>();
 
@@ -29,9 +30,16 @@ const onMoveBall = createEventSystem(
   (ecs, { id, position }) => {
     if (isActivePlayer(ecs)) return;
 
-    const [_, ball] = findBallById(ecs, id);
+    const [entity, ball] = findBallById(ecs, id);
+
     dlerpVec(
-      (v) => vec.mcopy(ball.r, v),
+      (v) => {
+        // throw away new values if the ball has been
+        // placed already
+        const [inHand] = ecs.get(entity, InHand);
+        if (!inHand || inHand.animating) return;
+        return vec.mcopy(ball.r, v);
+      },
       ball.r,
       position,
       defaultParams.network.throttle

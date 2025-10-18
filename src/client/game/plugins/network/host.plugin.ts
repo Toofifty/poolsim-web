@@ -2,10 +2,12 @@ import {
   createEventSystemFactory,
   createPlugin,
   createStartupSystem,
+  createSystem,
 } from '@common/ecs/func';
-import { Ruleset } from '@common/simulation/physics';
+import { defaultParams, Ruleset } from '@common/simulation/physics';
 import type { GameEvents } from '../../events';
-import { SystemState } from '../../resources/system-state';
+import { GameState, SystemState } from '../../resources/system-state';
+import { throttle } from '../../util/throttle';
 import { Physics } from '../physics/physics.component';
 
 const createEventSystem = createEventSystemFactory<GameEvents>();
@@ -26,9 +28,14 @@ const sendGameSetup = createEventSystem('game/setup', (ecs, data) => {
   ecs.emit('send/setup-table', data);
 });
 
-const sendPhysicsSync = createEventSystem('game/settled', (ecs, data) => {
-  const balls = ecs.query().resolveAll(Physics);
-  ecs.emit('send/physics-sync', { balls });
+const sendPhysicsSync = createSystem([], {
+  runAll: throttle((ecs, data) => {
+    const system = ecs.resource(SystemState);
+    if (system.gameState !== GameState.Playing) return;
+
+    const balls = ecs.query().resolveAll(Physics);
+    ecs.emit('send/physics-sync', { balls });
+  }, defaultParams.network.throttle),
 });
 
 const startGame = createStartupSystem<GameEvents>((ecs) => {
@@ -38,11 +45,11 @@ const startGame = createStartupSystem<GameEvents>((ecs) => {
 
 export const networkHostPlugin = createPlugin<GameEvents>((ecs) => {
   ecs.addEventSystem(sendGameSetup);
-  ecs.addEventSystem(sendPhysicsSync);
+  ecs.addSystem(sendPhysicsSync);
   ecs.addStartupSystem(startGame);
 
   return () => {
     ecs.removeEventSystem(sendGameSetup);
-    ecs.removeEventSystem(sendPhysicsSync);
+    ecs.removeSystem(sendPhysicsSync);
   };
 });

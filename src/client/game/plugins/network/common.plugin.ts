@@ -22,19 +22,18 @@ const onMoveCue = createEventSystem('receive/move-cue', (ecs, cue) => {});
 
 const onShoot = createEventSystem('receive/shoot', (ecs, cue) => {});
 
-export const networkCommonPlugin = createPlugin<GameEvents>(
-  (ecs) => {
-    ecs.addEventSystem(onPickupBall);
-    ecs.addEventSystem(onMoveBall);
-    ecs.addEventSystem(onPlaceBall);
-    ecs.addEventSystem(onMoveCue);
-    ecs.addEventSystem(onShoot);
-  },
-  (ecs) => {
+export const networkCommonPlugin = createPlugin<GameEvents>((ecs) => {
+  ecs.addEventSystem(onPickupBall);
+  ecs.addEventSystem(onMoveBall);
+  ecs.addEventSystem(onPlaceBall);
+  ecs.addEventSystem(onMoveCue);
+  ecs.addEventSystem(onShoot);
+
+  return () => {
     ecs.removeEventSystem(onPickupBall);
     ecs.removeEventSystem(onMoveBall);
     ecs.removeEventSystem(onPlaceBall);
     ecs.removeEventSystem(onMoveCue);
     ecs.removeEventSystem(onShoot);
-  }
-);
+  };
+});

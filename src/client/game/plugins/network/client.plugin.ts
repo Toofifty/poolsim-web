@@ -14,15 +14,14 @@ const onUpdateSystemState = createEventSystem(
 
 const onUpdateParams = createEventSystem('receive/params', (ecs, params) => {});
 
-export const networkClientPlugin = createPlugin<GameEvents>(
-  (ecs) => {
-    ecs.addEventSystem(onSetupTable);
-    ecs.addEventSystem(onUpdateSystemState);
-    ecs.addEventSystem(onUpdateParams);
-  },
-  (ecs) => {
+export const networkClientPlugin = createPlugin<GameEvents>((ecs) => {
+  ecs.addEventSystem(onSetupTable);
+  ecs.addEventSystem(onUpdateSystemState);
+  ecs.addEventSystem(onUpdateParams);
+
+  return () => {
     ecs.removeEventSystem(onSetupTable);
     ecs.removeEventSystem(onUpdateSystemState);
     ecs.removeEventSystem(onUpdateParams);
-  }
-);
+  };
+});

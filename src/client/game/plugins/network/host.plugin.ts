@@ -7,11 +7,10 @@ const sendGameSetup = createEventSystem('game/setup', (ecs, data) => {
   ecs.emit('send/setup-table', data);
 });
 
-export const networkHostPlugin = createPlugin<GameEvents>(
-  (ecs) => {
-    ecs.addEventSystem(sendGameSetup);
-  },
-  (ecs) => {
+export const networkHostPlugin = createPlugin<GameEvents>((ecs) => {
+  ecs.addEventSystem(sendGameSetup);
+
+  return () => {
     ecs.removeEventSystem(sendGameSetup);
-  }
-);
+  };
+});

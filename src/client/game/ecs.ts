@@ -9,7 +9,7 @@ import { BallPlugin } from './plugins/ball';
 import { CuePlugin } from './plugins/cue';
 import { GameplayPlugin } from './plugins/gameplay';
 import { GuidelinePlugin } from './plugins/guideline';
-import { MousePlugin } from './plugins/mouse';
+import { mousePlugin } from './plugins/mouse';
 import { createNetworkPlugin } from './plugins/network';
 import { PhysicsPlugin } from './plugins/physics';
 import { TablePlugin } from './plugins/table';
@@ -18,11 +18,13 @@ import { GameRuleProvider } from './resources/game-rules';
 import { SystemState } from './resources/system-state';
 import { BallShootSystem } from './systems/ball-shoot.system';
 import { BallUpdateSystem } from './systems/ball-update.system';
-import { BillboardUpdateSystem } from './systems/billboard-update.system';
+import { createBillboardUpdateSystem } from './systems/billboard-update.system';
 import { ExternalParamChangeSystem } from './systems/external-param-change.system';
 import { InputSetupSystem } from './systems/input-setup.system';
-import { MeshRegisterSystem } from './systems/mesh-register.system';
-import { OverlayRegisterSystem } from './systems/overlay-register.system';
+import {
+  createMeshRegisterSystem,
+  createOverlayRegisterSystem,
+} from './systems/mesh-register.system';
 import { SettingsListenerSystem } from './systems/settings-listener.system';
 import { TableSetupSystem } from './systems/table-setup-system';
 
@@ -32,9 +34,9 @@ export const createECS = (game: Game, socket?: Socket, lobby?: LobbyData) => {
   ecs.addResource(new SystemState(ecs, cloneParams(defaultParams)));
   ecs.addResource(new GameRuleProvider());
 
-  ecs.addComponentTrackingSystem(new MeshRegisterSystem(game.scene));
+  ecs.addComponentTrackingSystem(createMeshRegisterSystem(game.scene));
   ecs.addComponentTrackingSystem(
-    new OverlayRegisterSystem(
+    createOverlayRegisterSystem(
       game.overlay,
       game.darkOutlineScene,
       game.lightOutlineScene,
@@ -44,9 +46,9 @@ export const createECS = (game: Game, socket?: Socket, lobby?: LobbyData) => {
       game.redOutlinePass.selectedObjects
     )
   );
-  ecs.addSystem(new BillboardUpdateSystem(game.camera));
+  ecs.addSystem(createBillboardUpdateSystem(game.camera));
 
-  new MousePlugin().install(ecs);
+  mousePlugin.install(ecs);
   new CuePlugin().install(ecs);
   new TablePlugin().install(ecs);
   new BallPlugin().install(ecs);

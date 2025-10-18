@@ -93,12 +93,13 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
     }
   }
 
-  public addResource(resource: Resource): void {
-    this.resources.set(resource.constructor as Ctor<Resource>, resource);
+  public addResource<T extends Resource>(resource: T): T {
+    this.resources.set(resource.constructor as Ctor<T>, resource);
+    return resource;
   }
 
-  public removeResource(resource: Resource): void {
-    this.resources.delete(resource.constructor as Ctor<Resource>);
+  public removeResource<T extends Resource>(resource: T): void {
+    this.resources.delete(resource.constructor as Ctor<T>);
   }
 
   public addExternalListener<T extends keyof TEventMap>(
@@ -211,11 +212,12 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
     this.checkE(entity);
   }
 
-  public addSystem(system: System<TWorld>): void {
+  public addSystem<T extends System<TWorld>>(system: T): T {
     this.systems.set(system, new Set());
     for (let entity of this.entities.keys()) {
       this.checkES(entity, system);
     }
+    return system;
   }
 
   public removeSystem(system: System<TWorld>): void {
@@ -234,14 +236,15 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
     this.componentTrackingSystems.delete(system);
   }
 
-  public addEventSystem(
-    system: EventSystem<keyof TEventMap, TEventMap, TWorld>
-  ): void {
+  public addEventSystem<
+    T extends EventSystem<keyof TEventMap, TEventMap, TWorld>
+  >(system: T): T {
     const event = system.event;
     if (!this.eventSystems.has(event)) {
       this.eventSystems.set(event, new Set());
     }
     this.eventSystems.get(event)!.add(system);
+    return system;
   }
 
   public removeEventSystem(
@@ -253,8 +256,13 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
   /**
    * System will be run once on the first frame of the ecs loop
    */
-  public addStartupSystem(system: StartupSystem) {
+  public addStartupSystem<T extends StartupSystem>(system: T): T {
     this.startupSystems.push(system);
+    return system;
+  }
+
+  public removeStartupSystem(system: StartupSystem) {
+    this.startupSystems = this.startupSystems.filter((s) => s !== system);
   }
 
   public update(deltaTime: number): void {

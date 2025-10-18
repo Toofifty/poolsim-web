@@ -7,21 +7,21 @@ import { networkCommonPlugin } from './common.plugin';
 import { networkHostPlugin } from './host.plugin';
 
 export const createNetworkPlugin = (socket: Socket, lobby: LobbyData) =>
-  createPlugin<GameEvents>(
-    (ecs) => {
-      networkCommonPlugin.install(ecs);
-      if (lobby.hostId === socket.id) {
-        networkHostPlugin.install(ecs);
-      } else {
-        networkClientPlugin.install(ecs);
-      }
-    },
-    (ecs) => {
-      networkCommonPlugin.uninstall(ecs);
-      if (lobby.hostId === socket.id) {
-        networkHostPlugin.uninstall(ecs);
-      } else {
-        networkClientPlugin.uninstall(ecs);
-      }
+  createPlugin<GameEvents>((ecs) => {
+    const uninstallCommon = networkCommonPlugin.install(ecs);
+    if (lobby.hostId === socket.id) {
+      const uninstallHost = networkHostPlugin.install(ecs);
+
+      return () => {
+        uninstallCommon();
+        uninstallHost();
+      };
+    } else {
+      const uninstallClient = networkClientPlugin.install(ecs);
+
+      return () => {
+        uninstallCommon();
+        uninstallClient();
+      };
     }
-  );
+  });

@@ -1,4 +1,4 @@
-import { ECS, EventSystem } from '@common/ecs';
+import { createEventSystemFactory } from '@common/ecs/func';
 import { vec, type Vec } from '@common/math';
 import { assertExists } from '@common/util';
 import { Object3D, Raycaster, type Camera } from 'three';
@@ -8,43 +8,33 @@ import { MousePosition } from './mouse-position.resource';
 import { PlaneMesh } from './plane-mesh.component';
 import { Plane } from './plane.component';
 
-export class MousePositionSystem extends EventSystem<
-  'input/mouse-move',
-  GameEvents
-> {
-  public event = 'input/mouse-move' as const;
+export const createMousePositionSystem = (camera: Camera) => {
+  const raycaster = new Raycaster();
 
-  private raycaster: Raycaster;
-
-  constructor(private camera: Camera) {
-    super();
-    this.raycaster = new Raycaster();
-  }
-
-  private intersect(screen: Vec, object: Object3D): Vec | undefined {
-    this.raycaster.setFromCamera(toVector2(screen), this.camera);
-    const intersections = this.raycaster.intersectObject(object);
+  const intersect = (screen: Vec, object: Object3D): Vec | undefined => {
+    raycaster.setFromCamera(toVector2(screen), camera);
+    const intersections = raycaster.intersectObject(object);
     if (intersections.length > 0) {
       return toVec(intersections[0].point);
     }
     return undefined;
-  }
+  };
 
-  public run(
-    ecs: ECS<GameEvents, unknown>,
-    data: GameEvents['input/mouse-move']
-  ): void {
-    const mousePosition = ecs.resource(MousePosition);
-    vec.mset(mousePosition.screen, data.x, data.y, 0);
+  return createEventSystemFactory<GameEvents>()(
+    'input/mouse-move',
+    (ecs, data) => {
+      const mousePosition = ecs.resource(MousePosition);
+      vec.mset(mousePosition.screen, data.x, data.y, 0);
 
-    const planeEntity = ecs.query().firstWith(Plane);
-    assertExists(planeEntity, 'Missing intersection plane');
+      const planeEntity = ecs.query().firstWith(Plane);
+      assertExists(planeEntity, 'Missing intersection plane');
 
-    const [{ mesh }] = ecs.get(planeEntity, PlaneMesh);
+      const [{ mesh }] = ecs.get(planeEntity, PlaneMesh);
 
-    const world = this.intersect(mousePosition.screen, mesh);
-    if (world) {
-      vec.mcopy(mousePosition.world, world);
+      const world = intersect(mousePosition.screen, mesh);
+      if (world) {
+        vec.mcopy(mousePosition.world, world);
+      }
     }
-  }
-}
+  );
+};

@@ -1,4 +1,5 @@
-import { ECS, EventSystem, Plugin } from '@common/ecs';
+import { ECS, EventSystem } from '@common/ecs';
+import { createPlugin } from '@common/ecs/func';
 import { vec } from '@common/math';
 import type { GameEvents } from '../events';
 import type { Game } from '../game';
@@ -10,15 +11,15 @@ import type {
   BallPocketCollision,
 } from './physics/collision/types';
 
-export class AudioPlugin extends Plugin {
-  public install(ecs: ECS<GameEvents, Game>): void {
-    ecs.addResource(new Audio(ecs.game.scene));
-    ecs.addEventSystem(new ShootAudioSystem());
-    ecs.addEventSystem(new FoulAudioSystem());
-    ecs.addEventSystem(new BallCollisionAudioSystem());
-    ecs.addEventSystem(new PocketCollisionAudioSystem());
-  }
-}
+export const audioPlugin = createPlugin<GameEvents, Game>((ecs) => {
+  ecs.addResource(new Audio(ecs.game.scene));
+  ecs.addEventSystem(new ShootAudioSystem());
+  ecs.addEventSystem(new FoulAudioSystem());
+  ecs.addEventSystem(new BallCollisionAudioSystem());
+  ecs.addEventSystem(new PocketCollisionAudioSystem());
+
+  return () => {};
+});
 
 class ShootAudioSystem extends EventSystem<'game/shoot', GameEvents> {
   public event = 'game/shoot' as const;

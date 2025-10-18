@@ -25,7 +25,7 @@ const bootstrapGame = (lobby: LobbyData | undefined) => {
   }
 
   lastBootstrappedFor = lobby?.id;
-  const ecs = lobby
+  const [ecs, _destroy] = lobby
     ? createECS(lobby.params, socket, lobby)
     : createECS(params);
   game = ecs.game;

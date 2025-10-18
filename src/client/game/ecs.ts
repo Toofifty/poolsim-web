@@ -5,15 +5,15 @@ import type { Socket } from 'socket.io-client';
 import { ECS } from '../../common/ecs';
 import type { GameEvents } from './events';
 import { Game } from './game';
-import { AudioPlugin } from './plugins/audio';
-import { BallPlugin } from './plugins/ball';
-import { CuePlugin } from './plugins/cue';
-import { GameplayPlugin } from './plugins/gameplay';
-import { GuidelinePlugin } from './plugins/guideline';
+import { audioPlugin } from './plugins/audio';
+import { ballPlugin } from './plugins/ball';
+import { cuePlugin } from './plugins/cue';
+import { gameplayPlugin } from './plugins/gameplay';
+import { guidelinePlugin } from './plugins/guideline';
 import { mousePlugin } from './plugins/mouse';
 import { createNetworkPlugin } from './plugins/network';
-import { PhysicsPlugin } from './plugins/physics';
-import { TablePlugin } from './plugins/table';
+import { physicsPlugin } from './plugins/physics';
+import { tablePlugin } from './plugins/table';
 import { worldPlugin } from './plugins/world';
 import { GameRuleProvider } from './resources/game-rules';
 import { SystemState } from './resources/system-state';
@@ -29,6 +29,14 @@ import {
 import { SettingsListenerSystem } from './systems/settings-listener.system';
 import { TableSetupSystem } from './systems/table-setup-system';
 
+const installPlugins = (
+  ecs: ECS<GameEvents, Game>,
+  plugins: { install: (ecs: ECS<GameEvents, Game>) => () => void }[]
+) => {
+  const uninstallers = plugins.map((plugin) => plugin.install(ecs));
+  return () => uninstallers.forEach((uninstall) => uninstall());
+};
+
 export const createECS = (
   params: Params,
   socket?: Socket,
@@ -41,8 +49,10 @@ export const createECS = (
   ecs.addResource(SystemState.create(ecs, params, socket, lobby));
   ecs.addResource(new GameRuleProvider());
 
-  ecs.addComponentTrackingSystem(createMeshRegisterSystem(game.scene));
-  ecs.addComponentTrackingSystem(
+  const meshRegisterSystem = ecs.addComponentTrackingSystem(
+    createMeshRegisterSystem(game.scene)
+  );
+  const overlayRegisterSystem = ecs.addComponentTrackingSystem(
     createOverlayRegisterSystem(
       game.overlay,
       game.darkOutlineScene,
@@ -53,16 +63,20 @@ export const createECS = (
       game.redOutlinePass.selectedObjects
     )
   );
-  ecs.addSystem(createBillboardUpdateSystem(game.camera));
+  const billboardUpdateSystem = ecs.addSystem(
+    createBillboardUpdateSystem(game.camera)
+  );
 
-  mousePlugin.install(ecs);
-  new CuePlugin().install(ecs);
-  new TablePlugin().install(ecs);
-  new BallPlugin().install(ecs);
-  new PhysicsPlugin().install(ecs);
-  new AudioPlugin().install(ecs);
-  new GuidelinePlugin().install(ecs);
-  new GameplayPlugin().install(ecs);
+  const uninstallPlugins = installPlugins(ecs, [
+    mousePlugin,
+    cuePlugin,
+    tablePlugin,
+    ballPlugin,
+    physicsPlugin,
+    audioPlugin,
+    gameplayPlugin,
+    guidelinePlugin,
+  ]);
 
   ecs.addStartupSystem(new SettingsListenerSystem());
 
@@ -73,10 +87,11 @@ export const createECS = (
   ecs.addEventSystem(new BallShootSystem());
   ecs.addEventSystem(new ExternalParamChangeSystem());
 
+  let uninstallNetworkPlugin: (() => void) | undefined = undefined;
   if (socket && lobby) {
     console.log('ecs - installing networking');
     const networkPlugin = createNetworkPlugin(socket, lobby);
-    networkPlugin.install(ecs);
+    uninstallNetworkPlugin = networkPlugin.install(ecs);
   } else {
     // start game immediately
     ecs.addStartupSystem(
@@ -86,7 +101,18 @@ export const createECS = (
     );
   }
 
-  worldPlugin.install(ecs);
+  const uninstallWorldPlugin = worldPlugin.install(ecs);
 
-  return ecs;
+  const destroy = () => {
+    ecs.removeComponentTrackingSystem(meshRegisterSystem);
+    ecs.removeComponentTrackingSystem(overlayRegisterSystem);
+    ecs.removeSystem(billboardUpdateSystem);
+
+    uninstallPlugins();
+
+    uninstallNetworkPlugin?.();
+    uninstallWorldPlugin();
+  };
+
+  return [ecs, destroy] as const;
 };

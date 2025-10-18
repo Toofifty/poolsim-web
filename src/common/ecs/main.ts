@@ -223,10 +223,11 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
     this.systems.delete(system);
   }
 
-  public addComponentTrackingSystem(
-    system: ComponentTrackingSystem<ECSComponent>
-  ) {
+  public addComponentTrackingSystem<
+    T extends ComponentTrackingSystem<ECSComponent>
+  >(system: T): T {
     this.componentTrackingSystems.add(system);
+    return system;
   }
 
   public removeComponentTrackingSystem(

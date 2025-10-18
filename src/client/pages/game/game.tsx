@@ -1,11 +1,10 @@
 import { notifications } from '@mantine/notifications';
 import { useEffect, useMemo } from 'react';
-import { proxy, useSnapshot } from 'valtio';
+import { useSnapshot } from 'valtio';
 import type { LobbyData } from '../../../common/data';
 import { params } from '../../../common/simulation/physics';
+import { createECS } from '../../game/ecs';
 import { Game } from '../../game/game';
-import { OfflineAdapter } from '../../game/network/offline-adapter';
-import { OnlineAdapter } from '../../game/network/online-adapter';
 import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
 import { Canvas } from '../../ui/canvas';
@@ -26,10 +25,10 @@ const bootstrapGame = (lobby: LobbyData | undefined) => {
   }
 
   lastBootstrappedFor = lobby?.id;
-  game = new Game(
-    lobby ? new OnlineAdapter(socket, lobby) : new OfflineAdapter(),
-    lobby?.params ? proxy(lobby.params) : params
-  );
+  const ecs = lobby
+    ? createECS(lobby.params, socket, lobby)
+    : createECS(params);
+  game = ecs.game;
   return game;
 };
 

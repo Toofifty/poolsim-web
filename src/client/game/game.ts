@@ -32,20 +32,13 @@ import type { Vec } from '../../common/math';
 import { type Params } from '../../common/simulation/physics';
 import { Profiler } from '../../common/util/profiler';
 import { Audio } from './audio';
-import type { GameController } from './controller/game-controller';
 import { InputController } from './controller/input-controller';
-import { OfflineGameController } from './controller/offline-game-controller';
-import { OnlineGameController } from './controller/online-game-controller';
 import { _dlerpGame } from './dlerp';
-import { createECS } from './ecs';
 import type { GameEvents } from './events';
-import type { NetworkAdapter } from './network/network-adapter';
 import { Debug } from './objects/debug';
 import { BlackOutlinePass } from './rendering/black-outline-pass';
 import { GraphicsDetail, settings } from './store/settings';
 import { toVector2 } from './util/three-interop';
-
-const hdrTextureUrl = new URL('../assets/map.hdr', import.meta.url).toString();
 
 export class Game {
   // rendering
@@ -70,7 +63,6 @@ export class Game {
   // game
   public mousePosition!: Vector2;
   public mouseRaycaster!: Raycaster;
-  public controller!: GameController;
   public clock!: Clock;
   private accumulator = 0;
   private timestep: number;
@@ -86,11 +78,9 @@ export class Game {
 
   public static reflectives: Mesh[] = [];
 
-  public ecs!: ECS<GameEvents, Game>;
-
   private mounted: boolean = false;
 
-  constructor(private adapter: NetworkAdapter, private params: Params) {
+  constructor(public ecs: ECS<GameEvents, Game>, private params: Params) {
     this.init();
     this.timestep = 1 / params.simulation.updatesPerSecond;
   }
@@ -259,18 +249,8 @@ export class Game {
 
     this.setupAmbientLight();
 
-    this.controller = this.adapter.isMultiplayer
-      ? new OnlineGameController(this.params, this.input, this.adapter)
-      : new OfflineGameController(this.params, this.input);
-    this.scene.add(this.controller.root);
-
     this.clock = new Clock();
 
-    this.ecs = createECS(this);
-    // this.ecs.emit('game/setup', {
-    //   rack: Rack.generateSandboxGame(this.params, 'debug'),
-    //   ruleset: RuleSet.Sandbox,
-    // });
     this.renderer.setAnimationLoop(this.draw.bind(this));
 
     // HDR image
@@ -425,9 +405,7 @@ export class Game {
   }
 
   public static focusCueBall() {
-    const target = this.instance.controller.balls[0].position;
-    this.instance.controls.target.copy(target);
-    this.instance.controls.update();
+    throw new Error('Not implemented');
   }
 
   public getMouseRaycaster(point?: Vec) {
@@ -466,10 +444,6 @@ export class Game {
       this.renderer.dispose();
       this.renderer.forceContextLoss();
 
-      if (this.controller instanceof OnlineGameController) {
-        this.controller.disconnect();
-      }
-
       if (this.renderer.domElement.parentNode) {
         this.renderer.domElement.parentNode.removeChild(
           this.renderer.domElement
@@ -498,7 +472,6 @@ export class Game {
 
     // physics step
     while (this.accumulator >= this.timestep) {
-      this.controller.update(this.timestep);
       this.ecs.update(this.timestep);
       this.accumulator -= this.timestep;
     }

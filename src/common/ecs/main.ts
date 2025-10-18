@@ -76,10 +76,9 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
   public frameId = 0;
   public midframe = false;
 
-  constructor(
-    public game: TWorld,
-    private profiler: IProfiler = Profiler.none
-  ) {}
+  public game!: TWorld;
+
+  constructor(private profiler: IProfiler = Profiler.none) {}
 
   public emit<T extends keyof TEventMap>(event: T, data: TEventMap[T]) {
     const systems = this.eventSystems.get(event);
@@ -254,15 +253,11 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
   }
 
   /**
-   * System will be run once on the first frame of the ecs loop
+   * System will be run once on the first frame of the ecs loop,
+   * and will be destroyed
    */
-  public addStartupSystem<T extends StartupSystem>(system: T): T {
+  public addStartupSystem<T extends StartupSystem>(system: T): void {
     this.startupSystems.push(system);
-    return system;
-  }
-
-  public removeStartupSystem(system: StartupSystem) {
-    this.startupSystems = this.startupSystems.filter((s) => s !== system);
   }
 
   public update(deltaTime: number): void {

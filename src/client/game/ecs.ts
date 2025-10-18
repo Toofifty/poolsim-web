@@ -1,5 +1,11 @@
 import type { LobbyData } from '@common/data';
-import { cloneParams, defaultParams } from '@common/simulation/physics';
+import { createStartupSystem } from '@common/ecs/func';
+import {
+  cloneParams,
+  defaultParams,
+  Ruleset,
+  type Params,
+} from '@common/simulation/physics';
 import type { Socket } from 'socket.io-client';
 import { ECS } from '../../common/ecs';
 import type { GameEvents } from './events';
@@ -13,7 +19,7 @@ import { mousePlugin } from './plugins/mouse';
 import { createNetworkPlugin } from './plugins/network';
 import { PhysicsPlugin } from './plugins/physics';
 import { TablePlugin } from './plugins/table';
-import { WorldPlugin } from './plugins/world';
+import { worldPlugin } from './plugins/world';
 import { GameRuleProvider } from './resources/game-rules';
 import { SystemState } from './resources/system-state';
 import { BallShootSystem } from './systems/ball-shoot.system';
@@ -28,8 +34,14 @@ import {
 import { SettingsListenerSystem } from './systems/settings-listener.system';
 import { TableSetupSystem } from './systems/table-setup-system';
 
-export const createECS = (game: Game, socket?: Socket, lobby?: LobbyData) => {
-  const ecs = new ECS<GameEvents, Game>(game);
+export const createECS = (
+  params: Params,
+  socket?: Socket,
+  lobby?: LobbyData
+) => {
+  const ecs = new ECS<GameEvents, Game>();
+  const game = new Game(ecs, params);
+  ecs.game = game;
 
   ecs.addResource(new SystemState(ecs, cloneParams(defaultParams)));
   ecs.addResource(new GameRuleProvider());
@@ -67,12 +79,19 @@ export const createECS = (game: Game, socket?: Socket, lobby?: LobbyData) => {
   ecs.addEventSystem(new ExternalParamChangeSystem());
 
   if (socket && lobby) {
+    console.log('ecs - installing networking');
     const networkPlugin = createNetworkPlugin(socket, lobby);
     networkPlugin.install(ecs);
+  } else {
+    // start game immediately
+    ecs.addStartupSystem(
+      createStartupSystem<GameEvents>((ecs) =>
+        ecs.emit('input/setup-game', { ruleset: Ruleset._8Ball })
+      )
+    );
   }
 
-  // must be last - emits an event to start the game
-  new WorldPlugin().install(ecs);
+  worldPlugin.install(ecs);
 
   return ecs;
 };

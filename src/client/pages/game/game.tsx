@@ -12,7 +12,6 @@ import { Controls } from '../../ui/controls';
 import { QuickControls } from '../../ui/quick-controls';
 import { SpinControl } from '../../ui/spin-control';
 import { UIContainer } from '../../ui/ui-container';
-import { getIsMobile } from '../../ui/use-media-query';
 import { GameContext } from '../../util/game-provider';
 import { useLobby } from '../../util/use-lobby';
 
@@ -45,10 +44,6 @@ export const GamePage = () => {
       notifications.show({
         message: 'Rotate your device for the best experience',
       });
-    }
-
-    if (getIsMobile()) {
-      document.body.requestFullscreen();
     }
   }, []);
 

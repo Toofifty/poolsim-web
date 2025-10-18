@@ -24,7 +24,7 @@ export const createMousePositionSystem = (camera: Camera) => {
     'input/mouse-move',
     (ecs, data) => {
       const mousePosition = ecs.resource(MousePosition);
-      vec.mset(mousePosition.screen, data.x, data.y, 0);
+      vec.mcopy(mousePosition.screen, data.position);
 
       const planeEntity = ecs.query().firstWith(Plane);
       assertExists(planeEntity, 'Missing intersection plane');

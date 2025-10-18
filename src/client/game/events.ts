@@ -66,9 +66,16 @@ export type GameEvents = {
   'game/place-ball': { id: number; position: Vec };
 
   'input/mouse-move': {
-    x: number;
-    y: number;
-    original: MouseEvent | TouchEvent;
+    position: Vec;
+    original: MouseEvent;
+  };
+  'input/touch-start': {
+    position: Vec;
+    original: TouchEvent;
+  };
+  'input/touch-move': {
+    position: Vec;
+    original: TouchEvent;
   };
   'input/mouse-pressed': {
     button: number;

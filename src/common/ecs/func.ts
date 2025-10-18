@@ -9,8 +9,12 @@ import type { Entity } from './types';
 type EventMap = Record<string, any>;
 
 /**
- * Create a plugin installer. The install function should
+ * Creates a plugin installer. The install function should
  * return a callback to uninstall all features it added.
+ *
+ * This is used to group a bundle of feature systems together,
+ * and should not interact with entities or components directly.
+ * To spawn or modify entities, register a startup system.
  */
 export const createPlugin = <TEventMap extends EventMap, TWorld = unknown>(
   install: (ecs: ECS<TEventMap, TWorld>) => () => void

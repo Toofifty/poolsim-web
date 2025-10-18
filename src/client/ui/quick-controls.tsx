@@ -23,7 +23,7 @@ export const QuickControls = () => {
   const lockCue = useGameBinding('game/cue-update', (cue) => cue.locked, false);
 
   const onShoot = () => {
-    Game.instance.controller.uiShoot();
+    ecs.emit('game/start-shooting', {});
   };
 
   useEffect(() => {

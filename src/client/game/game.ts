@@ -307,33 +307,24 @@ export class Game {
       }
     });
 
-    this.input.onMouseMove((e) => {
-      const { left, top, width, height } = (
-        e.target as HTMLElement
-      ).getBoundingClientRect();
-      const x = e.clientX - left;
-      const y = e.clientY - top;
-
+    this.input.onMouseMove((event) => {
       this.ecs.emit('input/mouse-move', {
-        x: (x / width) * 2 - 1,
-        y: -(y / height) * 2 + 1,
-        original: e,
+        position: this.input.getRelativeMouse(event),
+        original: event,
       });
     });
 
-    this.input.onTouchMove((e) => {
-      const { left, top, width, height } = (
-        e.target as HTMLElement
-      ).getBoundingClientRect();
-      const [touch] = e.touches;
+    this.input.onTouchStart((event) => {
+      this.ecs.emit('input/touch-start', {
+        position: this.input.getRelativeTouch(event),
+        original: event,
+      });
+    });
 
-      const x = touch.clientX - left;
-      const y = touch.clientY - top;
-
-      this.ecs.emit('input/mouse-move', {
-        x: (x / width) * 2 - 1,
-        y: -(y / height) * 2 + 1,
-        original: e,
+    this.input.onTouchMove((event) => {
+      this.ecs.emit('input/touch-move', {
+        position: this.input.getRelativeTouch(event),
+        original: event,
       });
     });
 

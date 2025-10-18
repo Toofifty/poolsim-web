@@ -5,6 +5,7 @@ import { assertExists } from '@common/util';
 import { dlerp } from '../../dlerp';
 import type { GameEvents } from '../../events';
 import { SystemState } from '../../resources/system-state';
+import { settings } from '../../store/settings';
 import { InHand } from '../gameplay/in-hand.component';
 import { Cue } from './cue.component';
 
@@ -13,7 +14,7 @@ const createEventSystem = createEventSystemFactory<GameEvents>();
 export const startCueShootSystem = createEventSystem(
   'input/mouse-pressed',
   async (ecs, data) => {
-    if (data.button !== 0) return;
+    if (data.button !== 0 || settings.controlMode === 'touch') return;
 
     const system = ecs.resource(SystemState);
     if (!system.isShootable || !system.isActivePlayer) return;

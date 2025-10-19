@@ -54,6 +54,7 @@ export class BallMesh extends Renderable {
   }
 
   public dispose(): void {
-    // todo
+    // do not dispose geometry as it is shared between all balls
+    (this.mesh.material as MeshPhysicalMaterial).dispose();
   }
 }

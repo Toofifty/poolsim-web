@@ -35,7 +35,6 @@ import { Audio } from './audio';
 import { InputController } from './controller/input-controller';
 import { _dlerpGame } from './dlerp';
 import type { GameEvents } from './events';
-import { Debug } from './objects/debug';
 import { BlackOutlinePass } from './rendering/black-outline-pass';
 import { GraphicsDetail, settings } from './store/settings';
 import { toVector2 } from './util/three-interop';
@@ -72,7 +71,6 @@ export class Game {
   public audio!: Audio;
 
   public static instance: Game;
-  public static debug: Debug;
   public static audio: Audio;
   public static profiler = new Profiler();
 
@@ -238,11 +236,8 @@ export class Game {
     }
 
     this.mouseRaycaster = new Raycaster();
-    Game.debug = new Debug();
-    this.scene.add(Game.debug);
     this.audio = new Audio(this.scene);
     Game.audio = this.audio;
-    this.camera.add(this.audio.listener);
 
     this.setupInputController();
     window.addEventListener('resize', this.onResize);

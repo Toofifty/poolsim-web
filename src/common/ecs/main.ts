@@ -207,6 +207,7 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
         system.removed(this, entity, component);
       }
     });
+    component.dispose();
     this.entities.get(entity)!.delete(componentClass);
     this.checkE(entity);
   }

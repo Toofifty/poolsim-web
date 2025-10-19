@@ -18,12 +18,7 @@ const coneRadius = 0.005;
 const coneHeight = 0.025;
 
 export class ArrowMesh extends OverlayRenderable {
-  constructor(
-    private stem: Mesh,
-    private cone: Mesh,
-    private material: MeshPhysicalMaterial,
-    private scale: number
-  ) {
+  constructor(private stem: Mesh, private cone: Mesh, private scale: number) {
     super(new Object3D(), { outline: true, outlineColor: 'dark' });
     this.mesh.add(stem, cone);
     this.mesh.visible = false;
@@ -62,6 +57,13 @@ export class ArrowMesh extends OverlayRenderable {
     const cone = new Mesh(new ConeGeometry(coneRadius, coneHeight), material);
     stem.renderOrder = 9999;
     cone.renderOrder = 9999;
-    return new ArrowMesh(stem, cone, material, scale);
+    return new ArrowMesh(stem, cone, scale);
+  }
+
+  public dispose(): void {
+    this.stem.geometry.dispose();
+    (this.stem.material as MeshPhysicalMaterial).dispose();
+    this.cone.geometry.dispose();
+    (this.cone.material as MeshPhysicalMaterial).dispose();
   }
 }

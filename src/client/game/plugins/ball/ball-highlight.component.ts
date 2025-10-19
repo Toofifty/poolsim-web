@@ -1,6 +1,6 @@
 import type { Vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
-import { Mesh, SphereGeometry } from 'three';
+import { Mesh, MeshPhysicalMaterial, SphereGeometry } from 'three';
 import { OverlayRenderable } from '../../components/overlay-renderable';
 import { createMaterial } from '../../rendering/create-material';
 import { toVector3 } from '../../util/three-interop';
@@ -35,5 +35,10 @@ export class BallHighlight extends OverlayRenderable {
     );
     ghost.position.copy(toVector3(position));
     return new BallHighlight(ghost, color);
+  }
+
+  public dispose(): void {
+    this.ghost.geometry.dispose();
+    (this.ghost.material as MeshPhysicalMaterial).dispose();
   }
 }

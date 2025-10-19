@@ -24,4 +24,9 @@ export class BallRing extends OverlayBillboardRenderable {
     );
     return new BallRing(ring, material);
   }
+
+  public dispose(): void {
+    this.ring.geometry.dispose();
+    (this.ring.material as MeshPhysicalMaterial).dispose();
+  }
 }

@@ -54,6 +54,7 @@ export class ComponentContainer {
 export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
   private entities = new Map<Entity, ComponentContainer>();
   private systems = new Map<System<TWorld>, Set<Entity>>();
+  private fixedUpdateSystems = new Map<System<TWorld>, Set<Entity>>();
   private eventSystems = new Map<
     keyof TEventMap,
     Set<EventSystem<keyof TEventMap, TEventMap, TWorld>>
@@ -215,13 +216,22 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
   public addSystem<T extends System<TWorld>>(system: T): T {
     this.systems.set(system, new Set());
     for (let entity of this.entities.keys()) {
-      this.checkES(entity, system);
+      this.checkES(entity, system, this.systems.get(system)!);
+    }
+    return system;
+  }
+
+  public addFixedUpdateSystem<T extends System<TWorld>>(system: T): T {
+    this.fixedUpdateSystems.set(system, new Set());
+    for (let entity of this.entities.keys()) {
+      this.checkES(entity, system, this.fixedUpdateSystems.get(system)!);
     }
     return system;
   }
 
   public removeSystem(system: System<TWorld>): void {
     this.systems.delete(system);
+    this.fixedUpdateSystems.delete(system);
   }
 
   public addComponentTrackingSystem<
@@ -260,6 +270,21 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
    */
   public addStartupSystem<T extends StartupSystem>(system: T): void {
     this.startupSystems.push(system);
+  }
+
+  public fixedUpdate(deltaTime: number): void {
+    this.deltaTime = deltaTime;
+    const end = this.profiler.start('ecs-fixedupdate');
+
+    this.profiler.profile('system-calls', () => {
+      for (let [system, entities] of this.fixedUpdateSystems.entries()) {
+        this.profiler.profile('system', () => {
+          system.runAll(this, entities);
+        });
+      }
+    });
+
+    end();
   }
 
   public update(deltaTime: number): void {
@@ -307,9 +332,11 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
   }
 
   private destroyEntity(entity: Entity): void {
-    [...this.systems.entries()].forEach(([system, entitySet]) => {
-      entitySet.delete(entity);
-    });
+    [...this.systems.entries(), ...this.fixedUpdateSystems.entries()].forEach(
+      ([_, entitySet]) => {
+        entitySet.delete(entity);
+      }
+    );
     const components = this.getComponents(entity);
     this.componentTrackingSystems.forEach((system) => {
       for (const component of components.values()) {
@@ -323,29 +350,32 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
   }
 
   private checkE(entity: Entity): void {
-    for (let system of this.systems.keys()) {
-      this.checkES(entity, system);
+    for (let [system, systemEntities] of this.systems) {
+      this.checkES(entity, system, systemEntities);
+    }
+    for (let [system, systemEntities] of this.fixedUpdateSystems) {
+      this.checkES(entity, system, systemEntities);
     }
   }
 
-  private checkES(entity: Entity, system: System<TWorld>): void {
+  private checkES(
+    entity: Entity,
+    system: System<TWorld>,
+    systemEntities: Set<Entity>
+  ): void {
     if (!this.entities.has(entity)) {
       throw new Error(`Tried check systems of non-tracked entity ${entity}`);
-    }
-
-    if (!this.systems.has(system)) {
-      throw new Error(`Tried check systems of non-tracked system ${entity}`);
     }
 
     const have = this.entities.get(entity)!;
     const need = system.components;
     if (have.hasAll(need) || need.size === 0) {
-      if (!this.systems.get(system)!.has(entity)) {
-        this.systems.get(system)!.add(entity);
+      if (!systemEntities.has(entity)) {
+        systemEntities.add(entity);
       }
     } else {
-      if (this.systems.get(system)!.has(entity)) {
-        this.systems.get(system)!.delete(entity);
+      if (systemEntities.has(entity)) {
+        systemEntities.delete(entity);
       }
     }
   }

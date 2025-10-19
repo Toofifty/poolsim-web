@@ -1,5 +1,6 @@
 import { ECSComponent } from '@common/ecs';
 import { quat, vec, type Quat, type Vec } from '@common/math';
+import { assertEqual } from '@common/util';
 
 export enum PhysicsState {
   Stationary,
@@ -34,7 +35,8 @@ export class Physics extends ECSComponent {
     public R: number,
     public orientation: Quat,
     public state: PhysicsState,
-    public pocketId?: number
+    public pocketId?: number,
+    public ts = 0
   ) {
     super();
   }
@@ -63,5 +65,36 @@ export class Physics extends ECSComponent {
       state: ball.state,
       ...override,
     };
+  }
+}
+
+/**
+ * Previous physics state. Used for interpolating rendered
+ * ball meshes.
+ */
+export class OldPhysics extends Physics {
+  public static create(override: Partial<Physics> = {}) {
+    return new OldPhysics(
+      override.id ?? 0,
+      override.r ?? vec.new(0, 0, 0),
+      override.v ?? vec.new(0, 0, 0),
+      override.w ?? vec.new(0, 0, 0),
+      override.R ?? 0,
+      override.orientation ?? quat.random(),
+      override.state ?? PhysicsState.Stationary,
+      override.pocketId
+    );
+  }
+
+  public static copy(oldPhysics: OldPhysics, newPhysics: Physics) {
+    assertEqual(oldPhysics.id, newPhysics.id);
+    oldPhysics.R = newPhysics.R;
+    oldPhysics.r = vec.clone(newPhysics.r);
+    oldPhysics.v = vec.clone(newPhysics.v);
+    oldPhysics.w = vec.clone(newPhysics.w);
+    oldPhysics.orientation = quat.clone(newPhysics.orientation);
+    oldPhysics.state = newPhysics.state;
+    oldPhysics.pocketId = newPhysics.pocketId;
+    oldPhysics.ts = newPhysics.ts;
   }
 }

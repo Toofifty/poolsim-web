@@ -5,7 +5,7 @@ import { BallId } from '../../components/ball-id';
 import { BallMesh } from '../../components/ball-mesh';
 import type { GameEvents } from '../../events';
 import { settings } from '../../store/settings';
-import { Physics } from '../physics/physics.component';
+import { OldPhysics, Physics } from '../physics/physics.component';
 import { Projection } from '../projection/projection.component';
 import {
   BallDebugUArrow,
@@ -42,6 +42,7 @@ export const spawnBall = (
   return ecs.spawn(
     BallId.create({ id }),
     physics,
+    OldPhysics.create(physics),
     BallMesh.create({ id }),
     BallTableIndicator.create({ radius: params.ball.radius, color }),
     // todo: potentially raise entity create event, dynamically add components after

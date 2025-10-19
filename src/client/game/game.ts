@@ -6,7 +6,6 @@ import {
   Clock,
   Color,
   MOUSE,
-  Object3D,
   OrthographicCamera,
   PCFSoftShadowMap,
   PerspectiveCamera,
@@ -32,12 +31,12 @@ import { _dlerpGame } from './dlerp';
 import type { GameEvents } from './events';
 import { BlackOutlinePass } from './rendering/black-outline-pass';
 import { GraphicsDetail, settings } from './store/settings';
+import { UpdateCounter } from './util/update-counter';
 
 export class Game {
   // rendering
   public scene!: Scene;
   public overlay!: Scene;
-  public outlinedOverlays: Set<Object3D> = new Set();
   public renderer!: WebGLRenderer;
   public composer!: EffectComposer;
 
@@ -63,7 +62,10 @@ export class Game {
 
   private mounted: boolean = false;
 
-  constructor(public ecs: ECS<GameEvents, Game>, private params: Params) {
+  public updateCounter = new UpdateCounter();
+  public fixedUpdateCounter = new UpdateCounter();
+
+  constructor(public ecs: ECS<GameEvents, Game>, public params: Params) {
     this.init();
     this.timestep = 1 / params.simulation.updatesPerSecond;
   }
@@ -353,11 +355,11 @@ export class Game {
     this.stats.begin();
     this.controls.update();
 
-    const dt = this.clock.getDelta() * this.params.simulation.playbackSpeed;
+    const dt = this.clock.getDelta();
     if (dt < 1) {
       // when the tab is inactive we don't run simulations,
       // and the delta after coming back will be huge
-      this.accumulator += dt;
+      this.accumulator += dt * this.params.simulation.playbackSpeed;
     } else {
       console.warn(
         `skipping ${(dt / this.timestep).toFixed(
@@ -368,9 +370,13 @@ export class Game {
 
     // game step
     while (this.accumulator >= this.timestep) {
-      this.ecs.update(this.timestep);
+      this.ecs.fixedUpdate(this.timestep);
+      this.fixedUpdateCounter.tick();
       this.accumulator -= this.timestep;
     }
+
+    this.ecs.update(Math.max(dt, 1));
+    this.updateCounter.tick();
 
     // run lerps
     this.lerps.forEach((lerp) => lerp(dt));

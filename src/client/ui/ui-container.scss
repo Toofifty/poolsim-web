@@ -29,6 +29,11 @@
     gap: 8px;
     overflow-x: auto;
 
+    > :first-child {
+      // avoid stats
+      margin-left: 80px;
+    }
+
     > * {
       flex: 1;
     }

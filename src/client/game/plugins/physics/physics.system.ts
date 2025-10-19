@@ -6,7 +6,7 @@ import { GameState, SystemState } from '../../resources/system-state';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
 import { Cushion } from '../table/cushion.component';
 import { Pocket } from '../table/pocket.component';
-import { Physics } from './physics.component';
+import { OldPhysics, Physics } from './physics.component';
 import { combine, createResult, type Result } from './simulation/result';
 import { createSimulationState } from './simulation/state';
 import { simulationStep } from './simulation/step';
@@ -37,6 +37,12 @@ export class PhysicsSystem extends System {
         });
     }
 
+    // push old physics states
+    [...entities].forEach((entity) => {
+      const [physics, oldPhysics] = ecs.get(entity, Physics, OldPhysics);
+      OldPhysics.copy(oldPhysics, physics);
+    });
+
     const balls = [...entities]
       .map((entity) => ecs.get(entity, Physics))
       .flat();
@@ -48,6 +54,9 @@ export class PhysicsSystem extends System {
       trackPath: false,
       params: system.params,
     });
+
+    const now = performance.now();
+    balls.forEach((ball) => (ball.ts = now));
 
     result.collisions.forEach((collision) => {
       if (collision.type === 'ball-ball') {

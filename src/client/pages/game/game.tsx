@@ -13,6 +13,7 @@ import { PullToShoot } from '../../ui/pull-to-shoot/pull-to-shoot';
 import { QuickControls } from '../../ui/quick-controls';
 import { SpinControl } from '../../ui/spin-control';
 import { UIContainer } from '../../ui/ui-container';
+import { Ups } from '../../ui/ups';
 import { GameContext } from '../../util/game-provider';
 import { useLobby } from '../../util/use-lobby';
 
@@ -58,7 +59,7 @@ export const GamePage = () => {
         left={pullToShoot ? <PullToShoot /> : undefined}
         bottom={
           <>
-            <span />
+            <Ups />
             <QuickControls />
             <SpinControl />
           </>

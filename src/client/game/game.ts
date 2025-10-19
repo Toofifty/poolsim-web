@@ -5,13 +5,11 @@ import {
   Camera,
   Clock,
   Color,
-  Mesh,
   MOUSE,
   Object3D,
   OrthographicCamera,
   PCFSoftShadowMap,
   PerspectiveCamera,
-  Raycaster,
   Scene,
   Vector2,
   WebGLRenderer,
@@ -28,16 +26,12 @@ import {
 import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
 import { subscribe } from 'valtio';
 import type { ECS } from '../../common/ecs';
-import type { Vec } from '../../common/math';
 import { type Params } from '../../common/simulation/physics';
-import { Profiler } from '../../common/util/profiler';
-import { Audio } from './audio';
 import { InputController } from './controller/input-controller';
 import { _dlerpGame } from './dlerp';
 import type { GameEvents } from './events';
 import { BlackOutlinePass } from './rendering/black-outline-pass';
 import { GraphicsDetail, settings } from './store/settings';
-import { toVector2 } from './util/three-interop';
 
 export class Game {
   // rendering
@@ -46,7 +40,6 @@ export class Game {
   public outlinedOverlays: Set<Object3D> = new Set();
   public renderer!: WebGLRenderer;
   public composer!: EffectComposer;
-  public overlayComposer!: EffectComposer;
 
   public darkOutlineScene!: Scene;
   public lightOutlineScene!: Scene;
@@ -60,21 +53,13 @@ export class Game {
   public stats!: Stats;
 
   // game
-  public mousePosition!: Vector2;
-  public mouseRaycaster!: Raycaster;
   public clock!: Clock;
   private accumulator = 0;
   private timestep: number;
   public lerps: Set<(dt: number) => void> = new Set();
   private input!: InputController;
 
-  public audio!: Audio;
-
   public static instance: Game;
-  public static audio: Audio;
-  public static profiler = new Profiler();
-
-  public static reflectives: Mesh[] = [];
 
   private mounted: boolean = false;
 
@@ -87,7 +72,6 @@ export class Game {
     this.mounted = true;
     Game.instance = this;
     _dlerpGame.instance = this;
-    this.mousePosition = new Vector2(0, 0);
     this.stats = new Stats();
     this.stats.showPanel(0);
     this.stats.dom.style.top = 'unset';
@@ -166,7 +150,8 @@ export class Game {
         width: window.innerWidth,
         height: window.innerHeight,
         groundReflector: null,
-        selects: Game.reflectives,
+        // todo: reflectives
+        selects: [],
       });
 
       this.composer.addPass(ssr);
@@ -235,10 +220,6 @@ export class Game {
       this.composer.addPass(new FXAAPass());
     }
 
-    this.mouseRaycaster = new Raycaster();
-    this.audio = new Audio(this.scene);
-    Game.audio = this.audio;
-
     this.setupInputController();
     window.addEventListener('resize', this.onResize);
 
@@ -247,21 +228,6 @@ export class Game {
     this.clock = new Clock();
 
     this.renderer.setAnimationLoop(this.draw.bind(this));
-
-    // HDR image
-    // new HDRLoader().load(hdrTextureUrl, (texture) => {
-    //   texture.mapping = EquirectangularReflectionMapping;
-
-    //   const rotX90 = new Matrix3().set(1, 0, 0, 0, 0, 1, 0, -1, 0);
-    //   texture.matrixAutoUpdate = false;
-    //   texture.matrix = rotX90;
-
-    //   this.scene.background = texture;
-    //   this.scene.environment = texture;
-
-    //   this.scene.backgroundRotation = new Euler(Math.PI / 2, 0, 0, 'XYZ');
-    //   this.scene.environmentRotation = new Euler(Math.PI / 2, 0, 0, 'XYZ');
-    // });
   }
 
   public safeInit() {
@@ -350,40 +316,6 @@ export class Game {
     this.redOutlineScene.add(new AmbientLight(0xffffff, 5));
   }
 
-  public static getFirstMouseIntersection(object: Object3D, point?: Vec) {
-    const intersections = Game.instance
-      .getMouseRaycaster(point)
-      .intersectObject(object);
-    if (intersections.length > 0) {
-      return intersections[0].point;
-    }
-    return undefined;
-  }
-
-  public add(obj: Object3D, { outline }: { outline?: boolean } = {}) {
-    this.overlay.add(obj);
-    if (outline) {
-      this.outlinedOverlays.add(obj);
-      this.darkOutlinePass.selectedObjects = [...this.outlinedOverlays];
-    }
-  }
-
-  public static add(obj: Object3D, { outline }: { outline?: boolean } = {}) {
-    this.instance.add(obj);
-  }
-
-  public remove(obj: Object3D) {
-    this.overlay.remove(obj);
-    if (this.outlinedOverlays.has(obj)) {
-      this.outlinedOverlays.delete(obj);
-      this.darkOutlinePass.selectedObjects = [...this.outlinedOverlays];
-    }
-  }
-
-  public static remove(obj: Object3D) {
-    this.instance.remove(obj);
-  }
-
   public static resetCamera() {
     this.instance.controls.target.set(0, 0, 0);
     this.instance.camera.position.set(0, 0, 2);
@@ -392,27 +324,6 @@ export class Game {
 
   public static focusCueBall() {
     throw new Error('Not implemented');
-  }
-
-  public getMouseRaycaster(point?: Vec) {
-    this.mouseRaycaster.setFromCamera(
-      toVector2(point ?? this.input.mouse),
-      this.camera
-    );
-    return this.mouseRaycaster;
-  }
-
-  public static dispose(...objs: any[]) {
-    objs.forEach((obj) => {
-      if (obj.geometry) obj.geometry.dispose();
-      if (obj.material) {
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach((m: any) => m.dispose());
-        } else {
-          obj.material.dispose();
-        }
-      }
-    });
   }
 
   public mount(container: HTMLDivElement | null) {
@@ -426,7 +337,6 @@ export class Game {
       this.renderer.setAnimationLoop(null);
       this.input.unregister();
       window.removeEventListener('resize', this.onResize);
-      this.scene.traverse(Game.dispose);
       this.renderer.dispose();
       this.renderer.forceContextLoss();
 

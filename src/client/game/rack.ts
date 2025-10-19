@@ -1,7 +1,14 @@
-import { quat, vec, type Vec } from '../../common/math';
+import { quat, vec, type Quat, type Vec } from '../../common/math';
 import { params, type Params } from '../../common/simulation/physics';
-import type { BallProto } from './objects/ball';
 import { makeTheme } from './store/theme';
+
+export type BallProto = {
+  id: number;
+  number: number;
+  color: number;
+  position: Vec;
+  orientation: Quat;
+};
 
 const gap = 0.001;
 

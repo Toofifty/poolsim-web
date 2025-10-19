@@ -49,7 +49,6 @@ export class BallMesh extends Renderable {
     const mesh = new Mesh(geometry, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    // Game.reflectives.push(mesh);
     return new BallMesh(mesh, material);
   }
 

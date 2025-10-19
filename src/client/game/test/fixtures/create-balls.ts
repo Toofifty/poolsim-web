@@ -1,7 +1,7 @@
 import { quat, vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
-import type { BallProto } from '../../objects/ball';
 import { Physics } from '../../plugins/physics/physics.component';
+import type { BallProto } from '../../rack';
 
 const gap = 0.001;
 

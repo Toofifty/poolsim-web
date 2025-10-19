@@ -227,7 +227,7 @@ export const Controls = () => {
               <Surface>
                 <div className="group">
                   <AimAssistControls />
-                  <PlayerControls />
+                  {/* <PlayerControls /> */}
                 </div>
               </Surface>
             )}

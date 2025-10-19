@@ -218,6 +218,7 @@ export const evolvePocket = (
   } else {
     // slow spin
     vec.mmult(ball.w, 0.5);
+    vec.mminimise(ball.w);
   }
 
   vec.madd(ball.r, vec.mult(ball.v, dt));
@@ -246,6 +247,7 @@ export const evolvePocket = (
     ball.r[2] += overlap;
     ball.v[2] = 0;
     vec.mmult(ball.v, 0.5);
+    vec.mminimise(ball.v);
 
     // if (b.v[2] < 0) {
     //   b.v[2] = -b.v[2] * ep;

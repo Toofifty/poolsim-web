@@ -10,6 +10,7 @@ export type Collision =
 
 export type BallBallCollision = {
   type: 'ball-ball';
+  step?: number;
   initiator: Physics;
   other: Physics;
   position: Vec;
@@ -21,6 +22,7 @@ export type BallBallCollision = {
 };
 export type BallCushionCollision = {
   type: 'ball-cushion';
+  step?: number;
   initiator: Physics;
   other: Cushion;
   position: Vec;
@@ -31,6 +33,7 @@ export type BallCushionCollision = {
 };
 export type BallPocketCollision = {
   type: 'ball-pocket';
+  step?: number;
   initiator: Physics;
   other: Pocket;
   position: Vec;

@@ -21,6 +21,8 @@ import {
   addEjectedBall,
   addTrackingPoint,
   createResult,
+  incrementStep,
+  incrementSubstep,
   type Result,
 } from './result';
 import type { SimulationState } from './state';
@@ -56,6 +58,7 @@ const simulationSubstep = (
 ): Result => {
   const doTrackPath =
     trackPath && stepIndex % params.simulation.trackingPointDist === 0;
+  incrementSubstep(result);
 
   const endBallUpdate = profiler.start('ball-update');
   for (const ball of state.balls) {
@@ -118,6 +121,7 @@ export const simulationStep = (
 ): Result => {
   const { ignoreBallCollisions, params } = parameters;
   let result = parameters.result ?? createResult();
+  incrementStep(result);
 
   let substeps = 0;
   while (dt > 0 && substeps++ < MAX_SUBSTEPS) {

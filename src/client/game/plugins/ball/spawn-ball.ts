@@ -6,6 +6,7 @@ import { BallMesh } from '../../components/ball-mesh';
 import type { GameEvents } from '../../events';
 import { settings } from '../../store/settings';
 import { Physics } from '../physics/physics.component';
+import { Projection } from '../projection/projection.component';
 import {
   BallDebugUArrow,
   BallDebugVArrow,
@@ -43,6 +44,7 @@ export const spawnBall = (
     physics,
     BallMesh.create({ id }),
     BallTableIndicator.create({ radius: params.ball.radius, color }),
+    // todo: potentially raise entity create event, dynamically add components after
     ...(settings.debugBalls
       ? [
           BallRing.create(physics),
@@ -50,6 +52,7 @@ export const spawnBall = (
           [BallDebugVArrow.create(), BallDebugVArrow] as OverrideComponent,
           [BallDebugWArrow.create(), BallDebugWArrow] as OverrideComponent,
         ]
-      : [])
+      : []),
+    Projection.create({ id, radius: params.ball.radius, color })
   );
 };

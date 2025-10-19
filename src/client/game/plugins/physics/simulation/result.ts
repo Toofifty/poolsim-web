@@ -5,6 +5,7 @@ import { Physics, type PhysicsSnapshot } from '../physics.component';
 
 export type Result = {
   readonly steps: number;
+  readonly substeps: number;
   readonly ballsPotted: readonly number[];
   /** balls sent off table during shot */
   readonly ballsEjected: readonly number[];
@@ -26,7 +27,8 @@ type Writable<T> = {
 };
 
 export const createResult = (): Result => ({
-  steps: 1,
+  steps: 0,
+  substeps: 0,
   ballsPotted: [],
   ballsEjected: [],
   collisions: [],
@@ -70,6 +72,7 @@ export const addCollision = (result: Result, collision: Collision) => {
     }
   }
 
+  collision.step = write.steps;
   write.collisions.push(collision);
 };
 
@@ -84,6 +87,14 @@ export const addTrackingPoint = (result: Result, ball: Physics) => {
 export const addEjectedBall = (result: Result, ball: Physics) => {
   const write = result as Writable<Result>;
   write.ballsEjected.push(ball.id);
+};
+
+export const incrementStep = (result: Result) => {
+  (result as Writable<Result>).steps++;
+};
+
+export const incrementSubstep = (result: Result) => {
+  (result as Writable<Result>).substeps++;
 };
 
 const combineMaps = <T extends Map<any, any[]>>(map1: T, map2: T): T => {
@@ -113,6 +124,7 @@ const combineMaps = <T extends Map<any, any[]>>(map1: T, map2: T): T => {
  */
 export const combine = (first: Result, second: Result): Result => ({
   steps: first.steps + second.steps,
+  substeps: first.substeps + second.substeps,
   ballsPotted: [...first.ballsPotted, ...second.ballsPotted],
   ballsEjected: [...first.ballsEjected, ...second.ballsEjected],
   collisions: [...first.collisions, ...second.collisions],

@@ -13,7 +13,7 @@ import { Cushion } from '../table/cushion.component';
 import { Pocket } from '../table/pocket.component';
 import { Projection } from './projection.component';
 
-const CONSOLE_TIME = true;
+const CONSOLE_TIME = false;
 
 export const projectionUpdateSystem = createSystem(
   [Physics, Projection],
@@ -58,7 +58,6 @@ export const projectionUpdateSystem = createSystem(
           lastKey = Shot.getKey(shot);
           computing = false;
           CONSOLE_TIME && console.timeEnd('projection-compute');
-          console.log(result);
         })();
 
         return true;

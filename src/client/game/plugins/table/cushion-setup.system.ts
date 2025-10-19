@@ -2,11 +2,12 @@ import { ECS, StartupSystem } from '@common/ecs';
 import { vec, type Vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
 import { Renderable } from '../../components/renderable';
+import type { GameEvents } from '../../events';
 import { CushionMesh } from './cushion-mesh.component';
 import { Cushion } from './cushion.component';
 
 export class CushionSetupSystem extends StartupSystem {
-  public run(ecs: ECS): void {
+  public run(ecs: ECS<GameEvents>): void {
     const {
       cushion: { width },
       pocket: { edge, corner },

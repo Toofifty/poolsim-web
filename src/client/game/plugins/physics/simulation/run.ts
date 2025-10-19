@@ -32,7 +32,7 @@ export const runSimulation = ({
 
   shoot(state.balls[0], shot);
 
-  const end = profiler.start('run-simulation');
+  const end = profiler.start('run');
   let result = createResult();
 
   // todo

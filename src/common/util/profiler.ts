@@ -1,5 +1,7 @@
 const sum = (n: number[]) => n.reduce((s, c) => s + c, 0);
 const avg = (n: number[]) => sum(n) / n.length;
+const min = (n: number[]) => n.reduce((m, c) => (c < m ? c : m), Infinity);
+const max = (n: number[]) => n.reduce((m, c) => (c > m ? c : m), -Infinity);
 
 export interface IProfiler {
   dump(): void;
@@ -32,7 +34,9 @@ export class Profiler implements IProfiler {
           key,
           {
             calls: timings.length,
+            min: +min(timings).toFixed(4),
             average: +avg(timings).toFixed(4),
+            max: +max(timings).toFixed(4),
             // 'average %': hasParent
             //   ? +((100 * avg(timings)) / avg(parentTimings)).toFixed(precision)
             //   : 0,

@@ -32,14 +32,15 @@ export const computeBallCollisionTime = (
 
   const dr = vec.sub(ball1.r, ball2.r);
   const dv = vec.sub(ball1V, ball2V);
-  if (vec.dot(dr, dv) >= 0) return Infinity;
+  const dr_dv = vec.dot(dr, dv);
+  if (dr_dv >= 0) return Infinity;
 
   const R = ball1.R + ball2.R;
 
   const a = vec.dot(dv, dv);
   if (a === 0) return Infinity;
 
-  const b = 2 * vec.dot(dr, dv);
+  const b = 2 * dr_dv;
   const c = vec.dot(dr, dr) - R * R;
 
   const disc = b * b - 4 * a * c;
@@ -49,8 +50,8 @@ export const computeBallCollisionTime = (
   const t1 = (-b - sqrtDisc) / (2 * a);
   const t2 = (-b + sqrtDisc) / (2 * a);
 
-  if (t1 >= 0 && t1 < dt) return t1;
-  if (t2 >= 0 && t2 < dt) return t2;
+  if (t1 >= 0) return t1;
+  if (t2 >= 0) return t2;
   return Infinity;
 };
 
@@ -81,7 +82,7 @@ export const computeCushionCollisionTime = (
     for (const sign of [+1, -1]) {
       const c = d0 - sign * R;
       for (let t of solveQuadraticRoots(0.5 * an, vn, c)) {
-        if (t <= 1e-8 || t >= dt || t >= bestT) continue;
+        if (t <= 1e-8 || t >= bestT) continue;
 
         const pt = vec.add(
           p0,

@@ -7,6 +7,10 @@ export const computeMomentaryFrictionAccel = (
   params: Params,
   ball: Physics
 ): Vec => {
+  if (vec.isZero(ball.v)) {
+    return vec.zero;
+  }
+
   const { gravity: g, frictionSlide: us, frictionRoll: ur } = params.ball;
 
   if (ball.state === PhysicsState.Sliding) {

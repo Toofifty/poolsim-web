@@ -1,15 +1,15 @@
 import { ECS, StartupSystem } from '@common/ecs';
 import { vec, type Vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
+import type { GameEvents } from '../../events';
 import { PocketMesh } from './pocket-mesh.component';
 import { Pocket } from './pocket.component';
 
 export class PocketSetupSystem extends StartupSystem {
-  public run(ecs: ECS): void {
+  public run(ecs: ECS<GameEvents>): void {
     const {
       table,
       pocket: { edge, corner },
-      ball,
     } = defaultParams;
 
     const left = -table.length / 2;

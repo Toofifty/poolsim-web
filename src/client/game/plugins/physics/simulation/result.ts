@@ -20,6 +20,8 @@ export type Result = {
   // derived from collisions
   readonly firstStruck?: number;
   readonly scratched: boolean;
+
+  nextExpectedCollision?: number;
 };
 
 type Writable<T> = {

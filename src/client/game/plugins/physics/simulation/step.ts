@@ -60,7 +60,7 @@ const simulationSubstep = (
     trackPath && stepIndex % params.simulation.trackingPointDist === 0;
   incrementSubstep(result);
 
-  const endBallUpdate = profiler.start('ball-update');
+  const endBallMotion = profiler.start('motion');
   for (const ball of state.balls) {
     if (outOfBounds(params, ball) && ball.state !== PhysicsState.OutOfPlay) {
       ball.state = PhysicsState.OutOfPlay;
@@ -84,7 +84,7 @@ const simulationSubstep = (
       addTrackingPoint(result, ball);
     }
   }
-  endBallUpdate();
+  endBallMotion();
 
   if (!ignoreBallCollisions) {
     const endBallBall = profiler.start('ball-ball');
@@ -114,43 +114,75 @@ const simulationSubstep = (
   return result;
 };
 
+const computeNextCollision = (
+  dt: number,
+  data: SimulationState,
+  {
+    params,
+    ignoreBallCollisions,
+    profiler = Profiler.none,
+  }: SimulationStepParameters
+) => {
+  let nextCollision = Infinity;
+
+  const endCompute = profiler.start('compute');
+
+  if (!ignoreBallCollisions) {
+    // substep ball-ball collisions
+    const endBallBall = profiler.start('ball-ball');
+    for (let [ball1, ball2] of data.pairs) {
+      const ct = profiler.profile('iter', () =>
+        computeBallCollisionTime(params, ball1, ball2, dt)
+      );
+      if (ct > 1e-6 && ct < nextCollision) {
+        nextCollision = ct;
+      }
+    }
+    endBallBall();
+  }
+
+  // substep ball-cushion collisions
+  const endBallCushion = profiler.start('ball-cushion');
+  for (let [ball, cushion] of data.ballCushions) {
+    const ct = profiler.profile('iter', () =>
+      computeCushionCollisionTime(params, ball, cushion, dt)
+    );
+    if (ct > 1e-6 && ct < nextCollision) {
+      nextCollision = ct;
+    }
+  }
+  endBallCushion();
+  endCompute();
+
+  return nextCollision;
+};
+
 export const simulationStep = (
   dt: number,
   data: SimulationState,
   parameters: SimulationStepParameters
 ): Result => {
-  const { ignoreBallCollisions, params } = parameters;
   let result = parameters.result ?? createResult();
   incrementStep(result);
 
   let substeps = 0;
   while (dt > 0 && substeps++ < MAX_SUBSTEPS) {
-    let nextCollision = dt;
+    // todo: optimize by reducing the amount of times we
+    // compute the next collision. Ideally, it should only
+    // need to be done once after each collision.
 
-    if (!ignoreBallCollisions) {
-      // substep ball-ball collisions
-      for (let [ball1, ball2] of data.pairs) {
-        const ct = computeBallCollisionTime(params, ball1, ball2, dt);
-        if (ct > 1e-6 && ct < nextCollision) {
-          nextCollision = ct;
-        }
-      }
-    }
+    // if ((result.nextExpectedCollision ?? 0) <= 0) {
+    result.nextExpectedCollision = computeNextCollision(dt, data, parameters);
+    // }
 
-    // substep ball-cushion collisions
-    for (let [ball, cushion] of data.ballCushions) {
-      const ct = computeCushionCollisionTime(params, ball, cushion, dt);
-      if (ct > 1e-6 && ct < nextCollision) {
-        nextCollision = ct;
-      }
-    }
-
-    if (nextCollision >= dt) {
+    if (result.nextExpectedCollision! >= dt) {
+      result.nextExpectedCollision! -= dt;
       return simulationSubstep(dt, data, result, parameters);
     }
 
-    simulationSubstep(nextCollision, data, result, parameters);
-    dt -= nextCollision;
+    simulationSubstep(result.nextExpectedCollision!, data, result, parameters);
+    dt -= result.nextExpectedCollision!;
+    result.nextExpectedCollision = undefined;
   }
 
   return result;

@@ -10,7 +10,8 @@
     "build:server": "esbuild src/server/index.ts --bundle --platform=node --target=node18 --outfile=dist/server/index.cjs --minify",
     "build": "rm -rf dist && pnpm run build:client && pnpm run build:server",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:performance": "npx vite-node src/client/game/test/performance.test.ts"
   },
   "dependencies": {
     "@mantine/core": "^8.3.2",

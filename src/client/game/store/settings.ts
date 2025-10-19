@@ -32,7 +32,7 @@ export const settings = proxy({
   players: Players.PlayerVsPlayer,
   enableZoomPan: !isMobile,
   controlMode: isMobile ? ('touch' as const) : ('cursor' as const),
-  pullToShoot: true,
+  pullToShoot: isMobile,
   preferencesOpen: false,
   paramEditorOpen: false,
   spinControlOpen: false,

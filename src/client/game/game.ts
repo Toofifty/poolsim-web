@@ -461,7 +461,7 @@ export class Game {
       );
     }
 
-    // physics step
+    // game step
     while (this.accumulator >= this.timestep) {
       this.ecs.update(this.timestep);
       this.accumulator -= this.timestep;

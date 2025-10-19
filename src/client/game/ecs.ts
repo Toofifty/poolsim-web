@@ -5,11 +5,11 @@ import type { Socket } from 'socket.io-client';
 import { ECS } from '../../common/ecs';
 import type { GameEvents } from './events';
 import { Game } from './game';
+import { aimAssistPlugin } from './plugins/aim-assist';
 import { audioPlugin } from './plugins/audio';
 import { ballPlugin } from './plugins/ball';
 import { cuePlugin } from './plugins/cue';
 import { gameplayPlugin } from './plugins/gameplay';
-import { guidelinePlugin } from './plugins/guideline';
 import { mousePlugin } from './plugins/mouse';
 import { createNetworkPlugin } from './plugins/network';
 import { physicsPlugin } from './plugins/physics';
@@ -75,7 +75,7 @@ export const createECS = (
     physicsPlugin,
     audioPlugin,
     gameplayPlugin,
-    guidelinePlugin,
+    aimAssistPlugin,
   ]);
 
   ecs.addStartupSystem(new SettingsListenerSystem());

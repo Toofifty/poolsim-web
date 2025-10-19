@@ -26,6 +26,7 @@ import { PowerBar } from './power-bar';
 import { Surface } from './surface';
 import { useGameBinding } from './use-game-binding';
 import { useGameNotifications } from './use-game-notifications';
+import { useGameParams } from './use-game-params';
 import { useIsMobile } from './use-media-query';
 
 const getStateName = (state: GameState, isCurrentPlayer = false) => {
@@ -238,9 +239,10 @@ export const Controls = () => {
 };
 
 const AimAssistControls = () => {
+  const ecs = useGameContext().ecs;
   const {
     game: { aimAssist },
-  } = useSnapshot(params);
+  } = useGameParams();
 
   return (
     <div className="group lower">
@@ -253,7 +255,9 @@ const AimAssistControls = () => {
           {getAimAssistValues().map((value) => (
             <Menu.Item
               key={value}
-              onClick={() => (params.game.aimAssist = value)}
+              onClick={() =>
+                ecs.emit('input/param-change', { key: 'game.aimAssist', value })
+              }
             >
               {getAimAssistName(value)}
             </Menu.Item>

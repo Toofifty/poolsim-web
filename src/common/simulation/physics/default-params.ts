@@ -21,7 +21,7 @@ export const defaultParams = {
     /** u_sp */
     frictionSpin: (0.028575 * 4) / 9,
     /** u_b */
-    frictionBall: 0.05,
+    frictionBall: 0.01,
     /** u_a */
     frictionAir: 0.001,
     /** e_b */

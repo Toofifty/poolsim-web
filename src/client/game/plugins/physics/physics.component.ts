@@ -17,6 +17,7 @@ export type PhysicsSnapshot = {
   velocity: Vec;
   orientation: Quat;
   state: PhysicsState;
+  frame?: number;
 };
 
 /**

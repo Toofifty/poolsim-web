@@ -3,8 +3,11 @@ import { vec } from '@common/math';
 import { Shot } from '@common/simulation/shot';
 import { Line } from '../../models/line';
 import { SystemState } from '../../resources/system-state';
+import { settings } from '../../store/settings';
 import { toQuaternion, toVector3 } from '../../util/three-interop';
 import { Cue } from '../cue/cue.component';
+import { getColor } from '../guideline/guideline-update.system';
+import { AccumulatedResult } from '../physics/accumulated-result.resource';
 import { Physics } from '../physics/physics.component';
 import type { Result } from '../physics/simulation/result';
 import { createSimulationState } from '../physics/simulation/state';
@@ -79,9 +82,15 @@ export const projectionUpdateSystem = createSystem(
         }
 
         const endPoint = trackingPoints.at(-1)!;
+        const accumulatedResult = ecs.resource(AccumulatedResult).result;
 
-        if (vec.eq(endPoint.position, projection.lastEndPoint)) {
+        if (
+          accumulatedResult === undefined &&
+          vec.eq(endPoint.position, projection.lastEndPoint)
+        ) {
           // skip update if result hasn't changed
+          // if there is an acc result from the physics system
+          // running, we can use that to show updated paths instead
           // todo: efficiently update line billboard here
           return;
         }
@@ -101,10 +110,20 @@ export const projectionUpdateSystem = createSystem(
           toQuaternion(endPoint.orientation)
         );
 
+        const points = accumulatedResult
+          ? trackingPoints.filter(
+              ({ frame }) =>
+                frame === undefined || accumulatedResult!.steps < frame
+            )
+          : trackingPoints;
+
+        const { physicsGuidelines } = settings;
+
         // update line
         Line.update(
           projection.line,
-          trackingPoints.map((p) => p.position)
+          points.map((p) => p.position),
+          physicsGuidelines ? points.map((p) => getColor(p.state)) : undefined
         );
 
         projection.lastEndPoint = endPoint.position;

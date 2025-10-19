@@ -8,12 +8,7 @@ const y = 2;
 const z = 3;
 
 export const quat = {
-  new: (w?: number, x?: number, y?: number, z?: number): Quat => [
-    w ?? 0,
-    x ?? 0,
-    y ?? 0,
-    z ?? 0,
-  ],
+  new: (w = 1, x = 0, y = 0, z = 0): Quat => [w, x, y, z],
   clone: (q: Quat): Quat => [q[0], q[1], q[2], q[3]],
   fromAxisAngle: (axis: Vec, angle: number): Quat => {
     const sha = Math.sin(angle / 2);

@@ -6,8 +6,9 @@ import { GameState, SystemState } from '../../resources/system-state';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
 import { Cushion } from '../table/cushion.component';
 import { Pocket } from '../table/pocket.component';
+import { AccumulatedResult } from './accumulated-result.resource';
 import { OldPhysics, Physics } from './physics.component';
-import { combine, createResult, type Result } from './simulation/result';
+import { combine, createResult } from './simulation/result';
 import { createSimulationState } from './simulation/state';
 import { simulationStep } from './simulation/step';
 import { settled } from './simulation/tools';
@@ -15,20 +16,20 @@ import { settled } from './simulation/tools';
 export class PhysicsSystem extends System {
   public components: Set<Function> = new Set([Physics]);
 
-  private accumulatedResult?: Result;
   private gameRules?: GameRules;
 
   public runAll(ecs: ECS<GameEvents, unknown>, entities: Set<Entity>): void {
     const system = ecs.resource(SystemState);
+    const acc = ecs.resource(AccumulatedResult);
     if (system.gameState !== GameState.Playing || system.paused) {
-      if (this.accumulatedResult !== undefined) {
-        this.accumulatedResult = undefined;
+      if (acc.result !== undefined) {
+        acc.result = undefined;
       }
       return;
     }
 
-    if (!this.accumulatedResult) {
-      this.accumulatedResult = createResult();
+    if (!acc.result) {
+      acc.result = createResult();
       this.gameRules = ecs
         .resource(GameRuleProvider)
         .getRules(getActiveBallIds(ecs, entities), {
@@ -71,11 +72,11 @@ export class PhysicsSystem extends System {
       ecs.emit('game/ball-ejected', id);
     });
 
-    this.accumulatedResult = combine(this.accumulatedResult, result);
+    acc.result = combine(acc.result, result);
 
     if (settled(state)) {
       ecs.emit('game/settled', {
-        result: this.accumulatedResult,
+        result: acc.result,
         rules: this.gameRules!,
       });
       system.isBreak = false;

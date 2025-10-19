@@ -80,9 +80,13 @@ export const addCollision = (result: Result, collision: Collision) => {
 
 export const addTrackingPoint = (result: Result, ball: Physics) => {
   if (!result.trackingPoints.has(ball.id)) {
-    result.trackingPoints.set(ball.id, [Physics.snapshot(ball)]);
+    result.trackingPoints.set(ball.id, [
+      Physics.snapshot(ball, { frame: result.steps }),
+    ]);
   } else {
-    result.trackingPoints.get(ball.id)!.push(Physics.snapshot(ball));
+    result.trackingPoints
+      .get(ball.id)!
+      .push(Physics.snapshot(ball, { frame: result.steps }));
   }
 };
 

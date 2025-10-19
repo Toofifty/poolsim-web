@@ -12,7 +12,7 @@ import { Game } from '../game';
 import { createMaterial } from '../rendering/create-material';
 import { toVec } from '../util/three-interop';
 
-const MAX_POINTS = 1024;
+const MAX_POINTS = 2048;
 const THICKNESS = 0.005;
 
 export class Line {

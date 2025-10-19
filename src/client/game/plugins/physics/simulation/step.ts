@@ -42,7 +42,7 @@ export type SimulationStepParameters = {
   result?: Result;
 };
 
-const MAX_SUBSTEPS = 2;
+const MAX_SUBSTEPS = 20;
 
 const simulationSubstep = (
   dt: number,

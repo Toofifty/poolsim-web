@@ -9,7 +9,6 @@ import {
   TextureLoader,
   Vector2,
 } from 'three';
-import { defaultParams } from '../../../common/simulation/physics';
 import envMapUrl from '../../assets/envmap.jpg';
 import normalMapUrl from '../../assets/scratch_normal.png';
 import { createBallTexture } from '../models/ball/create-ball-texture';
@@ -22,7 +21,7 @@ const envMap = new TextureLoader().load(envMapUrl);
 envMap.mapping = EquirectangularRefractionMapping;
 envMap.colorSpace = SRGBColorSpace;
 
-const geometry = new SphereGeometry(defaultParams.ball.radius, 32, 16);
+const geometry = new SphereGeometry(1, 32, 16);
 
 const texturePool = new Map<number, CanvasTexture>();
 
@@ -31,7 +30,7 @@ export class BallMesh extends Renderable {
     super(mesh);
   }
 
-  public static create({ id }: { id: number }) {
+  public static create({ id, radius }: { id: number; radius: number }) {
     const theme = makeTheme();
     const texture = texturePool.get(id) ?? createBallTexture(theme, id);
     texturePool.set(id, texture);
@@ -47,6 +46,7 @@ export class BallMesh extends Renderable {
     });
 
     const mesh = new Mesh(geometry, material);
+    mesh.scale.set(radius, radius, radius);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     return new BallMesh(mesh, material);

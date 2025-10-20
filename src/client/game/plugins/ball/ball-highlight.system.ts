@@ -47,13 +47,21 @@ export class BallHighlightSystem extends System {
         const [physics] = ecs.get(entity, Physics);
         ecs.addComponent(
           entity,
-          BallHighlight.create({ position: physics.r, color: 'light' })
+          BallHighlight.create({
+            position: physics.r,
+            color: 'light',
+            radius: physics.R,
+          })
         );
       } else if (shouldHighlightRed) {
         const [physics] = ecs.get(entity, Physics);
         ecs.addComponent(
           entity,
-          BallHighlight.create({ position: physics.r, color: 'red' })
+          BallHighlight.create({
+            position: physics.r,
+            color: 'red',
+            radius: physics.R,
+          })
         );
       }
       return;

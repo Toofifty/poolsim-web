@@ -1,9 +1,10 @@
 import type { Vec } from '@common/math';
-import { defaultParams } from '@common/simulation/physics';
 import { Mesh, MeshPhysicalMaterial, SphereGeometry } from 'three';
 import { OverlayRenderable } from '../../components/overlay-renderable';
 import { createMaterial } from '../../rendering/create-material';
 import { toVector3 } from '../../util/three-interop';
+
+const geometry = new SphereGeometry(1, 32, 16);
 
 /**
  * Draws an invisible ball onto the overlay layer with an outline
@@ -19,13 +20,14 @@ export class BallHighlight extends OverlayRenderable {
   public static create({
     position,
     color,
+    radius,
   }: {
     position: Vec;
     color?: 'light' | 'dark' | 'red';
+    radius: number;
   }) {
-    const { ball } = defaultParams;
     const ghost = new Mesh(
-      new SphereGeometry(ball.radius),
+      geometry,
       createMaterial({
         depthTest: false,
         transparent: true,
@@ -33,6 +35,7 @@ export class BallHighlight extends OverlayRenderable {
         color: 0xffffff,
       })
     );
+    ghost.scale.set(radius, radius, radius);
     ghost.position.copy(toVector3(position));
     return new BallHighlight(ghost, color);
   }

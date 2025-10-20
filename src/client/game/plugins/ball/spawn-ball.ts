@@ -33,18 +33,19 @@ export const spawnBall = (
     orientation: Quat;
   }
 ) => {
+  const R = id === 1 ? params.ball.radius * 2 : params.ball.radius;
   const physics = Physics.create({
     id,
     r: position,
-    R: params.ball.radius,
+    R: R,
     orientation,
   });
   return ecs.spawn(
     BallId.create({ id }),
     physics,
     OldPhysics.create(physics),
-    BallMesh.create({ id }),
-    BallTableIndicator.create({ radius: params.ball.radius, color }),
+    BallMesh.create({ id, radius: R }),
+    BallTableIndicator.create({ radius: R, color }),
     // todo: potentially raise entity create event, dynamically add components after
     ...(settings.debugBalls
       ? [
@@ -54,6 +55,6 @@ export const spawnBall = (
           [BallDebugWArrow.create(), BallDebugWArrow] as OverrideComponent,
         ]
       : []),
-    Projection.create({ id, radius: params.ball.radius, color })
+    Projection.create({ id, radius: R, color })
   );
 };

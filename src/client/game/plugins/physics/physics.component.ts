@@ -34,6 +34,8 @@ export class Physics extends ECSComponent {
     public w: Vec,
     /** radius */
     public R: number,
+    /** mass */
+    public m: number,
     public orientation: Quat,
     public state: PhysicsState,
     public pocketId?: number,
@@ -49,6 +51,7 @@ export class Physics extends ECSComponent {
       override.v ?? vec.new(0, 0, 0),
       override.w ?? vec.new(0, 0, 0),
       override.R ?? 0,
+      override.m ?? 0,
       override.orientation ?? quat.random(),
       override.state ?? PhysicsState.Stationary,
       override.pocketId
@@ -81,6 +84,7 @@ export class OldPhysics extends Physics {
       override.v ?? vec.new(0, 0, 0),
       override.w ?? vec.new(0, 0, 0),
       override.R ?? 0,
+      override.m ?? 0,
       override.orientation ?? quat.random(),
       override.state ?? PhysicsState.Stationary,
       override.pocketId

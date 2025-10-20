@@ -40,9 +40,11 @@ export class Cushion extends ECSComponent {
       if (maxY === 0 || v[1] > maxY) maxY = v[1];
     }
 
+    const pad = radius * 2;
+
     return [
-      vec.new(minX - radius, minY - radius),
-      vec.new(maxX - minX + radius * 2, maxY - minY + radius * 2),
+      vec.new(minX - pad, minY - pad),
+      vec.new(maxX - minX + pad * 2, maxY - minY + pad * 2),
     ] as const;
   }
 

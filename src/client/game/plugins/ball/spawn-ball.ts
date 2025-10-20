@@ -38,6 +38,7 @@ export const spawnBall = (
     id,
     r: vec.addZ(position, R),
     R: R,
+    m: params.ball.mass * Math.pow(R / params.ball.radius, 3),
     orientation,
   });
   return ecs.spawn(

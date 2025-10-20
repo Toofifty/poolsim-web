@@ -42,12 +42,15 @@ export const collideBallBall = (
       return undefined;
     }
 
-    const j = ((1 + eb) * rv) / 2;
+    const invM1 = 1 / ball1.m;
+    const invM2 = 1 / ball2.m;
+
+    const j = ((1 + eb) * rv) / (invM1 + invM2);
     const impulse = vec.mult(normal, j);
 
     // impulse from collision
-    vec.msub(ball1.v, impulse);
-    vec.madd(ball2.v, impulse);
+    vec.msub(ball1.v, vec.mult(impulse, invM1));
+    vec.madd(ball2.v, vec.mult(impulse, invM2));
 
     ball1.state = PhysicsState.Sliding;
     ball2.state = PhysicsState.Sliding;

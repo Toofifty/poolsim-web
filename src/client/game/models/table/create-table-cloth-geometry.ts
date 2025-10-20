@@ -29,12 +29,11 @@ export const createTableClothGeometry = (
     shape.holes.push(path);
   }
 
-  let translateZ = -params.ball.radius;
   const geometry = new ExtrudeGeometry(shape, {
     depth: params.ball.radius,
     bevelSize: 0.0025,
     bevelThickness: 0.0025,
-  }).translate(0, 0, translateZ - params.ball.radius - 0.0025);
+  }).translate(0, 0, -params.ball.radius - 0.0025);
 
   fixUVs(geometry);
 

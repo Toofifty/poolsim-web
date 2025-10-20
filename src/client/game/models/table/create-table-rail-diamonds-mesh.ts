@@ -19,7 +19,6 @@ export const createTableRailDiamondsMesh = (
   theme: ThemeObject
 ) => {
   const {
-    ball,
     cushion,
     pocket,
     table: { width, length, railPadding },
@@ -56,6 +55,6 @@ export const createTableRailDiamondsMesh = (
     })
   );
   mesh.receiveShadow = true;
-  mesh.position.z += cushion.height - ball.radius + 0.005;
+  mesh.position.z += cushion.height + 0.005;
   return mesh;
 };

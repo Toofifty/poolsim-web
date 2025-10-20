@@ -1,5 +1,4 @@
-import { defaultParams } from '@common/simulation/physics';
-import { EightBallState } from '@common/simulation/table-state';
+import { defaultParams, EightBallState } from '@common/simulation/physics';
 import { ECS, EventSystem } from '../../../common/ecs';
 import { BallId } from '../components/ball-id';
 import type { GameEvents } from '../events';

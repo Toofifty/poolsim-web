@@ -72,7 +72,7 @@ export const computeSpinTime = (params: Params, ball: Physics): number => {
 };
 
 export const computeAirTime = (params: Params, ball: Physics): number => {
-  if (ball.r[2] <= 0 && ball.v[2] <= 0) {
+  if (ball.r[2] <= ball.R && ball.v[2] <= 0) {
     return 0;
   }
 

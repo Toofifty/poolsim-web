@@ -72,7 +72,7 @@ const evolveSlide = (params: Params, ball: Physics, dt: number) => {
   // r += vt + 0.5at²
   vec.madd(ball.r, dr);
 
-  if (ball.r[2] > 0) {
+  if (ball.r[2] > ball.R) {
     ball.state = PhysicsState.Airborne;
   }
 
@@ -102,7 +102,7 @@ const evolveRoll = (params: Params, ball: Physics, dt: number) => {
   // r += vt - 0.5at²
   vec.madd(ball.r, deltaR);
 
-  if (ball.r[2] > 0) {
+  if (ball.r[2] > ball.R) {
     ball.state = PhysicsState.Airborne;
   }
 
@@ -173,7 +173,7 @@ const collideWithSlate = (params: Params, ball: Physics) => {
   // out-of-bounds balls hit an imaginary floor
   const slate = ball.state === PhysicsState.OutOfPlay ? -1 : 0;
 
-  if (ball.r[2] < slate && ball.v[2] < 0) {
+  if (ball.r[2] - ball.R < slate && ball.v[2] < 0) {
     ball.v[2] = -ball.v[2] * es;
     if (Math.abs(ball.v[2]) < 1e-1) {
       ball.v[2] = 0;
@@ -204,8 +204,8 @@ export const evolvePocket = (
   // pocket edge rolling
   if (
     dist >= pocket.radius - ball.R &&
-    ball.r[2] <= 0 &&
-    ball.r[2] > -2 * ball.R
+    ball.r[2] - ball.R <= 0 &&
+    ball.r[2] - ball.R > -2 * ball.R
   ) {
     const contactPoint = vec.add(
       vec.setZ(pocket.position, -ball.R),

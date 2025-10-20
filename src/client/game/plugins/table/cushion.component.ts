@@ -16,7 +16,7 @@ export class Cushion extends ECSComponent {
 
     this.collisionBox = Cushion.computeCollisionBox(defaultParams, vertices);
     const [tl, bl, br, tr] = vertices;
-    const offsetZ = 0; // params.cushion.height - params.ball.radius;
+    const offsetZ = defaultParams.ball.radius; // params.cushion.height - params.ball.radius;
     this.segments = [
       [vec.setZ(tl, offsetZ), vec.setZ(bl, offsetZ)],
       [vec.setZ(bl, offsetZ), vec.setZ(br, offsetZ)],

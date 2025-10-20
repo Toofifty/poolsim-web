@@ -30,7 +30,7 @@ export const createPocketLinerMesh = (pocket: {
   let geometry: BufferGeometry = new TorusGeometry(
     radius - width / 2,
     width / 2
-  ).translate(0, 0, -pocket.position[2]);
+  ).translate(0, 0, -pocket.position[2] + params.ball.radius);
 
   const height = params.ball.radius * 2;
   const tableInner = createRoundedRect(

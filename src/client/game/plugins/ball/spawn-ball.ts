@@ -1,5 +1,5 @@
 import type { Ctor, ECS, ECSComponent } from '@common/ecs';
-import type { Quat, Vec } from '@common/math';
+import { vec, type Quat, type Vec } from '@common/math';
 import type { Params } from '@common/simulation/physics';
 import { BallId } from '../../components/ball-id';
 import { BallMesh } from '../../components/ball-mesh';
@@ -33,10 +33,10 @@ export const spawnBall = (
     orientation: Quat;
   }
 ) => {
-  const R = id === 1 ? params.ball.radius * 2 : params.ball.radius;
+  const R = (Math.random() - 0.5) * params.ball.radius + params.ball.radius;
   const physics = Physics.create({
     id,
-    r: position,
+    r: vec.addZ(position, R),
     R: R,
     orientation,
   });

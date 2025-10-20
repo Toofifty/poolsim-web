@@ -1,4 +1,4 @@
-import { EightBallState } from '@common/simulation/table-state';
+import { EightBallState } from '@common/simulation/physics';
 import { useCallback, useEffect } from 'react';
 import type { GameEvents } from '../game/events';
 import { useGameContext } from '../util/game-provider';

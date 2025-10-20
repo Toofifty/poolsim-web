@@ -11,7 +11,6 @@ export class PlaneMesh extends Renderable {
       ),
       new MeshBasicMaterial({ color: '#fff' })
     );
-    mesh.position.z = -defaultParams.ball.radius;
     mesh.visible = false;
 
     return new PlaneMesh(mesh);

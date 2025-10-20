@@ -1,7 +1,10 @@
+import type {
+  EightBallState,
+  Params,
+  Ruleset,
+} from '@common/simulation/physics';
 import type { Shot } from '@common/simulation/shot';
-import type { EightBallState } from '@common/simulation/table-state';
 import type { Quat, Vec } from '../../common/math';
-import type { Params, Ruleset } from '../../common/simulation/physics';
 import type { DeepKeyOf, DeepPathOf } from '../util/types';
 import type { Cue } from './plugins/cue/cue.component';
 import type {

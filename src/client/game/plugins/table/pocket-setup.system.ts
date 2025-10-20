@@ -10,6 +10,7 @@ export class PocketSetupSystem extends StartupSystem {
     const {
       table,
       pocket: { edge, corner },
+      ball: { radius },
     } = defaultParams;
 
     const left = -table.length / 2;
@@ -19,17 +20,23 @@ export class PocketSetupSystem extends StartupSystem {
 
     const edgeOffset = corner.radius - edge.radius;
 
-    const pockets: { id: number; position: Vec; radius: number }[] = [
-      { id: 0, position: vec.new(left, top), radius: corner.radius },
-      { id: 1, position: vec.new(right, top), radius: corner.radius },
-      { id: 2, position: vec.new(left, bottom), radius: corner.radius },
-      { id: 3, position: vec.new(right, bottom), radius: corner.radius },
-      { id: 4, position: vec.new(0, top - edgeOffset), radius: edge.radius },
-      { id: 5, position: vec.new(0, bottom + edgeOffset), radius: edge.radius },
+    const pockets: { position: Vec; radius: number }[] = [
+      { position: vec.new(left, top, radius), radius: corner.radius },
+      { position: vec.new(right, top, radius), radius: corner.radius },
+      { position: vec.new(left, bottom, radius), radius: corner.radius },
+      { position: vec.new(right, bottom, radius), radius: corner.radius },
+      { position: vec.new(0, top - edgeOffset, radius), radius: edge.radius },
+      {
+        position: vec.new(0, bottom + edgeOffset, radius),
+        radius: edge.radius,
+      },
     ];
 
-    pockets.forEach((pocket) => {
-      ecs.spawnImmediate(Pocket.create(pocket), PocketMesh.create(pocket));
+    pockets.forEach((pocket, id) => {
+      ecs.spawnImmediate(
+        Pocket.create({ id, ...pocket }),
+        PocketMesh.create(pocket)
+      );
     });
   }
 }

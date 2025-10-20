@@ -1,8 +1,7 @@
+import { EightBallState, Ruleset } from '@common/simulation/physics';
+import { assert } from '@common/util';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSnapshot } from 'valtio';
-import { Ruleset } from '../../../common/simulation/physics';
-import { EightBallState } from '../../../common/simulation/table-state';
-import { assert } from '../../../common/util';
 import { createBallCanvas } from '../../game/models/ball/create-ball-texture';
 import { makeTheme, theme } from '../../game/store/theme';
 import { Surface } from '../surface';

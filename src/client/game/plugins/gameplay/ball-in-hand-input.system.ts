@@ -36,8 +36,6 @@ export class BallInHandInputSystem extends EventSystem<
       ballInHandEntity === undefined &&
       (settings.enableBallPickup || system.canPickupCueBall)
     ) {
-      const target = vec.setZ(mouse.world, 0);
-
       const ballEntities = ecs.query().has(Physics).findAll();
       let closestEntity: number | undefined = undefined;
       let closestBall: Physics | undefined = undefined;
@@ -48,7 +46,7 @@ export class BallInHandInputSystem extends EventSystem<
           continue;
         }
 
-        const dist = vec.distSq(ball.r, target);
+        const dist = vec.distSq(vec.subZ(ball.r, ball.R), mouse.world);
         if (dist < ball.R * ball.R && dist < closestDist) {
           closestEntity = ballEntity;
           closestBall = ball;

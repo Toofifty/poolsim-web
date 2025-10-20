@@ -1,4 +1,3 @@
-import { defaultParams } from '@common/simulation/physics';
 import { Mesh, MeshPhysicalMaterial, TorusGeometry } from 'three';
 import { OverlayBillboardRenderable } from '../../components/overlay-billboard-renderable';
 import { createMaterial } from '../../rendering/create-material';
@@ -12,9 +11,8 @@ export class ImpactPointMesh extends OverlayBillboardRenderable {
   }
 
   public static create() {
-    const { ball } = defaultParams;
     const ring = new Mesh(
-      new TorusGeometry(ball.radius * (1 - width / 2), ball.radius * width),
+      new TorusGeometry(1 - width / 2, width),
       createMaterial({ roughness: 0.1, metalness: 0, depthTest: false })
     );
     return new ImpactPointMesh(ring, ring.material);

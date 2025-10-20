@@ -59,7 +59,7 @@ export class CushionMesh extends Renderable {
       })
     );
     controlPoints.renderOrder = 9999;
-    controlPoints.position.z = 0.01;
+    controlPoints.position.z = defaultParams.ball.radius + 0.01;
 
     // todo: debug
     // mesh.add(collisionBoxMesh, controlPoints);

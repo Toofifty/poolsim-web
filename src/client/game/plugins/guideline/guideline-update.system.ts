@@ -1,11 +1,12 @@
 import { ECS, System, type Entity } from '@common/ecs';
-import { assert } from '@common/util';
+import { assert, assertExists } from '@common/util';
 import { Color } from 'three';
 import { LineMesh } from '../../components/line-mesh.component';
 import { SystemState } from '../../resources/system-state';
 import { settings } from '../../store/settings';
 import { toVector3 } from '../../util/three-interop';
 import { Cue } from '../cue/cue.component';
+import { findBallById } from '../gameplay/find-ball-by-id';
 import { PhysicsState } from '../physics/physics.component';
 import { Guideline } from './guideline.component';
 import { ImpactPointMesh } from './impact-point-mesh.component';
@@ -96,6 +97,9 @@ export class GuidelineUpdateSystem extends System {
     assert(guideline.collisionPoint);
 
     // ring
+    const [_, ball] = findBallById(ecs, 0);
+    assertExists(ball);
+    ring.scale.set(ball.R, ball.R, ball.R);
     ring.position.copy(toVector3(guideline.collisionPoint.position));
     ringMaterial.color = guideline.invalid
       ? new Color(0xff0000)

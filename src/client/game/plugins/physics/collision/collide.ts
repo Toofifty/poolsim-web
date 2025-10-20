@@ -146,7 +146,7 @@ export const collideBallPocket = (
   // and the ball is below rail height
   if (
     dist < pocket.radius * pocket.radius &&
-    ball.r[2] <= params.cushion.height
+    ball.r[2] - ball.R <= params.cushion.height
   ) {
     ball.state = PhysicsState.Pocketed;
     ball.pocketId = pocket.id;

@@ -16,7 +16,7 @@ export const createTableRailGeometry = (
     table.width + pocket.corner.radius * 2 + table.railPadding,
     pocket.corner.radius + table.railPadding,
     { depth: height - 0.01, bevelThickness: 0.01, bevelSize: 0.01 }
-  ).translate(0, 0, -ball.radius * 2);
+  ).translate(0, 0, -ball.radius);
 
   const tableInner = createRoundedRect(table.length, table.width, 0, {
     depth: height * 2,
@@ -32,7 +32,7 @@ export const createTableRailGeometry = (
       height * 2
     );
     cylinder.rotateX(Math.PI / 2);
-    cylinder.translate(pocket.position[0], pocket.position[1], -height / 2);
+    cylinder.translate(pocket.position[0], pocket.position[1], 0);
     geometry = subtract(geometry, cylinder);
   });
 

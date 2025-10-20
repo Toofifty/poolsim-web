@@ -1,5 +1,4 @@
-import { Ruleset } from '@common/simulation/physics';
-import { EightBallState } from '@common/simulation/table-state';
+import { EightBallState, Ruleset } from '@common/simulation/physics';
 import { notifications } from '@mantine/notifications';
 import type { TurnFoul } from '../game/plugins/physics/simulation/result';
 import { useGameBinding } from './use-game-binding';

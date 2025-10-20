@@ -1,6 +1,9 @@
 import type { LobbyData } from '@common/data';
-import { cloneParams, type Params } from '@common/simulation/physics';
-import { EightBallState } from '@common/simulation/table-state';
+import {
+  cloneParams,
+  EightBallState,
+  type Params,
+} from '@common/simulation/physics';
 import type { Socket } from 'socket.io-client';
 import { subscribe } from 'valtio';
 import { ECS, Resource } from '../../../common/ecs';

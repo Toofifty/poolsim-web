@@ -11,7 +11,7 @@ export const pickupBallSystem = createEventSystemFactory<GameEvents>()(
     const [entity, ball] = findBallById(ecs, id);
 
     ecs.addComponent(entity, InHand.create());
-    await dlerp((v) => vec.msetZ(ball.r, v), ball.r[2], 0.1, 100);
+    await dlerp((v) => vec.msetZ(ball.r, v), ball.r[2], ball.R + 0.1, 100);
     const [inHand] = ecs.get(entity, InHand);
     inHand.animating = false;
   }

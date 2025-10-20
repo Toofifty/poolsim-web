@@ -1,7 +1,6 @@
 import { ECS, EventSystem } from '@common/ecs';
 import { vec } from '@common/math';
-import { Ruleset } from '@common/simulation/physics';
-import { EightBallState } from '@common/simulation/table-state';
+import { EightBallState, Ruleset } from '@common/simulation/physics';
 import { assert, assertExists } from '@common/util';
 import type { GameEvents } from '../../events';
 import { GameRuleProvider } from '../../resources/game-rules';

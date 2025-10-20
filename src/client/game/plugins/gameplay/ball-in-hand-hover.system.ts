@@ -23,7 +23,6 @@ export class BallInHandHoverSystem extends System {
     }
 
     const mouse = ecs.resource(MousePosition);
-    const target = vec.setZ(mouse.world, 0);
 
     const ballEntities = ecs.query().has(Physics).findAll();
     let closestEntity: number | undefined = undefined;
@@ -35,7 +34,7 @@ export class BallInHandHoverSystem extends System {
         continue;
       }
 
-      const dist = vec.distSq(ball.r, target);
+      const dist = vec.distSq(vec.subZ(ball.r, ball.R), mouse.world);
       if (dist < ball.R * ball.R && dist < closestDist) {
         closestEntity = ballEntity;
         closestBall = ball;

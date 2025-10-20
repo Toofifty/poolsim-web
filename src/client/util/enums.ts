@@ -1,5 +1,8 @@
-import { AimAssistMode, Ruleset } from '../../common/simulation/physics';
-import { EightBallState } from '../../common/simulation/table-state';
+import {
+  AimAssistMode,
+  EightBallState,
+  Ruleset,
+} from '@common/simulation/physics';
 
 export const getRulesetName = (ruleset: Ruleset) => {
   switch (ruleset) {

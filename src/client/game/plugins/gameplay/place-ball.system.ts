@@ -13,7 +13,7 @@ export const placeBallSystem = createEventSystemFactory<GameEvents>()(
     const [inHand] = ecs.get(entity, InHand);
     inHand.animating = true;
     vec.mcopy(ball.r, position);
-    await dlerp((v) => vec.msetZ(ball.r, v), ball.r[2], 0, 100);
+    await dlerp((v) => vec.msetZ(ball.r, v), ball.r[2], ball.R, 100);
     ecs.removeComponent(entity, InHand);
   }
 );

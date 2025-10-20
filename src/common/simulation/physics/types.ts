@@ -13,3 +13,9 @@ export enum Ruleset {
   Sandbox,
   SandboxSequential,
 }
+
+export enum EightBallState {
+  Open,
+  Player1Solids,
+  Player1Stripes,
+}

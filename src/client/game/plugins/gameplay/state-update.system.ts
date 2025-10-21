@@ -22,7 +22,12 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
     if (system.gameState === GameState.Playing) {
       system.gameState = GameState.Shooting;
       const cue = ecs.query().resolveFirst(Cue);
+      cue.force = ecs.resource(SystemState).params.cue.defaultForce;
+      cue.side = 0;
+      cue.top = 0;
+      cue.lift = 0;
       cue.locked = false;
+      ecs.emit('game/cue-update', cue);
     }
 
     const turnResult = getTurnResult(data.result, data.rules);

@@ -7,6 +7,8 @@ import { MousePosition } from '../mouse/mouse-position.resource';
 import { Physics } from '../physics/physics.component';
 import { InHand } from './in-hand.component';
 
+const LIFT = 0.1;
+
 export class MoveBallInHandSystem extends System {
   public components: Set<Function> = new Set([InHand]);
 
@@ -68,7 +70,7 @@ export class MoveBallInHandSystem extends System {
     }
 
     vec.mlerp(ball.r, target, 0.1);
-    vec.msetZ(ball.r, 0.1 + 0.01 * Math.sin(ecs.frameId / 200));
+    vec.msetZ(ball.r, LIFT + 0.01 * Math.sin(ecs.frameId / 200));
 
     ecs.emit('game/move-ball', {
       id: ball.id,

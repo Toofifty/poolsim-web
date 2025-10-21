@@ -46,7 +46,7 @@ export class BallInHandInputSystem extends EventSystem<
           continue;
         }
 
-        const dist = vec.distSq(vec.subZ(ball.r, ball.R), mouse.world);
+        const dist = vec.distSq(vec.setZ(ball.r, 0), mouse.world);
         if (dist < ball.R * ball.R && dist < closestDist) {
           closestEntity = ballEntity;
           closestBall = ball;

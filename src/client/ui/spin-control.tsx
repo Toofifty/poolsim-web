@@ -10,6 +10,7 @@ import { useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { settings } from '../game/store/settings';
 import { useGameContext } from '../util/game-provider';
+import { RenderedBall } from './ball/ball';
 import './spin-control.scss';
 import { Surface } from './surface';
 import { useGameBinding } from './use-game-binding';
@@ -21,7 +22,7 @@ export const SpinControl = () => {
 
   const [lift, side, top] = useGameBinding(
     'game/cue-update',
-    (cue) => [cue.lift, -cue.side, -cue.top],
+    (cue) => [cue.lift, -cue.side / 2, -cue.top / 2],
     [0, 0, 0]
   );
 
@@ -43,10 +44,14 @@ export const SpinControl = () => {
 
   const ballAreaProps = useMouseInputs(
     ({ x, y }) => {
-      const rx = 0.5 - x;
-      const ry = 0.5 - y;
+      let rx = (0.5 - x) * 2;
+      let ry = (0.5 - y) * 2;
 
-      if (Math.sqrt(rx * rx + ry * ry) > 0.5) return;
+      if (Math.sqrt(rx * rx + ry * ry) > 1) {
+        const angle = Math.atan2(ry, rx);
+        rx = Math.cos(angle) * 1;
+        ry = Math.sin(angle) * 1;
+      }
 
       ecs.emit('input/cue-update', {
         top: lockTopSpin ? 0 : ry,
@@ -117,11 +122,15 @@ export const SpinControl = () => {
             </ActionIcon>
           </Stack>
           <div ref={setClickArea} className="spin-control__ball-area">
-            <div className="spin-control__ball" {...ballAreaProps} />
+            <div className="spin-control__ball" {...ballAreaProps}>
+              <RenderedBall id={0} size={150} offset={0} shadowed />
+            </div>
             <div
               className="spin-control__point"
               style={{
-                transform: `translate(${side * width}px, ${top * height}px)`,
+                transform: `translate(${side * width * 0.8}px, ${
+                  top * height * 0.8
+                }px)`,
               }}
             />
           </div>

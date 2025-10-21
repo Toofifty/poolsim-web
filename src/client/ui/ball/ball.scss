@@ -1,0 +1,57 @@
+@property --rendered-ball-size {
+  syntax: '<length>';
+  initial-value: 32px;
+  inherits: true;
+}
+
+$size: var(--rendered-ball-size);
+
+.ball__container {
+  border-radius: 9999px;
+  overflow: hidden;
+  width: $size;
+  height: $size;
+  position: relative;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.1),
+    inset 4px 4px 16px rgba(0, 0, 0, 0.25),
+    inset -1px -1px 0 rgba(255, 255, 255, 0.1);
+
+  &--shadowed {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  }
+}
+
+.ball {
+  border-radius: 9999px;
+  overflow: hidden;
+  width: $size;
+  height: $size;
+
+  > canvas {
+    width: $size;
+    height: $size;
+    transform: translate(0, calc($size * var(--rendered-ball-offset, 0.1) * -1))
+      scale(1.5);
+  }
+
+  &:not(:empty):before {
+    border-radius: 9999px;
+    z-index: 1;
+    content: '';
+    position: absolute;
+    inset: 0;
+
+    background: radial-gradient(
+      circle at 25% 25%,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 1) 1%,
+      rgba(255, 255, 255, 0.3) 5%,
+      transparent 35%,
+      transparent 70%,
+      #000000 100%
+    );
+    box-shadow: inset calc($size * -0.1) calc($size * -0.1) calc($size * 0.25)
+        rgba(0, 0, 0, 0.7),
+      0 4px 15px rgba(0, 0, 0, 0.6);
+  }
+}

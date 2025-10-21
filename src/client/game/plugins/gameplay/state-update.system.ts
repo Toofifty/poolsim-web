@@ -5,6 +5,7 @@ import { assert, assertExists } from '@common/util';
 import type { GameEvents } from '../../events';
 import { GameRuleProvider } from '../../resources/game-rules';
 import { GameState, SystemState } from '../../resources/system-state';
+import { Cue } from '../cue/cue.component';
 import { Physics, PhysicsState } from '../physics/physics.component';
 import { getTurnResult, isGameOver } from '../physics/simulation/result';
 import { InHand } from './in-hand.component';
@@ -20,6 +21,8 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
 
     if (system.gameState === GameState.Playing) {
       system.gameState = GameState.Shooting;
+      const cue = ecs.query().resolveFirst(Cue);
+      cue.locked = false;
     }
 
     const turnResult = getTurnResult(data.result, data.rules);

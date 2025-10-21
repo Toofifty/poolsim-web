@@ -17,6 +17,8 @@ import { BallTableIndicator } from './ball-table-indicator.component';
 
 type OverrideComponent = [ECSComponent, Ctor<ECSComponent>];
 
+const RANDOM_SIZES = false;
+
 export const spawnBall = (
   ecs: ECS<GameEvents>,
   params: Params,
@@ -33,7 +35,9 @@ export const spawnBall = (
     orientation: Quat;
   }
 ) => {
-  const R = params.ball.radius;
+  const R =
+    params.ball.radius +
+    (RANDOM_SIZES ? (Math.random() - 0.5) * params.ball.radius : 0);
   const physics = Physics.create({
     id,
     r: vec.addZ(position, R),

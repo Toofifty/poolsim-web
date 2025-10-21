@@ -35,11 +35,11 @@ export const cueCursorTargetSystem = createSystemFactory<GameEvents>()(
 
     const [_, ball] = maybeFindBallById(ecs, cue.targetId);
     if (!ball) return;
-    vec.mcopy(cue.target, ball.r);
+    vec.mcopy(cue.target, vec.setZ(ball.r, ball.R));
 
     const mouse = ecs.resource(MousePosition);
     // only update cue if cursor is not too close
-    if (vec.dist(cue.target, mouse.world) > ball.R * 2) {
+    if (vec.dist(cue.target, mouse.world) > ball.R * 4) {
       cue.angle = vec.angle2D(cue.target, mouse.world);
     }
 

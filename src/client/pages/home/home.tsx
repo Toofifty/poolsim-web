@@ -3,6 +3,7 @@ import { notifications, Notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
+import { RenderedBall } from '../../ui/ball/ball';
 import { PageContainer } from '../../ui/page-container';
 import { Surface } from '../../ui/surface';
 import { useLobbies } from './use-lobbies';
@@ -29,6 +30,11 @@ export const HomePage = () => {
         classNames={{ notification: 'surface-effects' }}
       />
       <Stack align="center">
+        <Group>
+          <RenderedBall id={0} size={64} offset={0.05} shadowed />
+          <RenderedBall id={8} size={64} offset={0.05} shadowed />
+          <RenderedBall id={9} size={64} offset={0.05} shadowed />
+        </Group>
         <Title
           order={1}
           onClick={() => {

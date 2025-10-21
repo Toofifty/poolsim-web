@@ -19,16 +19,9 @@ $point-size: $size * 0.2;
   position: relative;
 }
 
-.spin-control__ball {
-  background: radial-gradient(white 20%, #222);
-  width: 100%;
-  height: 100%;
-  border-radius: 100%;
-}
-
 .spin-control__point {
   border: 2px solid rgba(255, 0, 0, 0.4);
-  background: rgba(255, 0, 0, 0.2);
+  background: rgba(255, 192, 192, 0.2);
   box-sizing: border-box;
   width: $point-size;
   height: $point-size;
@@ -37,6 +30,7 @@ $point-size: $size * 0.2;
   top: calc(50% - $point-size * 0.5);
   position: absolute;
   pointer-events: none;
+  z-index: 1;
 }
 
 $la-pad: 4px;

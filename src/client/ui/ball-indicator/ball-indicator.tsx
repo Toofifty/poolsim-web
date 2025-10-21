@@ -1,9 +1,7 @@
 import { EightBallState, Ruleset } from '@common/simulation/physics';
 import { assert } from '@common/util';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSnapshot } from 'valtio';
-import { createBallCanvas } from '../../game/models/ball/create-ball-texture';
-import { makeTheme, theme } from '../../game/store/theme';
+import { useCallback, useState } from 'react';
+import { RenderedBall } from '../ball/ball';
 import { Surface } from '../surface';
 import { useGameBinding } from '../use-game-binding';
 import { getPlayer8BallState, useGameEvent } from '../use-game-event';
@@ -132,7 +130,7 @@ const EightBallIndicator = () => {
         <div className="group lower ball-indicator__group">
           <span>You{playerState !== 'open' && ` (${playerState})`}</span>
           {player1Balls.map((id, i) => (
-            <Ball key={i} id={id} />
+            <RenderedBall key={i} id={id} size={32} />
           ))}
         </div>
       </Surface>
@@ -140,7 +138,7 @@ const EightBallIndicator = () => {
         <Surface>
           <div className="group lower ball-indicator__group">
             {unclaimedBalls.map((id, i) => (
-              <Ball key={i} id={id} />
+              <RenderedBall key={i} id={id} size={32} />
             ))}
           </div>
         </Surface>
@@ -148,7 +146,7 @@ const EightBallIndicator = () => {
       <Surface>
         <div className="group lower ball-indicator__group">
           {player2Balls.map((id, i) => (
-            <Ball key={i} id={id} />
+            <RenderedBall key={i} id={id} size={32} />
           ))}
           <span>
             Opponent
@@ -191,36 +189,10 @@ const NineBallIndicator = () => {
       <Surface>
         <div className="group lower ball-indicator__group">
           {balls.map((id, i) => (
-            <Ball key={i} id={id} />
+            <RenderedBall key={i} id={id} size={32} />
           ))}
         </div>
       </Surface>
-    </div>
-  );
-};
-
-const Ball = ({ id }: { id?: number }) => {
-  const themeSnapshot = useSnapshot(theme);
-  const root = useRef<HTMLDivElement>(null);
-
-  const canvas = useMemo(() => {
-    if (id === undefined) return;
-    return createBallCanvas(makeTheme(), id, { height: 100, width: 100 });
-  }, [id, themeSnapshot]);
-
-  useEffect(() => {
-    if (!canvas) return;
-
-    root.current?.appendChild(canvas);
-
-    return () => {
-      root.current?.removeChild(canvas);
-    };
-  }, [canvas]);
-
-  return (
-    <div className="ball__container">
-      {id !== undefined && <div ref={root} className="ball" />}
     </div>
   );
 };

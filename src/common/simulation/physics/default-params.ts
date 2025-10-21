@@ -72,8 +72,10 @@ export const defaultParams = {
     // https://drdavepoolinfo.com/faq/speed/typical/
     // 2m/s
     defaultForce: 2,
+    defaultBreakForce: 6,
     // lower than powerful break
-    maxForce: 10,
+    maxForce: 16,
+    maxBreakForce: 16,
     length: 1.4732,
     tipRadius: 0.006,
     handleRadius: 0.01,

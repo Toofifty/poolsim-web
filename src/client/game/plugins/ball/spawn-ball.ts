@@ -33,7 +33,7 @@ export const spawnBall = (
     orientation: Quat;
   }
 ) => {
-  const R = (Math.random() - 0.5) * params.ball.radius + params.ball.radius;
+  const R = params.ball.radius;
   const physics = Physics.create({
     id,
     r: vec.addZ(position, R),

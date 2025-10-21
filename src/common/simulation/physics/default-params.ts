@@ -69,7 +69,10 @@ export const defaultParams = {
     diamondWidth: 0.015,
   },
   cue: {
+    // https://drdavepoolinfo.com/faq/speed/typical/
+    // 2m/s
     defaultForce: 2,
+    // lower than powerful break
     maxForce: 10,
     length: 1.4732,
     tipRadius: 0.006,

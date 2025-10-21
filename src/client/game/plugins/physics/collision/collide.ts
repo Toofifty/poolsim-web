@@ -1,9 +1,10 @@
-import { vec } from '@common/math';
+import { vec, type Vec } from '@common/math';
 import { type Params } from '@common/simulation/physics';
 import { Cushion } from '../../table/cushion.component';
 import type { Pocket } from '../../table/pocket.component';
 import { computeIdealAngularVelocity } from '../evolution/compute';
 import { Physics, PhysicsState } from '../physics.component';
+import { solveLinearSystem } from './solver';
 import { applyBallCollisionSpin } from './spin';
 import type {
   BallBallCollision,
@@ -11,66 +12,133 @@ import type {
   BallPocketCollision,
 } from './types';
 
-export const collideBallBall = (
-  params: Params,
+export type IntermediateCollision = {
+  ball1: Physics;
+  ball2: Physics;
+  normal: Vec;
+  /** <= 0 */
+  rv: number;
+  overlap: number;
+};
+
+export const getBallBallCollision = (
   ball1: Physics,
-  ball2: Physics,
-  fixOverlap = true
-): BallBallCollision | undefined => {
+  ball2: Physics
+): IntermediateCollision | undefined => {
   if (ball1 === ball2) return undefined;
 
-  const { restitutionBall: eb } = params.ball;
-
   const dist = vec.dist(ball1.r, ball2.r);
-
-  if (dist > 0 && dist < ball1.R + ball2.R) {
-    const initial = vec.clone(ball1.r);
-    const otherInitial = vec.clone(ball2.r);
-
+  if (dist < ball1.R + ball2.R && dist > 0) {
     const normal = vec.norm(vec.sub(ball1.r, ball2.r));
     const rv = vec.dot(vec.sub(ball1.v, ball2.v), normal);
-
     const overlap = ball1.R + ball2.R - dist;
+
+    if (Math.abs(rv) < 1e-4) {
+      const v1 = vec.lenSq(ball1.v);
+      const v2 = vec.lenSq(ball2.v);
+      if (v1 < 1e-6 && v2 < 1e-6) {
+        // balls are gently touching at rest, so we
+        // skip the collision
+        return undefined;
+      }
+    }
+
+    if (rv <= 0) {
+      return { ball1, ball2, normal, rv, overlap };
+    }
+  }
+
+  return undefined;
+};
+
+/**
+ * Solves many collisions at once using an LCP solver.
+ * Using this technique to solve collisions on the break (where
+ * there would be multiple collisions in a single frame)
+ * ensures realistic impulses. It can still be used for single
+ * collisions though.
+ */
+export const solveBallBallCollisions = (
+  collisions: IntermediateCollision[],
+  params: Params,
+  fixOverlap = true
+): BallBallCollision[] => {
+  const { restitutionBall: eb } = params.ball;
+
+  const n = collisions.length;
+  const A = new Array(n).fill(0).map(() => new Array(n).fill(0));
+  const b = new Array(n).fill(0);
+
+  for (let i = 0; i < n; i++) {
+    const { ball1, ball2, normal, rv } = collisions[i];
+    const invM1 = 1 / ball1.m;
+    const invM2 = 1 / ball2.m;
+
+    b[i] = -(1 + eb) * rv;
+
+    for (let j = 0; j < n; j++) {
+      const c = collisions[j];
+      let term = 0;
+      if (ball1 === c.ball1) term += invM1 * vec.dot(normal, c.normal);
+      if (ball1 === c.ball2) term -= invM1 * vec.dot(normal, c.normal);
+      if (ball2 === c.ball1) term -= invM2 * vec.dot(normal, c.normal);
+      if (ball2 === c.ball2) term += invM2 * vec.dot(normal, c.normal);
+
+      A[i][j] = term;
+    }
+  }
+
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const avg = 0.5 * (A[i][j] + A[j][i]);
+      A[i][j] = avg;
+      A[j][i] = avg;
+    }
+  }
+
+  const j = solveLinearSystem(A, b);
+
+  const trackedCollisions = collisions.map(
+    ({ ball1, ball2, normal }) =>
+      ({
+        type: 'ball-ball',
+        initiator: ball1,
+        other: ball2,
+        position: vec.add(ball1.r, vec.mult(normal, ball1.R)),
+        // impulse added later
+        impulse: vec.zero,
+        snapshots: {
+          initiator: Physics.snapshot(ball1),
+          other: Physics.snapshot(ball2),
+        },
+      } satisfies BallBallCollision)
+  );
+
+  // apply impulses
+  for (let i = 0; i < n; i++) {
+    const { ball1, ball2, normal, overlap } = collisions[i];
+    const impulse = vec.mult(normal, j[i]);
+    const invM1 = 1 / ball1.m;
+    const invM2 = 1 / ball2.m;
+
     if (overlap > 0 && fixOverlap) {
       const correction = vec.mult(normal, (overlap * 1.1) / 2);
       vec.madd(ball1.r, correction);
       vec.msub(ball2.r, correction);
     }
 
-    if (rv > 0) {
-      // balls are already moving away from each other
-      return undefined;
-    }
-
-    const invM1 = 1 / ball1.m;
-    const invM2 = 1 / ball2.m;
-
-    const j = ((1 + eb) * rv) / (invM1 + invM2);
-    const impulse = vec.mult(normal, j);
-
-    // impulse from collision
-    vec.msub(ball1.v, vec.mult(impulse, invM1));
-    vec.madd(ball2.v, vec.mult(impulse, invM2));
+    vec.madd(ball1.v, vec.mult(impulse, invM1));
+    vec.msub(ball2.v, vec.mult(impulse, invM2));
 
     ball1.state = PhysicsState.Sliding;
     ball2.state = PhysicsState.Sliding;
 
     applyBallCollisionSpin(ball1, ball2, impulse, normal);
 
-    return {
-      type: 'ball-ball',
-      initiator: ball1,
-      other: ball2,
-      position: vec.add(ball1.r, vec.mult(normal, ball1.R)),
-      impulse,
-      snapshots: {
-        initiator: Physics.snapshot(ball1, { position: initial }),
-        other: Physics.snapshot(ball2, { position: otherInitial }),
-      },
-    };
+    trackedCollisions[i].impulse = impulse;
   }
 
-  return undefined;
+  return trackedCollisions;
 };
 
 export const collideBallCushion = (

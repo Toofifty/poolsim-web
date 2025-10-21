@@ -10,11 +10,9 @@ export type BallProto = {
   orientation: Quat;
 };
 
-const gap = 0.001;
-
-const getGap = () => Math.random() * gap;
-
 export type Sandboxes = 'debug' | 'cubicle-troll' | 'newtons-cradle';
+
+const gap = 1e-8;
 
 export class Rack {
   private static generateFromLayout(tip: Vec, layout: number[][]) {
@@ -46,7 +44,7 @@ export class Rack {
           id: number,
           number,
           color: theme.balls.colors[number],
-          position: vec.new(x + getGap(), y + getGap()),
+          position: vec.new(x, y),
           orientation: quat.random(),
         });
       }

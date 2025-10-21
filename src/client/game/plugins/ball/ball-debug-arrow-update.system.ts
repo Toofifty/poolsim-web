@@ -15,7 +15,7 @@ export class BallDebugUArrowUpdateSystem extends System {
   public run(ecs: ECS<any, unknown>, entity: Entity): void {
     const [ball, arrow] = ecs.get(entity, Physics, BallDebugUArrow);
 
-    arrow.mesh.position.copy(toVector3(vec.setZ(ball.r, -ball.R)));
+    arrow.mesh.position.copy(toVector3(vec.setZ(ball.r, 0)));
     arrow.setVector(vec.neg(computeContactVelocity(ball)));
   }
 }

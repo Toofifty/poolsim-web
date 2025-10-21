@@ -2,9 +2,10 @@ import { type Params } from '@common/simulation/physics';
 import { assert, assertExists } from '@common/util';
 import { Profiler, type IProfiler } from '@common/util/profiler';
 import {
-  collideBallBall,
   collideBallCushion,
   collideBallPocket,
+  getBallBallCollision,
+  solveBallBallCollisions,
 } from '../collision/collide';
 import {
   computeBallCollisionTime,
@@ -89,9 +90,16 @@ const simulationSubstep = (
   if (!ignoreBallCollisions) {
     const endBallBall = profiler.start('ball-ball');
     // ball <-> ball collisions
-    for (const [ball1, ball2] of state.pairs) {
-      const collision = collideBallBall(params, ball1, ball2);
-      if (collision) addCollision(result, collision);
+
+    // precompute all collisions
+    const collisions = state.pairs
+      .map(([ball1, ball2]) => getBallBallCollision(ball1, ball2))
+      .filter((v) => v !== undefined);
+
+    if (collisions.length >= 1) {
+      solveBallBallCollisions(collisions, params).forEach((c) =>
+        addCollision(result, c)
+      );
     }
     endBallBall();
   }

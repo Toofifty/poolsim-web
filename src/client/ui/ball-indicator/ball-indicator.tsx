@@ -1,15 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSnapshot } from 'valtio';
-import { RuleSet } from '../../../common/simulation/physics';
-import { EightBallState } from '../../../common/simulation/table-state';
-import { assert } from '../../../common/util';
-import { createBallCanvas } from '../../game/models/ball/create-ball-texture';
-import { makeTheme, theme } from '../../game/store/theme';
-import {
-  getPlayer8BallState,
-  useGameEvent,
-} from '../../pages/game/use-game-events';
+import { EightBallState, Ruleset } from '@common/simulation/physics';
+import { assert } from '@common/util';
+import { useCallback, useState } from 'react';
+import { RenderedBall } from '../ball/ball';
 import { Surface } from '../surface';
+import { useGameBinding } from '../use-game-binding';
+import { getPlayer8BallState, useGameEvent } from '../use-game-event';
 import './ball-indicator.scss';
 
 const setInArray = <T,>(arr: (T | undefined)[], value: T) => {
@@ -25,17 +20,13 @@ const opposite = (state: 'solids' | 'stripes') =>
   state === 'solids' ? 'stripes' : 'solids';
 
 export const BallIndicator = () => {
-  const [ruleSet, setRuleSet] = useState<RuleSet>(RuleSet._8Ball);
-
-  useGameEvent(
-    'setup-table',
-    ({ detail: { ruleSet } }) => {
-      setRuleSet(ruleSet);
-    },
-    []
+  const ruleset = useGameBinding(
+    'game/setup',
+    (data) => data.ruleset,
+    Ruleset._8Ball
   );
 
-  return ruleSet === RuleSet._8Ball ? (
+  return ruleset === Ruleset._8Ball ? (
     <EightBallIndicator />
   ) : (
     <NineBallIndicator />
@@ -53,9 +44,14 @@ const EightBallIndicator = () => {
   const [eightBallState, setEightBallState] = useState<EightBallState>(
     EightBallState.Open
   );
-  const [isPlayer1, setIsPlayer1] = useState(false);
 
-  const playerState = getPlayer8BallState(eightBallState, isPlayer1);
+  const currentPlayer = useGameBinding(
+    'game/current-player-update',
+    (p) => p,
+    0
+  );
+
+  const playerState = getPlayer8BallState(eightBallState, currentPlayer === 0);
 
   const sortAndAddBalls = useCallback(
     (ids: number[], eightBallState: EightBallState, isPlayer1: boolean) => {
@@ -83,45 +79,50 @@ const EightBallIndicator = () => {
   );
 
   useGameEvent(
-    'setup-table',
+    'game/setup',
     () => {
       setPlayer1Balls(new Array(7).fill(undefined));
       setPlayer2Balls(new Array(7).fill(undefined));
       setUnclaimedBalls([]);
       setEightBallState(EightBallState.Open);
-      setIsPlayer1(false);
     },
     []
   );
 
   useGameEvent(
-    '8-ball-state-change',
-    ({ detail: { state, isPlayer1 } }) => {
+    'game/8-ball-state-change',
+    ({ state }) => {
       setEightBallState(state);
-      setIsPlayer1(isPlayer1);
-
-      console.log({ state, isPlayer1 });
 
       if (unclaimedBalls.length > 0) {
-        sortAndAddBalls(unclaimedBalls, state, isPlayer1);
+        sortAndAddBalls(unclaimedBalls, state, currentPlayer === 0);
         setUnclaimedBalls([]);
       }
     },
-    [unclaimedBalls]
+    [unclaimedBalls, currentPlayer]
   );
 
-  useGameEvent(
-    'balls-potted',
-    ({ detail: { ids } }) => {
+  const addBall = useCallback(
+    (id: number) => {
+      if (id === 0) return;
+
       if (eightBallState === EightBallState.Open) {
-        setUnclaimedBalls((b) => [...b, ...ids]);
+        setUnclaimedBalls((b) => [...b, id]);
         return;
       }
 
-      sortAndAddBalls(ids, eightBallState, isPlayer1);
+      sortAndAddBalls([id], eightBallState, currentPlayer === 0);
     },
-    [eightBallState, isPlayer1]
+    [eightBallState, currentPlayer]
   );
+
+  useGameEvent(
+    'game/pocket-collision',
+    ({ initiator: { id } }) => addBall(id),
+    [addBall]
+  );
+
+  useGameEvent('game/ball-ejected', (id) => addBall(id), [addBall]);
 
   return (
     <div className="ball-indicator__container">
@@ -129,7 +130,7 @@ const EightBallIndicator = () => {
         <div className="group lower ball-indicator__group">
           <span>You{playerState !== 'open' && ` (${playerState})`}</span>
           {player1Balls.map((id, i) => (
-            <Ball key={i} id={id} />
+            <RenderedBall key={i} id={id} size={32} />
           ))}
         </div>
       </Surface>
@@ -137,7 +138,7 @@ const EightBallIndicator = () => {
         <Surface>
           <div className="group lower ball-indicator__group">
             {unclaimedBalls.map((id, i) => (
-              <Ball key={i} id={id} />
+              <RenderedBall key={i} id={id} size={32} />
             ))}
           </div>
         </Surface>
@@ -145,7 +146,7 @@ const EightBallIndicator = () => {
       <Surface>
         <div className="group lower ball-indicator__group">
           {player2Balls.map((id, i) => (
-            <Ball key={i} id={id} />
+            <RenderedBall key={i} id={id} size={32} />
           ))}
           <span>
             Opponent
@@ -163,7 +164,7 @@ const NineBallIndicator = () => {
   );
 
   useGameEvent(
-    'setup-table',
+    'game/setup',
     () => {
       setBalls(new Array(9).fill(undefined));
     },
@@ -171,10 +172,12 @@ const NineBallIndicator = () => {
   );
 
   useGameEvent(
-    'balls-potted',
-    ({ detail: { ids } }) => {
+    'game/pocket-collision',
+    ({ initiator: { id } }) => {
+      if (id === 0) return;
+
       setBalls((v) => {
-        ids.forEach((id) => (v[id - 1] = id));
+        v[id - 1] = id;
         return [...v];
       });
     },
@@ -186,36 +189,10 @@ const NineBallIndicator = () => {
       <Surface>
         <div className="group lower ball-indicator__group">
           {balls.map((id, i) => (
-            <Ball key={i} id={id} />
+            <RenderedBall key={i} id={id} size={32} />
           ))}
         </div>
       </Surface>
-    </div>
-  );
-};
-
-const Ball = ({ id }: { id?: number }) => {
-  const themeSnapshot = useSnapshot(theme);
-  const root = useRef<HTMLDivElement>(null);
-
-  const canvas = useMemo(() => {
-    if (id === undefined) return;
-    return createBallCanvas(makeTheme(), id, { height: 100, width: 100 });
-  }, [id, themeSnapshot]);
-
-  useEffect(() => {
-    if (!canvas) return;
-
-    root.current?.appendChild(canvas);
-
-    return () => {
-      root.current?.removeChild(canvas);
-    };
-  }, [canvas]);
-
-  return (
-    <div className="ball__container">
-      {id !== undefined && <div ref={root} className="ball" />}
     </div>
   );
 };

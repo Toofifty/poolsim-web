@@ -1,5 +1,11 @@
 @use './var' as *;
 
+@property --color {
+  syntax: '<color>';
+  initial-value: #646cff;
+  inherits: true;
+}
+
 .power-bar {
   height: 32px;
   flex-grow: 1;
@@ -11,22 +17,67 @@
   border-radius: $br-surface - $pad-surface;
   background: rgba(0, 0, 0, 0.2);
   position: relative;
+  overflow: hidden;
 }
 
 .power-bar__current-power {
   width: 100%;
   height: 100%;
   border-radius: $br-surface - $pad-surface;
-  background: linear-gradient(90deg, transparent, #646cff);
+  background: linear-gradient(90deg, transparent, var(--color));
   opacity: 1;
   pointer-events: none;
+  position: relative;
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.5);
+  transition: --color 250ms;
+
+  &:before {
+    border-radius: 9999px;
+    z-index: 1;
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 -2px 8px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.power-bar__power-label {
+  color: rgba(255, 255, 255, 0.5);
+  position: absolute;
+  top: $pad-surface;
+  border-left: 1px solid rgba(255, 255, 255, 0.5);
+  padding-left: $pad-surface * 2;
+  margin-left: $pad-surface * -2;
+  pointer-events: none;
+  transition: opacity 250ms;
+  z-index: -1;
+
+  &--soft {
+    border-left: none;
+    margin-left: 0;
+  }
+
+  &--hidden {
+    opacity: 0;
+  }
+}
+
+.power-bar__current-power-label {
+  color: rgba(255, 255, 255, 0.75);
+  position: absolute;
+  top: $pad-surface;
+  right: $pad-surface * 4;
+  font-weight: 500;
+  pointer-events: none;
+  text-shadow: 0 0 8px black;
 }
 
 .power-bar__power-num {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.75);
   position: absolute;
   top: $pad-surface;
   right: $pad-surface * 2;
   font-weight: 500;
   pointer-events: none;
+  z-index: -1;
 }

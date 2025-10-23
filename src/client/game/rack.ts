@@ -1,13 +1,18 @@
-import { quat, vec, type Vec } from '../../common/math';
+import { quat, vec, type Quat, type Vec } from '../../common/math';
 import { params, type Params } from '../../common/simulation/physics';
-import type { BallProto } from './objects/ball';
 import { makeTheme } from './store/theme';
 
-const gap = params.ball.radius / 10;
+export type BallProto = {
+  id: number;
+  number: number;
+  color: number;
+  position: Vec;
+  orientation: Quat;
+};
 
-const randomGap = () => ((Math.random() * 2 - 1) * gap) / 2;
+export type Sandboxes = 'debug' | 'cubicle-troll' | 'newtons-cradle';
 
-export type Sandboxes = 'debug' | 'cubicle-troll';
+const gap = 1e-8;
 
 export class Rack {
   private static generateFromLayout(tip: Vec, layout: number[][]) {
@@ -39,7 +44,7 @@ export class Rack {
           id: number,
           number,
           color: theme.balls.colors[number],
-          position: vec.new(x + randomGap(), y + randomGap()),
+          position: vec.new(x, y),
           orientation: quat.random(),
         });
       }
@@ -118,12 +123,38 @@ export class Rack {
     });
   }
 
+  static generateNewtonsCradle(params: Params) {
+    const theme = makeTheme();
+
+    return [
+      {
+        id: 0,
+        number: 0,
+        color: theme.balls.colors[0],
+        position: vec.new(-params.table.length / 4, 0),
+        orientation: quat.new(),
+      },
+      ...new Array(5).fill(0).map((_, i) => ({
+        id: i + 1,
+        number: i + 1,
+        color: theme.balls.colors[i + 1],
+        position: vec.new(
+          params.table.length / 6 + params.ball.radius * 2 * i,
+          0
+        ),
+        orientation: quat.new(),
+      })),
+    ];
+  }
+
   static generateSandboxGame(params: Params, type: Sandboxes) {
     switch (type) {
       case 'debug':
         return this.generateDebugGame(this.getTip(params));
       case 'cubicle-troll':
         return this.generateCubicleTroll(params);
+      case 'newtons-cradle':
+        return this.generateNewtonsCradle(params);
     }
   }
 }

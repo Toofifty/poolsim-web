@@ -7,15 +7,15 @@ import {
 } from '@tabler/icons-react';
 import { useSnapshot } from 'valtio';
 import {
-  AimAssistMode,
   params,
+  Ruleset,
   type StaticParams,
 } from '../../common/simulation/physics';
-import { PlayState } from '../game/controller/game-controller';
-import { Game } from '../game/game';
-import { gameStore } from '../game/store/game';
+import { GameState } from '../game/resources/system-state';
 import { Players, settings } from '../game/store/settings';
 import { socket } from '../socket';
+import { getAimAssistName, getAimAssistValues } from '../util/enums';
+import { useGameContext } from '../util/game-provider';
 import type { DeepKeyOf } from '../util/types';
 import { useLobby } from '../util/use-lobby';
 import { BallIndicator } from './ball-indicator/ball-indicator';
@@ -23,35 +23,36 @@ import './controls.scss';
 import { OverlayParamEditor } from './overlay-param-editor';
 import { PowerBar } from './power-bar';
 import { Surface } from './surface';
+import { useGameBinding } from './use-game-binding';
+import { useGameNotifications } from './use-game-notifications';
+import { useGameParams } from './use-game-params';
 import { useIsMobile } from './use-media-query';
 
-const getStateName = (state: PlayState | undefined) => {
+const getStateName = (state: GameState, isCurrentPlayer = false) => {
   switch (state) {
-    case PlayState.Initializing:
+    case GameState.Initializing:
       return 'Initializing';
-    case PlayState.AIInPlay:
-      return 'AI turn';
-    case PlayState.AIShoot:
-      return 'AI is thinking';
-    case PlayState.PlayerInPlay:
-    case PlayState.PlayerShoot:
-      return 'Your turn';
-    case PlayState.PlayerBallInHand:
-      return 'You have ball in hand';
-    case PlayState.OpponentInPlay:
-    case PlayState.OpponentShoot:
-      return "Opponent's turn";
-    case PlayState.OpponentBallInHand:
-      return 'Opponent has ball in hand';
+    case GameState.Playing:
+      return isCurrentPlayer
+        ? 'Your turn (playing)'
+        : "Opponent's turn (playing)";
+    case GameState.Shooting:
+      return isCurrentPlayer ? 'Your turn' : "Opponent's turn";
+    case GameState.BallInHand:
+      return isCurrentPlayer
+        ? 'You have ball in hand'
+        : 'Opponent has ball in hand';
+    case GameState.GameOver:
+      return 'Game over';
     default:
       return `Unknown ${state}`;
   }
 };
 
 export const Controls = () => {
-  const { preferencesOpen, paramEditorOpen, controlsOpen } =
+  const ecs = useGameContext().ecs;
+  const { preferencesOpen, paramEditorOpen, controlsOpen, pullToShoot } =
     useSnapshot(settings);
-  const { state, analysisProgress } = useSnapshot(gameStore);
   const { lobby } = useLobby();
   const isHost = !lobby || lobby?.hostId === socket.id;
   const isMultiplayer = !!lobby;
@@ -60,14 +61,22 @@ export const Controls = () => {
 
   const localParams = useSnapshot(params);
 
+  useGameNotifications();
+
+  const gameState = useGameBinding(
+    'game/state-update',
+    (state) => state,
+    GameState.Initializing
+  );
+  const currentPlayer = useGameBinding(
+    'game/current-player-update',
+    (p) => p,
+    0
+  );
+  const playerIndex = useGameBinding('game/change-player', (p) => p, 0);
+
   const onEdit = (key: DeepKeyOf<StaticParams>, value: unknown) => {
-    const path = key.split('.');
-    const obj = path.slice(0, -1).reduce((o, prop) => {
-      // @ts-ignore
-      return o[prop];
-    }, params);
-    // @ts-ignore
-    obj[path.at(-1)] = value;
+    ecs.emit('input/param-change', { key, value });
   };
 
   return (
@@ -81,7 +90,7 @@ export const Controls = () => {
         mt={controlsOpen ? 164 : 108}
         pt="sm"
       />
-      <BallIndicator />
+      {!pullToShoot && <BallIndicator />}
       <div className="group">
         <ActionIcon
           className="surface button icon"
@@ -107,18 +116,21 @@ export const Controls = () => {
           <div className="group lower">
             {lobby && <span>{lobby.id}</span>}
             <span>
-              {getStateName(state)}
-              {state === PlayState.AIShoot && (
+              {getStateName(gameState, currentPlayer === playerIndex)}
+              {/* {gameState === GameState.Shooting && (
                 <code> {analysisProgress.toFixed(0)}%</code>
-              )}
+              )} */}
             </span>
           </div>
         </Surface>
-        <Surface className="grow">
-          <div className="group">
-            <PowerBar />
-          </div>
-        </Surface>
+        {!pullToShoot && (
+          <Surface className="grow">
+            <div className="group">
+              <PowerBar />
+            </div>
+          </Surface>
+        )}
+        {pullToShoot && <BallIndicator />}
       </div>
       {controlsOpen && (
         <>
@@ -143,48 +155,65 @@ export const Controls = () => {
                     </Button>
                   )}
                 </div>
-                <div className="group lower">
-                  <Button onClick={() => Game.focusCueBall()}>
-                    Focus cue ball
-                  </Button>
-                  {isHost && (
-                    <>
-                      <Button
-                        onClick={() => Game.instance.controller.setup8Ball()}
-                      >
-                        8 ball
-                      </Button>
-                      <Button
-                        onClick={() => Game.instance.controller.setup9Ball()}
-                      >
-                        9 ball
-                      </Button>
-                      <Menu shadow="md">
-                        <Menu.Target>
-                          <Button className="button">Sandbox</Button>
-                        </Menu.Target>
-                        <Menu.Dropdown>
-                          <Menu.Item
-                            onClick={() =>
-                              Game.instance.controller.setupSandboxGame('debug')
-                            }
-                          >
-                            Debug
-                          </Menu.Item>
-                          <Menu.Item
-                            onClick={() =>
-                              Game.instance.controller.setupSandboxGame(
-                                'cubicle-troll'
-                              )
-                            }
-                          >
-                            Cubicle troll
-                          </Menu.Item>
-                        </Menu.Dropdown>
-                      </Menu>
-                    </>
-                  )}
-                </div>
+                {isHost && (
+                  <div className="group lower">
+                    <Button
+                      onClick={() =>
+                        ecs.emit('input/setup-game', {
+                          ruleset: Ruleset._8Ball,
+                        })
+                      }
+                    >
+                      8 ball
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        ecs.emit('input/setup-game', {
+                          ruleset: Ruleset._9Ball,
+                        })
+                      }
+                    >
+                      9 ball
+                    </Button>
+                    <Menu shadow="md">
+                      <Menu.Target>
+                        <Button className="button">Sandbox</Button>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Item
+                          onClick={() =>
+                            ecs.emit('input/setup-game', {
+                              ruleset: Ruleset.Sandbox,
+                              sandbox: 'debug',
+                            })
+                          }
+                        >
+                          Debug
+                        </Menu.Item>
+                        <Menu.Item
+                          onClick={() =>
+                            ecs.emit('input/setup-game', {
+                              ruleset: Ruleset.SandboxSequential,
+                              sandbox: 'cubicle-troll',
+                            })
+                          }
+                        >
+                          Cubicle troll
+                        </Menu.Item>
+                        <Menu.Item
+                          onClick={() =>
+                            ecs.emit('input/setup-game', {
+                              ruleset: Ruleset.Sandbox,
+                              sandbox: 'newtons-cradle',
+                            })
+                          }
+                        >
+                          Newton's cradle
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  </div>
+                )}
               </div>
             </Surface>
 
@@ -192,7 +221,7 @@ export const Controls = () => {
               <Surface>
                 <div className="group">
                   <AimAssistControls />
-                  <PlayerControls />
+                  {/* <PlayerControls /> */}
                 </div>
               </Surface>
             )}
@@ -204,49 +233,31 @@ export const Controls = () => {
 };
 
 const AimAssistControls = () => {
+  const ecs = useGameContext().ecs;
   const {
     game: { aimAssist },
-  } = useSnapshot(params);
+  } = useGameParams();
 
   return (
     <div className="group lower">
       <span>Guidelines</span>
-      <Button
-        variant={aimAssist === AimAssistMode.Off ? 'filled' : 'default'}
-        onClick={() => {
-          params.game.aimAssist = AimAssistMode.Off;
-        }}
-      >
-        Off
-      </Button>
-      <Button
-        variant={
-          aimAssist === AimAssistMode.FirstContact ? 'filled' : 'default'
-        }
-        onClick={() => {
-          params.game.aimAssist = AimAssistMode.FirstContact;
-        }}
-      >
-        First contact
-      </Button>
-      <Button
-        variant={
-          aimAssist === AimAssistMode.FirstBallContact ? 'filled' : 'default'
-        }
-        onClick={() => {
-          params.game.aimAssist = AimAssistMode.FirstBallContact;
-        }}
-      >
-        First ball contact
-      </Button>
-      <Button
-        variant={aimAssist === AimAssistMode.Full ? 'filled' : 'default'}
-        onClick={() => {
-          params.game.aimAssist = AimAssistMode.Full;
-        }}
-      >
-        Full
-      </Button>
+      <Menu shadow="md">
+        <Menu.Target>
+          <Button className="button">{getAimAssistName(aimAssist)}</Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          {getAimAssistValues().map((value) => (
+            <Menu.Item
+              key={value}
+              onClick={() =>
+                ecs.emit('input/param-change', { key: 'game.aimAssist', value })
+              }
+            >
+              {getAimAssistName(value)}
+            </Menu.Item>
+          ))}
+        </Menu.Dropdown>
+      </Menu>
     </div>
   );
 };

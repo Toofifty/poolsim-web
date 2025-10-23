@@ -1,5 +1,19 @@
-export function assert(cond: unknown, message?: string): asserts cond is true {
+type Falsy = false | 0 | '' | null | undefined;
+
+export function assert<T>(
+  cond: T | Falsy,
+  message?: string
+): asserts cond is T {
   if (!cond) {
+    throw new Error(message);
+  }
+}
+
+export function assertExists<T>(
+  cond: T | Falsy,
+  message?: string
+): asserts cond is T {
+  if (cond == null) {
     throw new Error(message);
   }
 }

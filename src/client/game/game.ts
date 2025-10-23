@@ -1,3 +1,4 @@
+import { vec } from '@common/math';
 import Stats from 'stats.js';
 import {
   ACESFilmicToneMapping,
@@ -5,20 +6,12 @@ import {
   Camera,
   Clock,
   Color,
-  MathUtils,
-  Mesh,
   MOUSE,
-  Object3D,
   OrthographicCamera,
   PCFSoftShadowMap,
   PerspectiveCamera,
-  Raycaster,
-  RectAreaLight,
   Scene,
-  SpotLight,
-  SpotLightHelper,
   Vector2,
-  Vector3,
   WebGLRenderer,
 } from 'three';
 import {
@@ -26,49 +19,40 @@ import {
   OrbitControls,
   OutlinePass,
   OutputPass,
-  RectAreaLightHelper,
-  RectAreaLightUniformsLib,
   RenderPass,
-  Sky,
   SSAOPass,
   SSRPass,
 } from 'three/examples/jsm/Addons.js';
 import { FXAAPass } from 'three/examples/jsm/postprocessing/FXAAPass.js';
 import { subscribe } from 'valtio';
-import type { Vec } from '../../common/math';
+import type { ECS } from '../../common/ecs';
 import { type Params } from '../../common/simulation/physics';
-import { Profiler } from '../../common/util/profiler';
-import { Audio } from './audio';
-import type { GameController } from './controller/game-controller';
 import { InputController } from './controller/input-controller';
-import { OfflineGameController } from './controller/offline-game-controller';
-import { OnlineGameController } from './controller/online-game-controller';
 import { _dlerpGame } from './dlerp';
-import { createNeonLightStrips } from './models/table/create-neon-light-strips';
-import type { NetworkAdapter } from './network/network-adapter';
-import { Debug } from './objects/debug';
+import type { GameEvents } from './events';
 import { BlackOutlinePass } from './rendering/black-outline-pass';
 import { GraphicsDetail, settings } from './store/settings';
-import { makeTheme } from './store/theme';
-import { toVector2 } from './util/three-interop';
+import { UpdateCounter } from './util/update-counter';
 
 export class Game {
   // rendering
   public scene!: Scene;
   public overlay!: Scene;
-  public outlinedOverlays: Set<Object3D> = new Set();
   public renderer!: WebGLRenderer;
   public composer!: EffectComposer;
-  public overlayComposer!: EffectComposer;
-  public outlinePass!: OutlinePass;
+
+  public darkOutlineScene!: Scene;
+  public lightOutlineScene!: Scene;
+  public redOutlineScene!: Scene;
+  public darkOutlinePass!: OutlinePass;
+  public lightOutlinePass!: OutlinePass;
+  public redOutlinePass!: OutlinePass;
+
   public camera!: Camera;
   public controls!: OrbitControls;
   public stats!: Stats;
 
   // game
-  public mousePosition!: Vector2;
-  public mouseRaycaster!: Raycaster;
-  public controller!: GameController;
   public clock!: Clock;
   private accumulator = 0;
   private timestep: number;
@@ -76,15 +60,13 @@ export class Game {
   private input!: InputController;
 
   public static instance: Game;
-  public static debug: Debug;
-  public static audio: Audio;
-  public static profiler = new Profiler();
-
-  public static reflectives: Mesh[] = [];
 
   private mounted: boolean = false;
 
-  constructor(private adapter: NetworkAdapter, private params: Params) {
+  public updateCounter = new UpdateCounter();
+  public fixedUpdateCounter = new UpdateCounter();
+
+  constructor(public ecs: ECS<GameEvents, Game>, public params: Params) {
     this.init();
     this.timestep = 1 / params.simulation.updatesPerSecond;
   }
@@ -93,7 +75,6 @@ export class Game {
     this.mounted = true;
     Game.instance = this;
     _dlerpGame.instance = this;
-    this.mousePosition = new Vector2(0, 0);
     this.stats = new Stats();
     this.stats.showPanel(0);
     this.stats.dom.style.top = 'unset';
@@ -101,7 +82,11 @@ export class Game {
     document.body.appendChild(this.stats.dom);
 
     this.scene = new Scene();
+    this.scene.background = new Color(0x151729);
     this.overlay = new Scene();
+    this.darkOutlineScene = new Scene();
+    this.lightOutlineScene = new Scene();
+    this.redOutlineScene = new Scene();
 
     const aspect = window.innerWidth / window.innerHeight;
 
@@ -139,8 +124,8 @@ export class Game {
     this.controls.screenSpacePanning = false;
     this.controls.mouseButtons = {
       LEFT: null,
-      MIDDLE: MOUSE.ROTATE,
-      RIGHT: MOUSE.PAN,
+      MIDDLE: MOUSE.PAN,
+      RIGHT: MOUSE.ROTATE,
     };
     this.controls.enabled = settings.enableZoomPan;
 
@@ -150,6 +135,7 @@ export class Game {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
+    // this.composer.addPass(new RenderPixelatedPass(5, this.scene, this.camera));
 
     if (settings.detail !== GraphicsDetail.Low) {
       const ssao = new SSAOPass(this.scene, this.camera);
@@ -167,7 +153,8 @@ export class Game {
         width: window.innerWidth,
         height: window.innerHeight,
         groundReflector: null,
-        selects: Game.reflectives,
+        // todo: reflectives
+        selects: [],
       });
 
       this.composer.addPass(ssr);
@@ -177,16 +164,58 @@ export class Game {
     overlayRender.clear = false;
     this.composer.addPass(overlayRender);
 
-    this.outlinePass = new BlackOutlinePass(
-      new Vector2(window.innerWidth, window.innerHeight),
-      this.overlay,
+    // apparently this is the pass resolution??
+    const outlinePassSize = new Vector2(1, 1);
+
+    const lightOutlineRender = new RenderPass(
+      this.lightOutlineScene,
       this.camera
     );
-    this.outlinePass.visibleEdgeColor = new Color(0x000000);
-    this.outlinePass.hiddenEdgeColor = new Color(0x000000);
-    this.outlinePass.edgeStrength = 2;
-    this.outlinePass.edgeGlow = 0;
-    this.composer.addPass(this.outlinePass);
+    lightOutlineRender.clear = false;
+    this.composer.addPass(lightOutlineRender);
+    this.lightOutlinePass = new OutlinePass(
+      outlinePassSize,
+      this.lightOutlineScene,
+      this.camera
+    );
+    this.lightOutlinePass.visibleEdgeColor = new Color(0xffffff);
+    this.lightOutlinePass.hiddenEdgeColor = new Color(0xffffff);
+    this.lightOutlinePass.edgeStrength = 1;
+    this.lightOutlinePass.pulsePeriod = 2;
+    this.lightOutlinePass.edgeGlow = 5;
+    this.composer.addPass(this.lightOutlinePass);
+
+    const redOutlineRender = new RenderPass(this.redOutlineScene, this.camera);
+    redOutlineRender.clear = false;
+    this.composer.addPass(redOutlineRender);
+    this.redOutlinePass = new OutlinePass(
+      outlinePassSize,
+      this.redOutlineScene,
+      this.camera
+    );
+    this.redOutlinePass.visibleEdgeColor = new Color(0xff0000);
+    this.redOutlinePass.hiddenEdgeColor = new Color(0xff0000);
+    this.redOutlinePass.edgeStrength = 5;
+    this.redOutlinePass.pulsePeriod = 10;
+    // this.redOutlinePass.edgeGlow = 0;
+    this.composer.addPass(this.redOutlinePass);
+
+    const darkOutlineRender = new RenderPass(
+      this.darkOutlineScene,
+      this.camera
+    );
+    darkOutlineRender.clear = false;
+    this.composer.addPass(darkOutlineRender);
+    this.darkOutlinePass = new BlackOutlinePass(
+      outlinePassSize,
+      this.darkOutlineScene,
+      this.camera
+    );
+    this.darkOutlinePass.visibleEdgeColor = new Color(0x000000);
+    this.darkOutlinePass.hiddenEdgeColor = new Color(0x000000);
+    this.darkOutlinePass.edgeStrength = 2;
+    this.darkOutlinePass.edgeGlow = 0;
+    this.composer.addPass(this.darkOutlinePass);
 
     this.composer.addPass(new OutputPass());
 
@@ -194,23 +223,10 @@ export class Game {
       this.composer.addPass(new FXAAPass());
     }
 
-    this.mouseRaycaster = new Raycaster();
-    Game.debug = new Debug();
-    this.scene.add(Game.debug);
-    Game.audio = new Audio(this.scene);
-    this.camera.add(Game.audio.listener);
-
     this.setupInputController();
     window.addEventListener('resize', this.onResize);
 
-    this.setupRectLights();
     this.setupAmbientLight();
-    this.setupSky();
-
-    this.controller = this.adapter.isMultiplayer
-      ? new OnlineGameController(this.params, this.input, this.adapter)
-      : new OfflineGameController(this.params, this.input);
-    this.scene.add(this.controller.root);
 
     this.clock = new Clock();
 
@@ -219,14 +235,6 @@ export class Game {
 
   public safeInit() {
     if (!this.mounted) this.init();
-  }
-
-  get width() {
-    return window.innerWidth;
-  }
-
-  get height() {
-    return window.innerHeight;
   }
 
   private setupInputController() {
@@ -242,12 +250,21 @@ export class Game {
     });
 
     this.input.onKeyUp((e) => {
-      console.log(e.key);
+      this.ecs.emit('input/key-pressed', {
+        key: e.key,
+        original: e,
+      });
+
       switch (e.key) {
         case 'l':
-          settings.lockCue = !settings.lockCue;
+          this.ecs.emit('input/lock-cue', {});
+          return;
+        case 'f':
+          this.ecs.emit('input/focus-cue', undefined);
+          Game.resetCamera();
           return;
         case 'r':
+          this.ecs.emit('input/focus-cue', false);
           Game.resetCamera();
           return;
         case ' ':
@@ -257,6 +274,56 @@ export class Game {
           this.controls.enableZoom = true;
           return;
       }
+    });
+
+    let lastMouse = vec.new();
+    this.input.onMouseMove((event) => {
+      const mouse = this.input.getRelativeMouse(event);
+      this.ecs.emit('input/mouse-move', {
+        position: mouse,
+        original: event,
+      });
+
+      if (event.buttons === 1 || event.buttons === 2) {
+        this.ecs.emit('input/drag', {
+          button: event.buttons,
+          delta: vec.sub(mouse, lastMouse),
+          original: event,
+        });
+      }
+
+      lastMouse = mouse;
+    });
+
+    let lastTouch = vec.new();
+    this.input.onTouchStart((event) => {
+      const touch = this.input.getRelativeTouch(event);
+      this.ecs.emit('input/touch-start', {
+        position: touch,
+        original: event,
+      });
+
+      lastTouch = touch;
+    });
+
+    this.input.onTouchMove((event) => {
+      const touch = this.input.getRelativeTouch(event);
+      this.ecs.emit('input/touch-move', {
+        position: touch,
+        original: event,
+      });
+
+      this.ecs.emit('input/drag', {
+        button: 1,
+        delta: vec.sub(touch, lastTouch),
+        original: event,
+      });
+
+      lastTouch = touch;
+    });
+
+    this.input.onMouseDown((e) => {
+      this.ecs.emit('input/mouse-pressed', { button: e.button, original: e });
     });
   }
 
@@ -273,152 +340,19 @@ export class Game {
     }
   };
 
-  private setupRectLights() {
-    RectAreaLightUniformsLib.init();
-
-    const lightParent = new Object3D();
-    lightParent.position.set(0, 0, 1);
-    this.scene.add(lightParent);
-
-    const createCeilingLight = (x: number, y: number, intensity: number) => {
-      const ral = new RectAreaLight(0xfff1e0, intensity, 0.8, 0.4);
-      ral.position.set(x, y, 0);
-      lightParent.add(ral);
-      const ralh = new RectAreaLightHelper(ral);
-      lightParent.add(ralh);
-      const sl = new SpotLight(0xfff1e0, 1);
-      sl.decay = 2;
-      sl.castShadow = true;
-      sl.shadow.bias = -0.00000000005;
-      sl.shadow.mapSize.set(2048, 2048);
-      sl.shadow.camera.near = 0.1;
-      sl.shadow.camera.far = 5;
-      sl.position.set(x, y, 1);
-      sl.target.position.set(x, y, 0);
-      sl.target.updateMatrixWorld();
-      lightParent.add(sl);
-      const slh = new SpotLightHelper(sl);
-      lightParent.add(slh);
-
-      ralh.visible = false;
-      slh.visible = false;
-      subscribe(settings, () => {
-        ralh.visible = settings.debugLights;
-        slh.visible = settings.debugLights;
-      });
-
-      return ral;
-    };
-
-    const sp = 0.4;
-    const spy = 0.4;
-
-    const { lighting } = makeTheme();
-
-    if (lighting.theme === 'neon') {
-      console.log('neon');
-      createCeilingLight(
-        0,
-        -spy,
-        settings.detail === GraphicsDetail.High ? 2 : 4
-      );
-      createCeilingLight(
-        0,
-        spy,
-        settings.detail === GraphicsDetail.High ? 2 : 4
-      );
-
-      const lights = createNeonLightStrips(this.params);
-      this.scene.add(...lights);
-
-      return;
-    }
-
-    createCeilingLight(0, -spy, 40);
-    createCeilingLight(0, spy, 40);
-  }
-
   private setupAmbientLight() {
-    const light = new AmbientLight(0xffffff);
-    light.intensity = 0.5;
-    this.scene.add(light);
+    this.scene.add(new AmbientLight(0xffffff, 0.5));
 
-    const overlayLight = new AmbientLight(0xffffff, 10);
-    this.overlay.add(overlayLight);
-  }
-
-  private setupSky() {
-    const sky = new Sky();
-    sky.scale.setScalar(45000);
-    const phi = MathUtils.degToRad(190);
-    const theta = MathUtils.degToRad(45);
-    const sunPosition = new Vector3().setFromSphericalCoords(1, phi, theta);
-    sky.material.uniforms.sunPosition.value = sunPosition;
-    sky.material.uniforms.up.value = new Vector3(0, 0, 1);
-    this.scene.add(sky);
-  }
-
-  public static getFirstMouseIntersection(object: Object3D, point?: Vec) {
-    const intersections = Game.instance
-      .getMouseRaycaster(point)
-      .intersectObject(object);
-    if (intersections.length > 0) {
-      return intersections[0].point;
-    }
-    return undefined;
-  }
-
-  public static add(obj: Object3D, { outline }: { outline?: boolean } = {}) {
-    this.instance.overlay.add(obj);
-    if (outline) {
-      this.instance.outlinedOverlays.add(obj);
-      this.instance.outlinePass.selectedObjects = [
-        ...this.instance.outlinedOverlays,
-      ];
-    }
-  }
-
-  public static remove(obj: Object3D) {
-    this.instance.overlay.remove(obj);
-    if (this.instance.outlinedOverlays.has(obj)) {
-      this.instance.outlinedOverlays.delete(obj);
-      this.instance.outlinePass.selectedObjects = [
-        ...this.instance.outlinedOverlays,
-      ];
-    }
+    this.overlay.add(new AmbientLight(0xffffff, 5));
+    this.darkOutlineScene.add(new AmbientLight(0xffffff, 5));
+    this.lightOutlineScene.add(new AmbientLight(0xffffff, 5));
+    this.redOutlineScene.add(new AmbientLight(0xffffff, 5));
   }
 
   public static resetCamera() {
     this.instance.controls.target.set(0, 0, 0);
     this.instance.camera.position.set(0, 0, 2);
     this.instance.controls.update();
-  }
-
-  public static focusCueBall() {
-    const target = this.instance.controller.balls[0].position;
-    this.instance.controls.target.copy(target);
-    this.instance.controls.update();
-  }
-
-  public getMouseRaycaster(point?: Vec) {
-    this.mouseRaycaster.setFromCamera(
-      toVector2(point ?? this.input.mouse),
-      this.camera
-    );
-    return this.mouseRaycaster;
-  }
-
-  public static dispose(...objs: any[]) {
-    objs.forEach((obj) => {
-      if (obj.geometry) obj.geometry.dispose();
-      if (obj.material) {
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach((m: any) => m.dispose());
-        } else {
-          obj.material.dispose();
-        }
-      }
-    });
   }
 
   public mount(container: HTMLDivElement | null) {
@@ -432,13 +366,8 @@ export class Game {
       this.renderer.setAnimationLoop(null);
       this.input.unregister();
       window.removeEventListener('resize', this.onResize);
-      this.scene.traverse(Game.dispose);
       this.renderer.dispose();
       this.renderer.forceContextLoss();
-
-      if (this.controller instanceof OnlineGameController) {
-        this.controller.disconnect();
-      }
 
       if (this.renderer.domElement.parentNode) {
         this.renderer.domElement.parentNode.removeChild(
@@ -453,11 +382,11 @@ export class Game {
     this.stats.begin();
     this.controls.update();
 
-    const dt = this.clock.getDelta() * this.params.simulation.playbackSpeed;
+    const dt = this.clock.getDelta();
     if (dt < 1) {
       // when the tab is inactive we don't run simulations,
       // and the delta after coming back will be huge
-      this.accumulator += dt;
+      this.accumulator += dt * this.params.simulation.playbackSpeed;
     } else {
       console.warn(
         `skipping ${(dt / this.timestep).toFixed(
@@ -466,11 +395,15 @@ export class Game {
       );
     }
 
-    // physics step
+    // game step
     while (this.accumulator >= this.timestep) {
-      this.controller.update(this.timestep);
+      this.ecs.fixedUpdate(this.timestep);
+      this.fixedUpdateCounter.tick();
       this.accumulator -= this.timestep;
     }
+
+    this.ecs.update(Math.max(dt, 1));
+    this.updateCounter.tick();
 
     // run lerps
     this.lerps.forEach((lerp) => lerp(dt));

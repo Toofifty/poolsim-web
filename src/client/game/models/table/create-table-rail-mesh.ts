@@ -1,49 +1,16 @@
-import { CylinderGeometry, Mesh } from 'three';
+import type { Vec } from '@common/math';
+import { Mesh } from 'three';
 import type { Params } from '../../../../common/simulation/physics';
-import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
 import type { ThemeObject } from '../../store/theme';
-import { createRoundedRect, subtract } from '../util';
+import { createTableRailGeometry } from './create-table-rail-geometry';
 
 export const createTableRailMesh = (
   params: Params,
-  pockets: Pocket[],
+  pockets: { position: Vec; radius: number }[],
   theme: ThemeObject
 ) => {
-  const { ball, cushion, pocket, table } = params;
-
-  const height = cushion.height * 2;
-
-  const railBase = createRoundedRect(
-    table.length + pocket.corner.radius * 2 + table.railPadding,
-    table.width + pocket.corner.radius * 2 + table.railPadding,
-    pocket.corner.radius + table.railPadding,
-    { depth: height - 0.01, bevelThickness: 0.01, bevelSize: 0.01 }
-  ).translate(0, 0, -ball.radius * 2);
-
-  const tableInner = createRoundedRect(table.length, table.width, 0, {
-    depth: height * 2,
-    bevelEnabled: false,
-  }).translate(0, 0, -height);
-
-  let rail = subtract(railBase, tableInner);
-
-  pockets.forEach((pocket) => {
-    const cylinder = new CylinderGeometry(
-      pocket.radius,
-      pocket.radius,
-      height * 2
-    );
-    cylinder.rotateX(Math.PI / 2);
-    cylinder.translate(
-      pocket.physics.position[0],
-      pocket.physics.position[1],
-      -height / 2
-    );
-    rail = subtract(rail, cylinder);
-  });
-
-  rail.computeVertexNormals();
+  const rail = createTableRailGeometry(params, pockets);
 
   const mesh = new Mesh(
     rail,

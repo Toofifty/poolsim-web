@@ -35,6 +35,16 @@ export class InputController {
     });
   }
 
+  public getRelativeMouse(event: MouseEvent) {
+    const { left, top, width, height } = (
+      event.target as HTMLElement
+    ).getBoundingClientRect();
+    const x = event.clientX - left;
+    const y = event.clientY - top;
+
+    return vec.new((x / width) * 2 - 1, -(y / height) * 2 + 1);
+  }
+
   public getRelativeTouch(event: TouchEvent) {
     const { left, top, width, height } = (
       event.target as HTMLElement

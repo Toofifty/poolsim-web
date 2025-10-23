@@ -8,16 +8,26 @@ import {
 } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio';
-import { gameStore } from '../game/store/game';
+import { settings } from '../game/store/settings';
+import { useGameContext } from '../util/game-provider';
+import { RenderedBall } from './ball/ball';
 import './spin-control.scss';
 import { Surface } from './surface';
+import { useGameBinding } from './use-game-binding';
 import { useIsMobile } from './use-media-query';
 import { useMouseInputs } from './use-mouse-inputs';
 
 export const SpinControl = () => {
+  const ecs = useGameContext().ecs;
+
+  const [lift, side, top] = useGameBinding(
+    'game/cue-update',
+    (cue) => [cue.lift, -cue.side / 2, -cue.top / 2],
+    [0, 0, 0]
+  );
+
   const isMobile = useIsMobile();
-  const [visible, setVisible] = useState(!isMobile);
-  const { cueSpinX, cueSpinY, cueLift } = useSnapshot(gameStore);
+  const { spinControlOpen } = useSnapshot(settings);
 
   const [lockTopSpin, setLockTopSpin] = useState(false);
   const [lockSideSpin, setLockSideSpin] = useState(false);
@@ -34,29 +44,40 @@ export const SpinControl = () => {
 
   const ballAreaProps = useMouseInputs(
     ({ x, y }) => {
-      const rx = x - 0.5;
-      const ry = y - 0.5;
+      let rx = (0.5 - x) * 2;
+      let ry = (0.5 - y) * 2;
 
-      if (Math.sqrt(rx * rx + ry * ry) > 0.5) return;
+      if (Math.sqrt(rx * rx + ry * ry) > 1) {
+        const angle = Math.atan2(ry, rx);
+        rx = Math.cos(angle) * 1;
+        ry = Math.sin(angle) * 1;
+      }
 
-      gameStore.cueSpinX = lockSideSpin ? 0 : rx;
-      gameStore.cueSpinY = lockTopSpin ? 0 : ry;
+      ecs.emit('input/cue-update', {
+        top: lockTopSpin ? 0 : ry,
+        side: lockSideSpin ? 0 : rx,
+      });
     },
-    [lockSideSpin, lockTopSpin]
+    [ecs, lockSideSpin, lockTopSpin]
   );
 
-  const liftAreaProps = useMouseInputs(({ y }) => {
-    if (y <= 0.01) y = 0.01;
-    gameStore.cueLift = ((1 - y) * Math.PI) / 2;
-  }, []);
+  const liftAreaProps = useMouseInputs(
+    ({ y }) => {
+      if (y <= 0.01) y = 0.01;
+      ecs.emit('input/cue-update', {
+        lift: ((1 - y) * Math.PI) / 2,
+      });
+    },
+    [ecs]
+  );
 
   return (
     <div className="spin-control__container">
-      {visible ? (
+      {spinControlOpen ? (
         <ActionIcon
           className="surface button icon"
           size="40"
-          onClick={() => setVisible((v) => !v)}
+          onClick={() => (settings.spinControlOpen = !spinControlOpen)}
         >
           <IconChevronRight size={16} />
         </ActionIcon>
@@ -64,13 +85,13 @@ export const SpinControl = () => {
         <Button
           className="surface button"
           size="40"
-          onClick={() => setVisible((v) => !v)}
+          onClick={() => (settings.spinControlOpen = !spinControlOpen)}
           rightSection={<IconRotate360 size="16" />}
         >
           Spin
         </Button>
       )}
-      {visible && (
+      {spinControlOpen && (
         <Surface className="spin-control" p="md">
           <Stack justify="space-evenly">
             <ActionIcon
@@ -90,21 +111,25 @@ export const SpinControl = () => {
             <ActionIcon
               size="40"
               onClick={() => {
-                gameStore.cueSpinX = 0;
-                gameStore.cueSpinY = 0;
-                gameStore.cueLift = 0;
+                ecs.emit('input/cue-update', {
+                  lift: 0,
+                  top: 0,
+                  side: 0,
+                });
               }}
             >
               <IconRefresh size={16} />
             </ActionIcon>
           </Stack>
           <div ref={setClickArea} className="spin-control__ball-area">
-            <div className="spin-control__ball" {...ballAreaProps} />
+            <div className="spin-control__ball" {...ballAreaProps}>
+              <RenderedBall id={0} size={150} offset={0} shadowed />
+            </div>
             <div
               className="spin-control__point"
               style={{
-                transform: `translate(${cueSpinX * width}px, ${
-                  cueSpinY * height
+                transform: `translate(${side * width * 0.8}px, ${
+                  top * height * 0.8
                 }px)`,
               }}
             />
@@ -149,11 +174,11 @@ export const SpinControl = () => {
               </div>
               <div
                 className="spin-control__lift-mark"
-                style={{ bottom: `${(200 * cueLift) / Math.PI}%` }}
+                style={{ bottom: `${(200 * lift) / Math.PI}%` }}
               >
                 <span className="spin-control__lift-mark-line is-indicator" />
                 <span className="spin-control__lift-mark-value is-indicator">
-                  {((cueLift / Math.PI) * 180).toFixed(0)}°
+                  {((lift / Math.PI) * 180).toFixed(0)}°
                 </span>
               </div>
             </div>

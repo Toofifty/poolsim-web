@@ -1,22 +1,21 @@
 import { notifications } from '@mantine/notifications';
 import { useEffect, useMemo } from 'react';
-import { proxy, useSnapshot } from 'valtio';
+import { useSnapshot } from 'valtio';
 import type { LobbyData } from '../../../common/data';
 import { params } from '../../../common/simulation/physics';
+import { createECS } from '../../game/ecs';
 import { Game } from '../../game/game';
-import { OfflineAdapter } from '../../game/network/offline-adapter';
-import { OnlineAdapter } from '../../game/network/online-adapter';
 import { settings } from '../../game/store/settings';
 import { socket } from '../../socket';
 import { Canvas } from '../../ui/canvas';
 import { Controls } from '../../ui/controls';
+import { PullToShoot } from '../../ui/pull-to-shoot/pull-to-shoot';
 import { QuickControls } from '../../ui/quick-controls';
 import { SpinControl } from '../../ui/spin-control';
 import { UIContainer } from '../../ui/ui-container';
-import { getIsMobile } from '../../ui/use-media-query';
+import { Ups } from '../../ui/ups';
 import { GameContext } from '../../util/game-provider';
 import { useLobby } from '../../util/use-lobby';
-import { useGameNotifications } from './use-game-events';
 
 let lastBootstrappedFor: string | undefined = undefined;
 let game: Game | undefined = undefined;
@@ -27,22 +26,22 @@ const bootstrapGame = (lobby: LobbyData | undefined) => {
   }
 
   lastBootstrappedFor = lobby?.id;
-  game = new Game(
-    lobby ? new OnlineAdapter(socket, lobby) : new OfflineAdapter(),
-    lobby?.params ? proxy(lobby.params) : params
-  );
+  const [ecs, _destroy] = lobby
+    ? createECS(lobby.params, socket, lobby)
+    : createECS(params);
+  game = ecs.game;
   return game;
 };
 
+const canvasEnabled = true;
+
 export const GamePage = () => {
-  const { canvasEnabled } = useSnapshot(settings);
+  const { pullToShoot } = useSnapshot(settings);
   const { lobby } = useLobby();
 
   const game = useMemo(() => {
     return bootstrapGame(lobby);
   }, [lobby]);
-
-  useGameNotifications(game);
 
   useEffect(() => {
     if (window.innerHeight > window.innerWidth) {
@@ -50,26 +49,22 @@ export const GamePage = () => {
         message: 'Rotate your device for the best experience',
       });
     }
-
-    if (getIsMobile()) {
-      document.body.requestFullscreen();
-    }
   }, []);
 
   return (
     <GameContext.Provider value={game}>
       {canvasEnabled && <Canvas game={game} />}
       <UIContainer
+        top={<Controls />}
+        left={pullToShoot ? <PullToShoot /> : undefined}
         bottom={
           <>
-            <span />
+            <Ups />
             <QuickControls />
             <SpinControl />
           </>
         }
-      >
-        <Controls />
-      </UIContainer>
+      />
     </GameContext.Provider>
   );
 };

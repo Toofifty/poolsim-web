@@ -58,6 +58,7 @@ export const vec = {
       vec.mult(axis, dot * (1 - cos))
     );
   },
+  angle2D: (v1: Vec, v2: Vec) => Math.atan2(v2[1] - v1[1], v2[0] - v1[0]),
 
   // mutative - only for class properties
   madd: (v1: Vec, v2: Vec) => {
@@ -123,6 +124,13 @@ export const vec = {
     v1[2] + (v2[2] - v1[2]) * t,
   ],
 
+  mlerp: (v1: Vec, v2: Vec, t: number): Vec => {
+    v1[0] += (v2[0] - v1[0]) * t;
+    v1[1] += (v2[1] - v1[1]) * t;
+    v1[2] += (v2[2] - v1[2]) * t;
+    return v1;
+  },
+
   /** Set components to 0 if near 0 */
   minimise: (v: Vec, epsilon = 1e-8): Vec => [
     Math.abs(v[0]) < epsilon ? 0 : v[0],
@@ -139,6 +147,12 @@ export const vec = {
   toString: (v: Vec) => {
     return v.map((c) => c.toExponential(2)).join(', ');
   },
+
+  random: (): Vec => [
+    Math.random() * 2 - 1,
+    Math.random() * 2 - 1,
+    Math.random() * 2 - 1,
+  ],
 
   zero: [0, 0, 0] as Vec,
   /** 0, 0, 1 */

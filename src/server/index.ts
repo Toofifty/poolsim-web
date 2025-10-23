@@ -135,24 +135,27 @@ io.on('connection', (socket) => {
   });
 
   const forward = (event: string) => {
-    socket.on(event, ([id, data]) => {
+    socket.on(`send/${event}`, ([id, data]) => {
       withErrorHandling(() => {
         const lobby = lobbies[id];
         if (!lobby) {
           throw new Error('Lobby does not exist!');
         }
-        socket.broadcast.to(id).emit(event, data);
+        socket.broadcast.to(id).emit(`receive/${event}`, data);
       });
     });
   };
 
+  // todo: use GameEvents type
   forward('setup-table');
-  forward('reset-cue-ball');
-  forward('set-game-state');
-  forward('place-ball-in-hand');
-  forward('update-ball-in-hand');
-  forward('update-cue');
+  forward('system-state');
+  forward('pickup-ball');
+  forward('move-ball');
+  forward('place-ball');
+  forward('move-cue');
   forward('shoot');
+  forward('params');
+  forward('physics-sync');
 
   socket.on('disconnect', () => {
     Object.entries(lobbies).forEach(([lobbyId, lobby]) => {

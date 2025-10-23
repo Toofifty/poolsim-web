@@ -15,6 +15,7 @@ export type ThemeObject = {
     colorBallNumber: Color;
     colors: number[];
     useLeopardPrint: boolean;
+    chrome: boolean;
   };
   table: {
     theme: TableTheme;
@@ -139,6 +140,7 @@ const getBallTheme = (): ThemeObject['balls'] => {
       0x500003,
     ],
     useLeopardPrint: false,
+    chrome: false,
   };
 
   switch (theme.ball) {
@@ -146,17 +148,20 @@ const getBallTheme = (): ThemeObject['balls'] => {
       return {
         ...base,
         colorBallNumber: new Color(0xffffff),
-        colorCueBallAccent: new Color(0xffffff),
-        colorBallCircle: new Color(0x333333),
-        colors: [0x333333, ...base.colors.slice(1)],
+        colorCueBallAccent: new Color(0x000000),
+        colorBallCircle: new Color(0x000000),
+        colors: [0xaaaaaa, ...base.colors.slice(1)],
       };
     case 'chrome':
       return {
         ...base,
         roughness: 0,
-        metalness: 0.75,
-        colorCueBallAccent: new Color(0x304657),
-        colors: [0xffffff, ...base.colors.slice(1).map(() => 0x444444)],
+        metalness: 1,
+        colorBallNumber: new Color(0xffffff),
+        colorBallCircle: new Color(0x222222),
+        colorCueBallAccent: new Color(0x222222),
+        colors: [0xffffff, ...base.colors.slice(1).map(() => 0xffffff)],
+        chrome: true,
       };
     case 'leopard':
       return {

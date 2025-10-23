@@ -10,7 +10,8 @@
     "build:server": "esbuild src/server/index.ts --bundle --platform=node --target=node18 --outfile=dist/server/index.cjs --minify",
     "build": "rm -rf dist && pnpm run build:client && pnpm run build:server",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:performance": "npx vite-node src/client/game/test/performance.test.ts"
   },
   "dependencies": {
     "@mantine/core": "^8.3.2",
@@ -39,6 +40,7 @@
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@tabler/icons-react": "^3.35.0",
+    "@tauri-apps/cli": "^2.8.4",
     "@types/express": "^5.0.3",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",

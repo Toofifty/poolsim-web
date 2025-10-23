@@ -1,11 +1,11 @@
-import { ExtrudeGeometry, Mesh, Path } from 'three';
+import type { Vec } from '@common/math';
+import { Mesh } from 'three';
 import type { Params } from '../../../../common/simulation/physics';
-import type { Pocket } from '../../objects/pocket';
 import { createMaterial } from '../../rendering/create-material';
 import { GraphicsDetail, settings } from '../../store/settings';
 import type { ThemeObject } from '../../store/theme';
-import { subscribeTo } from '../../util/subscribe';
-import { createRoundedRectShape, fixUVs } from '../util';
+import { fixUVs } from '../util';
+import { createTableClothGeometry } from './create-table-cloth-geometry';
 import {
   createTableClothNormalTexture,
   createTableClothTexture,
@@ -13,43 +13,10 @@ import {
 
 export const createTableClothMesh = (
   params: Params,
-  pockets: Pocket[],
+  pockets: { position: Vec; radius: number }[],
   theme: ThemeObject
 ) => {
-  const { table, pocket } = params;
-
-  const shape = createRoundedRectShape(
-    table.length + pocket.corner.radius * 2,
-    table.width + pocket.corner.radius * 2,
-    pocket.corner.radius
-  );
-
-  for (const pocket of pockets) {
-    const path = new Path();
-    path.absellipse(
-      pocket.physics.position[0],
-      pocket.physics.position[1],
-      pocket.radius,
-      pocket.radius,
-      0,
-      Math.PI * 2,
-      false
-    );
-    shape.holes.push(path);
-  }
-
-  let translateZ = -params.ball.radius;
-  const geometry = new ExtrudeGeometry(shape, {
-    depth: params.ball.radius,
-    bevelSize: 0.0025,
-    bevelThickness: 0.0025,
-  }).translate(0, 0, translateZ - params.ball.radius - 0.0025);
-
-  subscribeTo(params, ['ball.radius'], () => {
-    geometry.translate(0, 0, -translateZ);
-    translateZ = -params.ball.radius;
-    geometry.translate(0, 0, translateZ);
-  });
+  const geometry = createTableClothGeometry(params, pockets);
 
   fixUVs(geometry);
 

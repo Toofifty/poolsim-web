@@ -1,13 +1,13 @@
 import type { Snapshot } from 'valtio';
-import { AimAssistMode, RuleSet } from './types';
+import { AimAssistMode, Ruleset } from './types';
 
 /**
  * Thread-safe default parameters
  */
 export const defaultParams = {
   game: {
-    ruleSet: RuleSet._9Ball,
-    aimAssist: AimAssistMode.FirstContact,
+    ruleset: Ruleset._9Ball,
+    aimAssist: AimAssistMode.FirstContactCurve,
   },
   ball: {
     /** M */
@@ -21,11 +21,11 @@ export const defaultParams = {
     /** u_sp */
     frictionSpin: (0.028575 * 4) / 9,
     /** u_b */
-    frictionBall: 0.05,
+    frictionBall: 0.01,
     /** u_a */
     frictionAir: 0.001,
     /** e_b */
-    restitutionBall: 0.95,
+    restitutionBall: 0.9,
     /** e_p */
     restitutionPocket: 0.5,
     /** e_c */
@@ -69,8 +69,13 @@ export const defaultParams = {
     diamondWidth: 0.015,
   },
   cue: {
+    // https://drdavepoolinfo.com/faq/speed/typical/
+    // 2m/s
     defaultForce: 2,
-    maxForce: 10,
+    defaultBreakForce: 6,
+    // lower than powerful break
+    maxForce: 16,
+    maxBreakForce: 16,
     length: 1.4732,
     tipRadius: 0.006,
     handleRadius: 0.01,
@@ -80,9 +85,11 @@ export const defaultParams = {
   simulation: {
     maxIterations: 10_000,
     updatesPerSecond: 300,
+    stepsAfterFirstContact: 200,
+    cueBallRollDist: 0.25,
     playbackSpeed: 1,
-    trackingPointDist: 1,
-    useWorkerForAimAssist: true,
+    trackingPointDist: 2,
+    useWorkerForAimAssist: false,
     useWorkerForAI: true,
   },
   network: {
@@ -93,3 +100,6 @@ export const defaultParams = {
 
 export type StaticParams = Snapshot<typeof defaultParams>;
 export type Params = typeof defaultParams;
+
+export const cloneParams = (params: Params): Params =>
+  JSON.parse(JSON.stringify(params));

@@ -11,7 +11,6 @@ import {
   Ruleset,
   type StaticParams,
 } from '../../common/simulation/physics';
-import { Game } from '../game/game';
 import { GameState } from '../game/resources/system-state';
 import { Players, settings } from '../game/store/settings';
 import { socket } from '../socket';
@@ -156,70 +155,65 @@ export const Controls = () => {
                     </Button>
                   )}
                 </div>
-                <div className="group lower">
-                  <Button onClick={() => Game.focusCueBall()}>
-                    Focus cue ball
-                  </Button>
-                  {isHost && (
-                    <>
-                      <Button
-                        onClick={() =>
-                          ecs.emit('input/setup-game', {
-                            ruleset: Ruleset._8Ball,
-                          })
-                        }
-                      >
-                        8 ball
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          ecs.emit('input/setup-game', {
-                            ruleset: Ruleset._9Ball,
-                          })
-                        }
-                      >
-                        9 ball
-                      </Button>
-                      <Menu shadow="md">
-                        <Menu.Target>
-                          <Button className="button">Sandbox</Button>
-                        </Menu.Target>
-                        <Menu.Dropdown>
-                          <Menu.Item
-                            onClick={() =>
-                              ecs.emit('input/setup-game', {
-                                ruleset: Ruleset.Sandbox,
-                                sandbox: 'debug',
-                              })
-                            }
-                          >
-                            Debug
-                          </Menu.Item>
-                          <Menu.Item
-                            onClick={() =>
-                              ecs.emit('input/setup-game', {
-                                ruleset: Ruleset.SandboxSequential,
-                                sandbox: 'cubicle-troll',
-                              })
-                            }
-                          >
-                            Cubicle troll
-                          </Menu.Item>
-                          <Menu.Item
-                            onClick={() =>
-                              ecs.emit('input/setup-game', {
-                                ruleset: Ruleset.Sandbox,
-                                sandbox: 'newtons-cradle',
-                              })
-                            }
-                          >
-                            Newton's cradle
-                          </Menu.Item>
-                        </Menu.Dropdown>
-                      </Menu>
-                    </>
-                  )}
-                </div>
+                {isHost && (
+                  <div className="group lower">
+                    <Button
+                      onClick={() =>
+                        ecs.emit('input/setup-game', {
+                          ruleset: Ruleset._8Ball,
+                        })
+                      }
+                    >
+                      8 ball
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        ecs.emit('input/setup-game', {
+                          ruleset: Ruleset._9Ball,
+                        })
+                      }
+                    >
+                      9 ball
+                    </Button>
+                    <Menu shadow="md">
+                      <Menu.Target>
+                        <Button className="button">Sandbox</Button>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Item
+                          onClick={() =>
+                            ecs.emit('input/setup-game', {
+                              ruleset: Ruleset.Sandbox,
+                              sandbox: 'debug',
+                            })
+                          }
+                        >
+                          Debug
+                        </Menu.Item>
+                        <Menu.Item
+                          onClick={() =>
+                            ecs.emit('input/setup-game', {
+                              ruleset: Ruleset.SandboxSequential,
+                              sandbox: 'cubicle-troll',
+                            })
+                          }
+                        >
+                          Cubicle troll
+                        </Menu.Item>
+                        <Menu.Item
+                          onClick={() =>
+                            ecs.emit('input/setup-game', {
+                              ruleset: Ruleset.Sandbox,
+                              sandbox: 'newtons-cradle',
+                            })
+                          }
+                        >
+                          Newton's cradle
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  </div>
+                )}
               </div>
             </Surface>
 

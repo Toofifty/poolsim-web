@@ -31,7 +31,7 @@
 
     > :first-child {
       // avoid stats
-      margin-left: 80px;
+      transform: translateX(80px);
     }
 
     > * {

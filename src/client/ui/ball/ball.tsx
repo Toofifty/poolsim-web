@@ -21,7 +21,7 @@ export const RenderedBall = ({
 
   const canvas = useMemo(() => {
     if (id === undefined) return;
-    let textureSize = size * window.devicePixelRatio;
+    let textureSize = 2 * size * window.devicePixelRatio;
     if (textureSize <= 32) textureSize *= 4;
     return createBallCanvas(makeTheme(), id, {
       height: textureSize,

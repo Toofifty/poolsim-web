@@ -1,3 +1,4 @@
+import { vec } from '@common/math';
 import Stats from 'stats.js';
 import {
   ACESFilmicToneMapping,
@@ -258,7 +259,12 @@ export class Game {
         case 'l':
           this.ecs.emit('input/lock-cue', {});
           return;
+        case 'f':
+          this.ecs.emit('input/focus-cue', undefined);
+          Game.resetCamera();
+          return;
         case 'r':
+          this.ecs.emit('input/focus-cue', false);
           Game.resetCamera();
           return;
         case ' ':
@@ -270,25 +276,50 @@ export class Game {
       }
     });
 
+    let lastMouse = vec.new();
     this.input.onMouseMove((event) => {
+      const mouse = this.input.getRelativeMouse(event);
       this.ecs.emit('input/mouse-move', {
-        position: this.input.getRelativeMouse(event),
+        position: mouse,
         original: event,
       });
+
+      if (event.buttons === 1 || event.buttons === 2) {
+        this.ecs.emit('input/drag', {
+          button: event.buttons,
+          delta: vec.sub(mouse, lastMouse),
+          original: event,
+        });
+      }
+
+      lastMouse = mouse;
     });
 
+    let lastTouch = vec.new();
     this.input.onTouchStart((event) => {
+      const touch = this.input.getRelativeTouch(event);
       this.ecs.emit('input/touch-start', {
-        position: this.input.getRelativeTouch(event),
+        position: touch,
         original: event,
       });
+
+      lastTouch = touch;
     });
 
     this.input.onTouchMove((event) => {
+      const touch = this.input.getRelativeTouch(event);
       this.ecs.emit('input/touch-move', {
-        position: this.input.getRelativeTouch(event),
+        position: touch,
         original: event,
       });
+
+      this.ecs.emit('input/drag', {
+        button: 1,
+        delta: vec.sub(touch, lastTouch),
+        original: event,
+      });
+
+      lastTouch = touch;
     });
 
     this.input.onMouseDown((e) => {
@@ -322,10 +353,6 @@ export class Game {
     this.instance.controls.target.set(0, 0, 0);
     this.instance.camera.position.set(0, 0, 2);
     this.instance.controls.update();
-  }
-
-  public static focusCueBall() {
-    throw new Error('Not implemented');
   }
 
   public mount(container: HTMLDivElement | null) {

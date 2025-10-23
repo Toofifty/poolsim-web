@@ -17,37 +17,64 @@ import { PlaneMesh } from '../mouse/plane-mesh.component';
 import { Plane } from '../mouse/plane.component';
 import { Cue } from './cue.component';
 
-export const cueCursorTargetSystem = createSystemFactory<GameEvents>()(
-  [Cue],
-  (ecs, entity) => {
-    if (settings.controlMode !== 'cursor') return;
+const createSystem = createSystemFactory<GameEvents>();
 
-    const system = ecs.resource(SystemState);
-    if (!system.isShootable || !system.isActivePlayer) return;
-
-    const ballInHandEntity = ecs.query().has(InHand).findOne();
-    if (ballInHandEntity !== undefined) return;
-
-    const [cue] = ecs.get(entity, Cue);
-    if (cue.targetId === undefined || cue.shooting || cue.locked) {
-      return;
-    }
-
-    const [_, ball] = maybeFindBallById(ecs, cue.targetId);
-    if (!ball) return;
-    vec.mcopy(cue.target, vec.setZ(ball.r, ball.R));
-
-    const mouse = ecs.resource(MousePosition);
-    // only update cue if cursor is not too close
-    if (vec.dist(cue.target, mouse.world) > ball.R * 4) {
-      cue.angle = vec.angle2D(cue.target, mouse.world);
-    }
-
-    ecs.emit('game/cue-update', cue);
+/**
+ * Moves cue to target ball
+ */
+export const cueBallTargetSystem = createSystem([Cue], (ecs, entity) => {
+  const system = ecs.resource(SystemState);
+  if (!system.isShootable || !system.isActivePlayer) {
+    return;
   }
-);
 
-// todo: extract intersect and save touch position to resource
+  const ballInHandEntity = ecs.query().has(InHand).findOne();
+  if (ballInHandEntity !== undefined) return;
+
+  const [cue] = ecs.get(entity, Cue);
+  if (cue.targetId === undefined || cue.shooting) {
+    return;
+  }
+
+  const [_, ball] = maybeFindBallById(ecs, cue.targetId);
+  if (!ball) return;
+  vec.mcopy(cue.target, vec.setZ(ball.r, ball.R));
+});
+
+/**
+ * Move cue to point at cursor
+ */
+export const cueCursorTargetSystem = createSystem([Cue], (ecs, entity) => {
+  if (settings.controlMode !== 'cursor') return;
+
+  const system = ecs.resource(SystemState);
+  if (!system.isShootable || !system.isActivePlayer || system.cueFocused) {
+    return;
+  }
+
+  const ballInHandEntity = ecs.query().has(InHand).findOne();
+  if (ballInHandEntity !== undefined) return;
+
+  const [cue] = ecs.get(entity, Cue);
+  if (cue.targetId === undefined || cue.shooting || cue.locked) {
+    return;
+  }
+
+  const [_, ball] = maybeFindBallById(ecs, cue.targetId);
+  if (!ball) return;
+
+  const mouse = ecs.resource(MousePosition);
+  // only update cue if cursor is not too close
+  if (vec.dist(cue.target, mouse.world) > ball.R * 4) {
+    cue.angle = vec.angle2D(cue.target, mouse.world);
+  }
+
+  ecs.emit('game/cue-update', cue);
+});
+
+/**
+ * Drag cue with touch controls
+ */
 export const createCueTouchTargetSystems = (camera: Camera) => {
   const raycaster = new Raycaster();
 
@@ -68,7 +95,7 @@ export const createCueTouchTargetSystems = (camera: Camera) => {
     }
 
     const system = ecs.resource(SystemState);
-    if (!system.isShootable || !system.isActivePlayer) {
+    if (!system.isShootable || !system.isActivePlayer || system.cueFocused) {
       return false;
     }
 
@@ -100,10 +127,6 @@ export const createCueTouchTargetSystems = (camera: Camera) => {
     if (cue.targetId === undefined || cue.shooting || cue.locked) {
       return;
     }
-
-    const [_, ball] = maybeFindBallById(ecs, cue.targetId);
-    if (!ball) return;
-    vec.mcopy(cue.target, ball.r);
 
     const planeEntity = ecs.query().firstWith(Plane);
     assertExists(planeEntity, 'Missing intersection plane');

@@ -63,6 +63,7 @@ export type GameEvents = {
     winner: number;
   };
   'game/cue-update': Cue;
+  'game/focus-cue': boolean;
   'game/8-ball-state-change': {
     state: EightBallState;
   };
@@ -90,6 +91,11 @@ export type GameEvents = {
     key: string;
     original: KeyboardEvent;
   };
+  'input/drag': {
+    button: 1 | 2;
+    delta: Vec;
+    original: MouseEvent | TouchEvent;
+  };
   'input/lock-cue': {};
   'input/cue-update': {
     drawback?: number;
@@ -98,6 +104,7 @@ export type GameEvents = {
     side?: number;
     lift?: number;
   };
+  'input/focus-cue': boolean | undefined;
   'input/setup-game':
     | { ruleset: Ruleset._8Ball | Ruleset._9Ball }
     | {

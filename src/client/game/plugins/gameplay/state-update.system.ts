@@ -33,7 +33,6 @@ export class StateUpdateSystem extends EventSystem<'game/settled', GameEvents> {
     const turnResult = getTurnResult(data.result, data.rules);
     const gameOver = isGameOver(data.result, data.rules);
 
-    // todo: ball in hand
     if (turnResult.fouled) {
       ecs.emit('game/foul', turnResult);
 

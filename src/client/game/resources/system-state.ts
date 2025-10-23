@@ -32,6 +32,8 @@ export class SystemState extends Resource {
   public isBreak = true;
   public paused = false;
 
+  private _cueFocused = false;
+
   constructor(
     private ecs: ECS<GameEvents>,
     private _params: Params,
@@ -86,6 +88,15 @@ export class SystemState extends Resource {
   set turnIndex(value: number) {
     this._turnIndex = value;
     this.ecs.emit('game/change-player', value);
+  }
+
+  get cueFocused() {
+    return this._cueFocused;
+  }
+
+  set cueFocused(value: boolean) {
+    this._cueFocused = value;
+    this.ecs.emit('game/focus-cue', value);
   }
 
   get params(): DeepReadonly<Params> {

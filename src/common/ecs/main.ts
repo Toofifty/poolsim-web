@@ -410,9 +410,15 @@ export class ECS<TEventMap extends Record<string, any>, TWorld = unknown> {
     this.spawners.push(() => this.spawnImmediate(...components));
   }
 
-  public debug(entity: number) {
-    if (!this.entities.has(entity)) {
-      throw new Error(`Tried to debug non-tracked entity ${entity}`);
-    }
+  public get info() {
+    return {
+      entities: this.entities.size,
+      systems: this.systems.size,
+      fixedUpdateSystems: this.fixedUpdateSystems.size,
+      eventSystems: this.eventSystems.size,
+      startupSystems: this.startupSystems.length,
+      componentTrackingSystems: this.componentTrackingSystems.size,
+      resources: this.resources.size,
+    };
   }
 }

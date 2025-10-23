@@ -1,4 +1,4 @@
-import type { Object3D } from 'three';
+import { BufferGeometry, Material, Mesh, type Object3D } from 'three';
 import { ECSComponent } from '../../../common/ecs';
 
 export class Renderable extends ECSComponent {
@@ -6,5 +6,9 @@ export class Renderable extends ECSComponent {
 
   constructor(public mesh: Object3D) {
     super();
+  }
+
+  public static createMesh(geometry: BufferGeometry, material: Material) {
+    return new Renderable(new Mesh(geometry, material));
   }
 }

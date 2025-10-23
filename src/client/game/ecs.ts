@@ -9,6 +9,7 @@ import { aimAssistPlugin } from './plugins/aim-assist';
 import { audioPlugin } from './plugins/audio';
 import { ballPlugin } from './plugins/ball';
 import { cuePlugin } from './plugins/cue';
+import { bumperPlugin } from './plugins/extra/bumper';
 import { gameplayPlugin } from './plugins/gameplay';
 import { mousePlugin } from './plugins/mouse';
 import { createNetworkPlugin } from './plugins/network';
@@ -76,6 +77,7 @@ export const createECS = (
     audioPlugin,
     gameplayPlugin,
     aimAssistPlugin,
+    bumperPlugin,
   ]);
 
   ecs.addStartupSystem(new SettingsListenerSystem());

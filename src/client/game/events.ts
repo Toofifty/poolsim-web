@@ -115,6 +115,9 @@ export type GameEvents = {
     key: DeepKeyOf<Params>;
     value: unknown;
   };
+  'input/spawn-bumper': {
+    radius: number;
+  };
 
   // network
   'send/setup-table': {

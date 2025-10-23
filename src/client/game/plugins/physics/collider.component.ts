@@ -18,6 +18,14 @@ export class Collider extends ECSComponent {
     this.segments = Collider.computeSegments(vertices);
   }
 
+  public static create(
+    vertices: Vec[],
+    restitution = defaultParams.ball.restitutionCushion,
+    friction = defaultParams.ball.frictionCushion
+  ) {
+    return new Collider(vertices, restitution, friction);
+  }
+
   public static computeCollisionBox(
     { ball: { radius } }: Params,
     vertices: Vec[]

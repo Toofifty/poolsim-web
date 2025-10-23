@@ -267,6 +267,9 @@ export class Game {
           this.ecs.emit('input/focus-cue', false);
           Game.resetCamera();
           return;
+        case 'c':
+          this.ecs.emit('input/spawn-bumper', { radius: 0.2 });
+          return;
         case ' ':
           settings.pauseSimulation = !settings.pauseSimulation;
           return;

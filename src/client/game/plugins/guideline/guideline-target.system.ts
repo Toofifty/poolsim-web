@@ -7,11 +7,9 @@ import { Cue } from '../cue/cue.component';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
 import { InHand } from '../gameplay/in-hand.component';
 import { Physics } from '../physics/physics.component';
+import { prepareSimulation } from '../physics/prepare-simulation';
 import { hasImmediateFoul } from '../physics/simulation/result';
-import { createSimulationState } from '../physics/simulation/state';
 import { runWorkerSimulation } from '../physics/simulation/worker/run';
-import { Cushion } from '../table/cushion.component';
-import { Pocket } from '../table/pocket.component';
 import { Guideline } from './guideline.component';
 
 const CONSOLE_TIME = false;
@@ -33,7 +31,7 @@ export class GuidelineTargetSystem extends System {
     const cue = ecs.query().resolveFirst(Cue);
     const shot = Shot.from(cue);
 
-    if (guideline.key === shot.key || guideline.computing) {
+    if (guideline.key === Shot.getKey(shot) || guideline.computing) {
       return;
     }
 
@@ -43,8 +41,6 @@ export class GuidelineTargetSystem extends System {
     CONSOLE_TIME && console.time('guideline-query');
 
     const balls = ecs.query().resolveAll(Physics);
-    const cushions = ecs.query().resolveAll(Cushion);
-    const pockets = ecs.query().resolveAll(Pocket);
 
     const rules = ecs
       .resource(GameRuleProvider)
@@ -62,9 +58,7 @@ export class GuidelineTargetSystem extends System {
       return;
     }
 
-    const state = createSimulationState(balls, cushions, pockets, {
-      cueBallOnly: true,
-    });
+    const state = prepareSimulation(ecs, { cueBallOnly: true });
     const result = await runWorkerSimulation({
       params: system.params,
       shot,
@@ -75,7 +69,7 @@ export class GuidelineTargetSystem extends System {
     });
 
     guideline.reset();
-    guideline.key = shot.key;
+    guideline.key = Shot.getKey(shot);
 
     const cueBallPoints = result.trackingPoints.get(0);
     assert(cueBallPoints, 'Failed to track cue ball');

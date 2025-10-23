@@ -9,11 +9,9 @@ import { Cue } from '../cue/cue.component';
 import { getColor } from '../guideline/guideline-update.system';
 import { AccumulatedResult } from '../physics/accumulated-result.resource';
 import { Physics } from '../physics/physics.component';
+import { prepareSimulation } from '../physics/prepare-simulation';
 import type { Result } from '../physics/simulation/result';
-import { createSimulationState } from '../physics/simulation/state';
 import { runWorkerSimulation } from '../physics/simulation/worker/run';
-import { Cushion } from '../table/cushion.component';
-import { Pocket } from '../table/pocket.component';
 import { Projection } from './projection.component';
 
 const CONSOLE_TIME = false;
@@ -42,13 +40,8 @@ export const projectionUpdateSystem = createSystem(
         }
 
         const system = ecs.resource(SystemState);
-        const balls = [...entities].flatMap((entity) =>
-          ecs.get(entity, Physics)
-        );
-        const cushions = ecs.query().resolveAll(Cushion);
-        const pockets = ecs.query().resolveAll(Pocket);
 
-        const state = createSimulationState(balls, cushions, pockets);
+        const state = prepareSimulation(ecs, { ballEntities: entities });
         (async () => {
           CONSOLE_TIME && console.time('projection-compute');
           computing = true;

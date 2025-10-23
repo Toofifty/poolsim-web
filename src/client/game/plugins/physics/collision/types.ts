@@ -1,11 +1,11 @@
 import type { Vec } from '@common/math';
-import type { Cushion } from '../../table/cushion.component';
 import type { Pocket } from '../../table/pocket.component';
+import type { Collider } from '../collider.component';
 import type { Physics, PhysicsSnapshot } from '../physics.component';
 
 export type Collision =
   | BallBallCollision
-  | BallCushionCollision
+  | BallColliderCollision
   | BallPocketCollision;
 
 export type BallBallCollision = {
@@ -20,11 +20,11 @@ export type BallBallCollision = {
     other: PhysicsSnapshot;
   };
 };
-export type BallCushionCollision = {
-  type: 'ball-cushion';
+export type BallColliderCollision = {
+  type: 'ball-collider';
   step?: number;
   initiator: Physics;
-  other: Cushion;
+  other: Collider;
   position: Vec;
   impulse: Vec;
   snapshots: {

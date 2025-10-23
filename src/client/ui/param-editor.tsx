@@ -298,7 +298,7 @@ export const ParamEditor = ({
                 title="Ball-cushion friction"
                 note={
                   <>
-                    Friction applied during a ball-cushion collision. Affects
+                    Friction applied during a ball-collider collision. Affects
                     how spin is reduced on contact and how much the incidence
                     angle of the ball changes if there is side spin.
                     <br />
@@ -342,7 +342,7 @@ export const ParamEditor = ({
                 title="Ball-cushion restitution"
                 note={
                   <>
-                    "Bounciness" of ball-cushion collisions. A value of 1 means
+                    "Bounciness" of ball-collider collisions. A value of 1 means
                     collisions will be perfectly elastic.
                     <br />
                     Values above ~1.5 can cause runaway momentum.

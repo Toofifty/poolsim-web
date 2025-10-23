@@ -1,7 +1,7 @@
 import { vec } from '@common/math';
 import { solveQuadraticRoots } from '@common/math/solve';
 import type { Params } from '@common/simulation/physics';
-import type { Cushion } from '../../table/cushion.component';
+import type { Collider } from '../collider.component';
 import {
   computeMomentaryFrictionAccel,
   computeMomentaryFrictionDelta,
@@ -55,10 +55,10 @@ export const computeBallCollisionTime = (
   return Infinity;
 };
 
-export const computeCushionCollisionTime = (
+export const computeColliderCollisionTime = (
   params: Params,
   ball: Physics,
-  cushion: Cushion,
+  collider: Collider,
   dt: number
 ): number => {
   if (ball.state === PhysicsState.Stationary) return Infinity;
@@ -69,7 +69,7 @@ export const computeCushionCollisionTime = (
   const R = ball.R;
 
   let bestT = Infinity;
-  for (const [A, B] of cushion.segments) {
+  for (const [A, B] of collider.segments) {
     const edge = vec.sub(B, A);
     const edgeLen = vec.len(edge);
     const edgeDir = vec.norm(edge);

@@ -58,7 +58,7 @@ export const addCollision = (result: Result, collision: Collision) => {
     }
   }
 
-  if (collision.type === 'ball-cushion') {
+  if (collision.type === 'ball-collider') {
     if (collision.initiator.id === 0) {
       write.cueBallCushionCollisions++;
     } else {

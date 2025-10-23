@@ -9,7 +9,7 @@ import type { DeepKeyOf, DeepPathOf } from '../util/types';
 import type { Cue } from './plugins/cue/cue.component';
 import type {
   BallBallCollision,
-  BallCushionCollision,
+  BallColliderCollision,
   BallPocketCollision,
 } from './plugins/physics/collision/types';
 import type { Physics } from './plugins/physics/physics.component';
@@ -55,7 +55,7 @@ export type GameEvents = {
     rules: GameRules;
   };
   'game/ball-collision': BallBallCollision;
-  'game/cushion-collision': BallCushionCollision;
+  'game/cushion-collision': BallColliderCollision;
   'game/pocket-collision': BallPocketCollision;
   'game/ball-ejected': number;
   'game/foul': TurnFoul;

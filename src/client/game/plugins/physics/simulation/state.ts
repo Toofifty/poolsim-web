@@ -1,6 +1,6 @@
 import { iteration, pairs } from '@common/util/iterate';
-import type { Cushion } from '../../table/cushion.component';
 import type { Pocket } from '../../table/pocket.component';
+import type { Collider } from '../collider.component';
 import { PhysicsState, type Physics } from '../physics.component';
 
 // todo: include break status
@@ -11,8 +11,8 @@ export type SimulationState = {
   pockets: Pocket[];
   /** Pairs of active balls */
   pairs: [Physics, Physics][];
-  /** Pairs of active balls -> cushions */
-  ballCushions: [Physics, Cushion][];
+  /** Pairs of active balls -> colliders */
+  ballColliders: [Physics, Collider][];
   /** Pairs of active balls -> pockets */
   ballPockets: [Physics, Pocket][];
 };
@@ -26,7 +26,7 @@ const isActive = (ball: Physics) =>
  */
 export const createSimulationState = (
   balls: Physics[],
-  cushions: Cushion[],
+  colliders: Collider[],
   pockets: Pocket[],
   { cueBallOnly }: { cueBallOnly?: boolean } = {}
 ): SimulationState => {
@@ -39,9 +39,9 @@ export const createSimulationState = (
     pairs: cueBallOnly
       ? iteration([balls[0]], activeTargetBalls)
       : pairs(activeBalls),
-    ballCushions: cueBallOnly
-      ? iteration([balls[0]], cushions)
-      : iteration(activeBalls, cushions),
+    ballColliders: cueBallOnly
+      ? iteration([balls[0]], colliders)
+      : iteration(activeBalls, colliders),
     ballPockets: cueBallOnly
       ? iteration([balls[0]], pockets)
       : iteration(activeBalls, pockets),

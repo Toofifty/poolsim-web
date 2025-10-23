@@ -1,8 +1,8 @@
 import { ECS, StartupSystem } from '@common/ecs';
 import { vec, type Vec } from '@common/math';
 import { defaultParams } from '@common/simulation/physics';
-import { Renderable } from '../../components/renderable';
 import type { GameEvents } from '../../events';
+import { Collider } from '../physics/collider.component';
 import { CushionMesh } from './cushion-mesh.component';
 import { Cushion } from './cushion.component';
 
@@ -71,10 +71,10 @@ export class CushionSetupSystem extends StartupSystem {
     ];
 
     cushions.forEach((vertices) => {
-      ecs.spawnImmediate(Cushion.create(vertices), [
-        CushionMesh.create(vertices),
-        Renderable,
-      ]);
+      ecs.spawnImmediate(
+        [Cushion.create(vertices), Collider],
+        CushionMesh.create(vertices)
+      );
     });
   }
 }

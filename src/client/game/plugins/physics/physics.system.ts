@@ -4,12 +4,10 @@ import { GameRuleProvider } from '../../resources/game-rules';
 import type { GameRules } from '../../resources/game-rules/types';
 import { GameState, SystemState } from '../../resources/system-state';
 import { getActiveBallIds } from '../gameplay/get-active-ball-ids';
-import { Cushion } from '../table/cushion.component';
-import { Pocket } from '../table/pocket.component';
 import { AccumulatedResult } from './accumulated-result.resource';
 import { OldPhysics, Physics } from './physics.component';
+import { prepareSimulation } from './prepare-simulation';
 import { combine, createResult } from './simulation/result';
-import { createSimulationState } from './simulation/state';
 import { simulationStep } from './simulation/step';
 import { settled } from './simulation/tools';
 
@@ -47,10 +45,8 @@ export class PhysicsSystem extends System {
     const balls = [...entities]
       .map((entity) => ecs.get(entity, Physics))
       .flat();
-    const cushions = ecs.query().resolveAll(Cushion);
-    const pockets = ecs.query().resolveAll(Pocket);
 
-    const state = createSimulationState(balls, cushions, pockets);
+    const state = prepareSimulation(ecs, { ballEntities: entities });
     const result = simulationStep(ecs.deltaTime, state, {
       trackPath: false,
       params: system.params,

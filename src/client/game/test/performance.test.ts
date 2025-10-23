@@ -103,5 +103,5 @@ assertFinalPositions(expectedBreakResult, getFinalPositions(result));
 // collision compute: 966ms
 // ball-ball collision compute: 487ms
 // ball-ball iter max: 0.9629ms
-// ball-cushion collision compute: 475ms
-// ball-cushion iter max: 0.9074ms
+// ball-collider collision compute: 475ms
+// ball-collider iter max: 0.9074ms

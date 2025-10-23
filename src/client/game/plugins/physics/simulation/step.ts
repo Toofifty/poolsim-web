@@ -2,14 +2,14 @@ import { type Params } from '@common/simulation/physics';
 import { assert, assertExists } from '@common/util';
 import { Profiler, type IProfiler } from '@common/util/profiler';
 import {
-  collideBallCushion,
+  collideBallCollider,
   collideBallPocket,
   getBallBallCollision,
   solveBallBallCollisions,
 } from '../collision/collide';
 import {
   computeBallCollisionTime,
-  computeCushionCollisionTime,
+  computeColliderCollisionTime,
 } from '../collision/compute';
 import {
   evolveMotion,
@@ -104,13 +104,13 @@ const simulationSubstep = (
     endBallBall();
   }
 
-  const endBallCushion = profiler.start('ball-cushion');
-  // ball -> cushion collisions
-  for (const [ball, cushion] of state.ballCushions) {
-    const collision = collideBallCushion(params, ball, cushion);
+  const endBallCollider = profiler.start('ball-collider');
+  // ball -> collider/cushion collisions
+  for (const [ball, collider] of state.ballColliders) {
+    const collision = collideBallCollider(params, ball, collider);
     if (collision) addCollision(result, collision);
   }
-  endBallCushion();
+  endBallCollider();
 
   const endBallPocket = profiler.start('ball-pocket');
   for (const [ball, pocket] of state.ballPockets) {
@@ -149,17 +149,17 @@ const computeNextCollision = (
     endBallBall();
   }
 
-  // substep ball-cushion collisions
-  const endBallCushion = profiler.start('ball-cushion');
-  for (let [ball, cushion] of data.ballCushions) {
+  // substep ball-collider collisions
+  const endBallCollider = profiler.start('ball-collider');
+  for (let [ball, collider] of data.ballColliders) {
     const ct = profiler.profile('iter', () =>
-      computeCushionCollisionTime(params, ball, cushion, dt)
+      computeColliderCollisionTime(params, ball, collider, dt)
     );
     if (ct > 1e-6 && ct < nextCollision) {
       nextCollision = ct;
     }
   }
-  endBallCushion();
+  endBallCollider();
   endCompute();
 
   return nextCollision;

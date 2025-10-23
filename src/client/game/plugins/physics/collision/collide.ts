@@ -1,14 +1,14 @@
 import { vec, type Vec } from '@common/math';
 import { type Params } from '@common/simulation/physics';
-import { Cushion } from '../../table/cushion.component';
 import type { Pocket } from '../../table/pocket.component';
+import { Collider } from '../collider.component';
 import { computeIdealAngularVelocity } from '../evolution/compute';
 import { Physics, PhysicsState } from '../physics.component';
 import { solveLinearSystem } from './solver';
 import { applyBallCollisionSpin } from './spin';
 import type {
   BallBallCollision,
-  BallCushionCollision,
+  BallColliderCollision,
   BallPocketCollision,
 } from './types';
 
@@ -141,19 +141,20 @@ export const solveBallBallCollisions = (
   return trackedCollisions;
 };
 
-export const collideBallCushion = (
+export const collideBallCollider = (
   params: Params,
   ball: Physics,
-  cushion: Cushion,
+  collider: Collider,
   fixOverlap = true
-): BallCushionCollision | undefined => {
-  if (!Cushion.inBounds(cushion, ball.r)) {
+): BallColliderCollision | undefined => {
+  if (!Collider.inBounds(collider, ball.r)) {
     return undefined;
   }
 
-  const { restitutionCushion: ec, frictionCushion: fc } = params.ball;
+  const ec = collider.restitution;
+  const fc = collider.friction;
 
-  const closestPoint = Cushion.findClosestPoint(cushion, ball.r);
+  const closestPoint = Collider.findClosestPoint(collider, ball.r);
 
   const diff = vec.sub(ball.r, closestPoint);
   const distSq = vec.lenSq(diff);
@@ -187,9 +188,9 @@ export const collideBallCushion = (
     ball.w[2] *= 0.7;
 
     return {
-      type: 'ball-cushion',
+      type: 'ball-collider',
       initiator: ball,
-      other: cushion,
+      other: collider,
       position: closestPoint,
       impulse,
       snapshots: {

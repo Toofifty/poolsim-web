@@ -3,9 +3,10 @@ import type { Ctor, ECSComponent, ExtractComponents } from './component';
 import type { ECS } from './main';
 
 export class Query {
-  private predicates: ((ecs: ECS, entity: number) => boolean)[] = [];
+  private predicates: ((ecs: ECS<any, unknown>, entity: number) => boolean)[] =
+    [];
 
-  constructor(private entities: number[], private ecs: ECS) {}
+  constructor(private entities: number[], private ecs: ECS<any, unknown>) {}
 
   public has(...componentClasses: Ctor<ECSComponent>[]): Query {
     return this.filter((ecs, entity) =>
@@ -32,7 +33,9 @@ export class Query {
     };
   }
 
-  public filter(predicate: (ecs: ECS, entity: number) => boolean): Query {
+  public filter(
+    predicate: (ecs: ECS<any, unknown>, entity: number) => boolean
+  ): Query {
     this.predicates.push(predicate);
     return this;
   }

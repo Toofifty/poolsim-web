@@ -1,7 +1,11 @@
 import type { ECS, Entity } from '@common/ecs';
+import type { GameEvents } from '../../events';
 import { Physics, PhysicsState } from '../physics/physics.component';
 
-export const getActiveBallIds = (ecs: ECS, entities?: Set<Entity>) => {
+export const getActiveBallIds = (
+  ecs: ECS<GameEvents>,
+  entities?: Set<Entity>
+) => {
   const ballEntities = (
     entities ? [...entities] : ecs.query().has(Physics).findAll()
   ).splice(1);
